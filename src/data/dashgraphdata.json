@@ -1,0 +1,52 @@
+[
+  {
+    "label": "1 Mar",
+    "value": 2.2,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "2 Mar",
+    "value": 1.8,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "3 Mar",
+    "value": 3.1,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "4 Mar",
+    "value": 1.5,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "5 Mar",
+    "value": 2.0,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "6 Mar",
+    "value": 1.7,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "7 Mar",
+    "value": 2.8,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "8 Mar",
+    "value": 3.4,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "9 Mar",
+    "value": 1.9,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  },
+  {
+    "label": "10 Mar",
+    "value": 2.3,
+    "category": ["Employer", "Candidate", "Jobs", "Revenue"]
+  }
+]
