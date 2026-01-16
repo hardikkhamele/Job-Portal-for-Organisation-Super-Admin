@@ -98,8 +98,8 @@ import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { BsPersonSquare } from "react-icons/bs";
 import { MdPersonSearch } from "react-icons/md";
 
-import logo from "../assets/Logo.png";
-import profile from "../assets/profile.png";
+import logo from "../../assets/Logo.png";
+import profile from "../../assets/profile.png";
 
 const Sidebar = () => {
   const navigate = useNavigate();

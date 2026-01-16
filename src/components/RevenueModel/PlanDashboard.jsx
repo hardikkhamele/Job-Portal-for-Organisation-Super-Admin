@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
-import { Card, CardContent } from './Card';
+import { Card, CardContent } from '../Card';
 
 const dataBasic = [
   { value: 10000 },

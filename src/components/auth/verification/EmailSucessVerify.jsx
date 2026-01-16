@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import SuccessIcon from "../assets/SuccessIco"; // Placeholder for success icon
-import SucessIllusion from "../assets/SucessIllusio"; // Placeholder for success illustration
-import purpleback from "../assets/purpleback.svg";
+import SuccessIcon from "../../../assets/SuccessIco"; // Placeholder for success icon
+import SucessIllusion from "../../../assets/SucessIllusio"; // Placeholder for success illustration
+import purpleback from "../../../assets/purpleback.svg";
 
 const EmailVerifiedSuccess = () => {
   const navigate = useNavigate();
