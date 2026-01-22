@@ -6,7 +6,7 @@ import ReportedJobs from "./ReportedJobs";
 import RecentlyJobs from "./RecentlyJobs";
 import Company_Details from "./Company_Details";
 import ReportedJobDetails from "./ReportedJobDetails";
-import Footer from "./Footer";
+import Footer from "../Footer";
 
 export default function AllJobPosts() {
   return (

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Emailver from "../assets/Emailver.svg";
-import Phoneveri from "../assets/Phoneveri.svg"; // Icon for back button
-import purpleback from "../assets/purpleback.svg";
-import backbttn from "../assets/backbttn.svg";
+import Emailver from "../../../assets/Emailver.svg";
+import group from "../../../assets/group.svg"; // Icon for back button
+import purpleback from "../../../assets/purpleback.svg";
+import backbttn from "../../../assets/backbttn.svg";
 
-const PhoneOtpverification = () => {
+const EmailVerification = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { method, contact } = location.state || {};
@@ -29,7 +29,7 @@ const PhoneOtpverification = () => {
 
   const handleVerifyOTP = () => {
     if (otp === generatedOtp.toString()) {
-      navigate("/PhoneVerifiedSuccess"); // Navigate to success page
+      navigate("/EmailSucessVerify"); // Navigate to success page
     } else {
       setError("Invalid OTP. Please try again.");
     }
@@ -55,7 +55,7 @@ const PhoneOtpverification = () => {
             className="w-6/7 h-6/7 mr-2 cursor-pointer"
           />
         </button>
-        <h2 className="text-2xl font-semibold">Phone Verification</h2>
+        <h2 className="text-2xl font-semibold">Email Verification</h2>
         <p className="text-gray-500 mt-2 text-center">
           We've sent a verification code to <strong>{contact}</strong>
         </p>
@@ -106,7 +106,7 @@ const PhoneOtpverification = () => {
             Steering the platform, unlocking endless opportunities.
           </p>
           <img
-            src={Phoneveri}
+            src={group}
             alt="Illustration"
             className="mt-4 relative z-10 w-1/2 justify-center flex flex-col items-center mx-auto"
           />
@@ -116,4 +116,4 @@ const PhoneOtpverification = () => {
   );
 };
 
-export default PhoneOtpverification;
+export default EmailVerification;

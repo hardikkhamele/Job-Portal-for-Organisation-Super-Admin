@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Bellicon from "./Bellicon";
-import Comment from "./Comment";
-import Sidebar from "./Sidebar";
+import Bellicon from "../../Bellicon";
+import Comment from "../../Comment";
+import Sidebar from "../../../layout/sidebar/Sidebar";
 import { Doughnut, Bar } from "react-chartjs-2";
 
 import {
@@ -14,8 +14,8 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
-import Databar from "./Databar";
-import Switch from "./Switch";
+import Databar from "../dashboardJobs/Databar";
+import Switch from "../../../layout/navbar/Switch";
 
 ChartJS.register(
   ArcElement,

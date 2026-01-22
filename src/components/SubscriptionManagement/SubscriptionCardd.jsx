@@ -1,5 +1,6 @@
-import bookm from "../smallicon/bookm.svg";
-import batch1 from "../smallicon/batch1.svg";
+import bookm from "../../smallicon/bookm.svg";
+import batch1 from "../../smallicon/batch1.svg";
+// import batch1 from "../smallicon/batch1.svg";
 
 const SubscriptionCard = ({ plan }) => (
   <div

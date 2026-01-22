@@ -1,10 +1,10 @@
 import { Plus, Pencil, Trash } from "lucide-react";
 
-import Footer from "./Footer";
+import Footer from "../../Footer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router";
-import SubscriptionPlans from "./SubscriptionPlan";
+import SubscriptionPlans from "../SubscriptionPlan";
 
 export default function SubscriptionManagementEdit() {
   return (

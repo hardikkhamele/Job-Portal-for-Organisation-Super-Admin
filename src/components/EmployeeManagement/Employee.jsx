@@ -1,5 +1,5 @@
 import React from "react";
-import SummaryCard from "./Summary-Card";
+import SummaryCard from "./summaryCard/Summary-Card";
 import { FaUserTie, FaUsers, FaBriefcase, FaDollarSign } from "react-icons/fa";
 
 import EmployeeTable from "./EmployeeTable";

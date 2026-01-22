@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // ✅ Import useNavigate
-import SummaryCard from "./Summary-Card";
-import AnalyticsChart from "./Analytics-Chart";
+import SummaryCard from "../EmployeeManagement/summaryCard/Summary-Card";
+import AnalyticsChart from "../Analytics-Chart";
 import { FaUserTie, FaUsers, FaBriefcase, FaDollarSign } from "react-icons/fa";
-import GradientButton from "./Button";
+import GradientButton from "../Button";
 import { Calendar, Clock } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Footer from "../Footer";
 
 function Dashboard() {
   const [selectedFilter, setSelectedFilter] = useState("Monthly");
@@ -141,7 +142,7 @@ function Dashboard() {
       </div>
 
       {/* Footer */}
-      <h6>Copyright © 2024 TechnoHire. All rights reserved.</h6>
+     <Footer />
     </div>
   );
 }

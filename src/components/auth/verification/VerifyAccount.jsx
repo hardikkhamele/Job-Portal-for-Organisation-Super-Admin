@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import computer from "../assets/computer.svg";
-import purpleback from "../assets/purpleback.svg";
-import PhoneIcon from "../assets/PhoneIco";
-import EmailIcon from "../assets/EmailIco";
+import computer from "../../../assets/computer.svg";
+import purpleback from "../../../assets/purpleback.svg";
+import PhoneIcon from "../../../assets/PhoneIco";
+import EmailIcon from "../../../assets/EmailIco";
 
 const VerifyAccount = () => {
   const [selectedMethod, setSelectedMethod] = useState(null);

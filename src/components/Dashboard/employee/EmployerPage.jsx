@@ -1,10 +1,8 @@
-import React from "react";
 import { FaUserTie, FaUsers, FaBriefcase, FaDollarSign } from "react-icons/fa";
-import SummaryCard from "./Summary-Card";
-import AnalyticsDashboard from "../Chart/Analytics.jsx";
-import summaryData from "../data/dashboardEmplyee.json";
+import SummaryCard from "../../EmployeeManagement/summaryCard/Summary-Card.jsx";
+import AnalyticsDashboard from "../../../Chart/Analytics.jsx";
 
-function RevenuePage() {
+export default function EmployerPage() {
   return (
     <div className="p-2">
       {/* Header Section */}
@@ -74,5 +72,3 @@ function RevenuePage() {
     </div>
   );
 }
-
-export default RevenuePage;

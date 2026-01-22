@@ -1,6 +1,7 @@
 import { FaUserTie, FaUsers, FaBriefcase, FaDollarSign } from "react-icons/fa";
-import SummaryCard from "./Summary-Card";
-import AnalyticsDashboard from "../Chart/Analytics.jsx";
+import SummaryCard from "../../EmployeeManagement/summaryCard/Summary-Card.jsx";
+import AnalyticsDashboard from "../../../Chart/Analytics.jsx";
+import Footer from "../../Footer.jsx";
 
 export default function EmployerPage() {
   return (
@@ -65,9 +66,7 @@ export default function EmployerPage() {
         </div>
 
         {/* Footer */}
-        <footer className=" text-gray-500 text-sm mt-1">
-          © 2024 TechnoHire. All rights reserved.
-        </footer>
+        <Footer />
       </div>
     </div>
   );

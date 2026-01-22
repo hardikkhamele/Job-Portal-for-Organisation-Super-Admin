@@ -1,6 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import { Card } from "./Card";
+import { Card } from "../Card";
 import { Settings, User } from "lucide-react";
 
 import RevenueModel from "./RevenueModel";
@@ -9,7 +9,7 @@ import PlanDashboard from "./PlanDashboard";
 import SellingDashboard from "./SellingDashboard";
 import Transaction_Dashboard from "./Transaction_Dashboard";
 import Transaction_History from "./Transaction_History";
-import Footer from "./Footer";
+import Footer from "../Footer";
 
 export default function MainReven() {
   return (

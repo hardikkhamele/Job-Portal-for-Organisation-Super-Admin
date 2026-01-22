@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search, Bell, MessageSquare, Moon } from "lucide-react";
-import Ilogo from "../assets/Ilogo.svg";
-import Switch from "../components/DarkMode";
+import Ilogo from "../../assets/Ilogo.svg";
+import Switch from "./DarkMode";
 
 function SearchBar() {
   const [search, setSearch] = useState("");
