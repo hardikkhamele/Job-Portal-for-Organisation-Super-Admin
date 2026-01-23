@@ -111,15 +111,17 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="h-screen w-[250px] bg-[#52395F] text-white flex flex-col p-4 overflow-y-auto">
+    <div className="h-screen w-[250px] bg-[#52395F] text-white flex flex-col p-4 overflow-y-auto no-scrollbar">
+
       {/* Logo Section */}
       <div className="flex flex-col items-center mb-8 relative">
         <div className="absolute w-[190px] h-[90px] bg-white blur-xl opacity-50 rounded-lg"></div>
         <img
-          src={logo}
-          alt="TechnoHire Logo"
-          className="relative w-[240px] h-[100px] shadow-white mb-2"
+        src={logo}
+        alt="TechnoHire Logo"
+        className="relative w-[240px] h-[100px] mb-2 mix-blend-multiply"
         />
+
       </div>
 
       {/* Navigation Menu */}

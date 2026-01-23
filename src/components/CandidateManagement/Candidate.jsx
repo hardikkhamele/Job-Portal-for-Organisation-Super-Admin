@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Line } from "react-chartjs-2"; // Use Line chart
+import { Line } from "react-chartjs-2";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,6 +12,7 @@ import {
   faUserPlus,
   faClockRotateLeft
 } from "@fortawesome/free-solid-svg-icons";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,7 +23,6 @@ import {
   Legend
 } from "chart.js";
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -39,97 +39,39 @@ const Candidate = () => {
   const [overviewData, setOverviewData] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setCandidateSummary([
-        {
-          title: "Total Candidate",
-          value: "15k",
-          updated: "Today Morning",
-          color: "red",
-          icon: faUsers
-        },
-        {
-          title: "New Candidates",
-          value: "8k",
-          updated: "Yesterday",
-          color: "blue",
-          icon: faUserPlus
-        },
-        {
-          title: "Active Candidates",
-          value: "1.2k",
-          updated: "2 Days Ago",
-          color: "green",
-          icon: faUserCheck
-        },
-        {
-          title: "Inactive Candidates",
-          value: "6.8k",
-          updated: "Today Morning",
-          color: "yellow",
-          icon: faUserSlash
-        }
-      ]);
-      setRequests([
-        {
-          name: "John Doe",
-          qualification: "B.Tech in Computer Science",
-          profileImage: "https://via.placeholder.com/50"
-        },
-        {
-          name: "Jane Smith",
-          qualification: "MBA in HR",
-          profileImage: "https://via.placeholder.com/50"
-        },
-        {
-          name: "Jane Smith",
-          qualification: "MBA in HR",
-          profileImage: "https://via.placeholder.com/50"
-        }
-      ]);
-      setCandidateDetails([
-        {
-          id: 1,
-          name: "John Doe",
-          qualification: "B.Tech",
-          documents: "Verified",
-          mobile: "123-456-7890",
-          profileImage: ""
-        },
-        {
-          id: 2,
-          name: "Kusuma",
-          qualification: "MBA",
-          documents: "Pending",
-          mobile: "987-654-3210",
-          profileImage: ""
-        },
-        {
-          id: 3,
-          name: "Smith",
-          qualification: "MBA",
-          documents: "Pending",
-          mobile: "987-654-3210",
-          profileImage: ""
-        }
-      ]);
-      setOverviewData([
-        { year: "2020-2021", value: 3 },
-        { year: "2021-2022", value: 5 },
-        { year: "2022-2023", value: 7 },
-        { year: "2023-2024", value: 9 }
-      ]);
-    };
+    setCandidateSummary([
+      { title: "Total Candidate", value: "15k", updated: "Today Morning", color: "red", icon: faUsers },
+      { title: "New Candidates", value: "8k", updated: "Yesterday", color: "blue", icon: faUserPlus },
+      { title: "Active Candidates", value: "1.2k", updated: "2 Days Ago", color: "green", icon: faUserCheck },
+      { title: "Inactive Candidates", value: "6.8k", updated: "Today Morning", color: "yellow", icon: faUserSlash }
+    ]);
 
-    fetchData();
+    setRequests([
+      { name: "John Doe", qualification: "B.Tech in Computer Science", profileImage: "https://megikevents.com/wp-content/uploads/2017/10/speaker3-min.jpg" },
+      { name: "Jane Smith", qualification: "MBA in HR", profileImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo_R_vlnUz9UhylMPCccagw4dMqhbs4UMPAA&s" },
+      { name: "Jane Smith", qualification: "MBA in HR", profileImage: "https://sosafe-awareness.com/sosafe-files/uploads/2022/08/author-profile-picture.png" }
+    ]);
+
+    setCandidateDetails([
+      { id: 527269, name: "Damon", qualification: "B.Sc Physics", documents: "Resume.pdf", mobile: "+91 12345 67890", profileImage: "https://megikevents.com/wp-content/uploads/2017/10/speaker3-min.jpg" },
+      { id: 748526, name: "Mathew", qualification: "Front End Developer", documents: "Work Experience.pdf", mobile: "+91 12345 67890", profileImage: "https://sosafe-awareness.com/sosafe-files/uploads/2022/08/author-profile-picture.png" },
+      { id: 748527, name: "Eva", qualification: "UI/UX Intern", documents: "Intern Certificate.pdf", mobile: "+91 12345 67890", profileImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo_R_vlnUz9UhylMPCccagw4dMqhbs4UMPAA&s" }
+    ]);
+
+    setOverviewData([
+      { year: "2020-2021", value: 3 },
+      { year: "2021-2022", value: 5 },
+      { year: "2022-2023", value: 7 },
+      { year: "2023-2024", value: 9 }
+    ]);
   }, []);
 
   const chartData = {
-    labels: overviewData.map((data) => data.year),
+    labels: overviewData.map(d => d.year),
     datasets: [
       {
         label: "Candidates Overview",
-        data: overviewData.map((data) => data.value * 1000),
+        data: overviewData.map(d => d.value * 1000),
         borderColor: "rgba(52, 8, 77, 0.92)",
         backgroundColor: "rgba(148, 0, 211, 0.2)",
         fill: true,
@@ -142,217 +84,111 @@ const Candidate = () => {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: function (tooltipItem) {
-            return `Value: ${tooltipItem.raw} (${tooltipItem.raw / 1000}k)`;
-          }
-        }
-      }
-    },
     scales: {
-      x: {
-        title: {
-          display: true,
-          text: "Fiscal Year"
-        },
-        grid: {
-          display: false
-        }
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Number of Candidates"
-        },
-        beginAtZero: true,
-        ticks: {
-          callback: function (value) {
-            return `${value / 1000}k`;
-          }
-        },
-        grid: {
-          display: false
-        }
-      }
+      x: { grid: { display: false } },
+      y: { beginAtZero: true, grid: { display: false } }
     }
   };
 
   return (
-    <div>
-      <div className=" flex">
-        <div className="flex flex-col w-[100%] ">
-          <div className="main-container flex flex-col h-fit w-full p-4 space-y-4  bg-gray-100">
-            <div className="flex flex-col items-start  ">
-              <h1 className="text-lg text-black font-semibold">
-                Hello! TechnoHire
-              </h1>
-              <h4 className="text-2xl font-bold mt-2">Candidate Management</h4>
+    <div className="bg-gray-100 p-4">
+
+      {/* SUMMARY */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {candidateSummary.map((item, index) => (
+          <div key={index} className="flex justify-between items-center p-6 bg-white shadow-md rounded-lg">
+            <div>
+              <p className="text-sm text-gray-500">{item.title}</p>
+              <p className="text-xl font-bold">{item.value}</p>
+              <p className="text-sm text-gray-500 flex items-center">
+                <FontAwesomeIcon icon={faClockRotateLeft} className="mr-2 text-green-400" />
+                {item.updated}
+              </p>
             </div>
-
-            <div className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
-              {candidateSummary.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center p-6 bg-white shadow-md rounded-lg"
-                >
-                  <div className="flex flex-col justify-center items-left">
-                    <p className="text-sm text-gray-500">{item.title}</p>
-                    <p className="text-xl font-bold text-gray-800">
-                      {item.value}
-                    </p>
-                    <p className="text-sm text-gray-500 flex items-center">
-                      <FontAwesomeIcon
-                        icon={faClockRotateLeft}
-                        size="lg"
-                        className="text-green-400 mr-2"
-                      />
-                      {item.updated}
-                    </p>
-                  </div>
-                  <div className={`bg-${item.color}-100 rounded-full p-2`}>
-                    <FontAwesomeIcon
-                      icon={item.icon}
-                      className={`text-${item.color}-500`}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="container-3 grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Requests Section */}
-              <div className="requests bg-white p-4    rounded-xl shadow-md overflow-hidden">
-                <div className="flex items-center justify-between ">
-                  <Link to="/candidate-profile">
-                    <h3 className="text-lg font-semibold mb-2">
-                      Verification Requests - Candidate
-                    </h3>
-                  </Link>
-                  <button className="text-slate-600 font-semibold text-sm hover:text-slate-900">
-                    View More
-                  </button>
-                </div>
-                <div className="space-y-4 mt-4">
-                  {requests.map((req, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-wrap justify-between p-3  border-b-2  "
-                    >
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={req.profileImage}
-                          alt="Candidate"
-                          className="rounded-full w-12 h-12 border"
-                        />
-                        <div>
-                          <h4 className="font-medium text-gray-800">
-                            {req.name}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {req.qualification}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-3 space-x-2 mt-2 lg:mt-0">
-                        <Link
-                          to="/VerificationCandiate"
-                          className="px-3 text-center pt-3  bg-purple-300 text-purple-800 font-bold rounded-md text-sm w-full lg:w-auto hover:text-purple-900 hover:bg-purple-400"
-                        >
-                          View Details
-                        </Link>
-                        <Link
-                          to="/candidateProfile"
-                          className="px-3 text-center pt-3  bg-green-300 text-green-800 font-bold rounded-md text-sm w-full lg:w-auto hover:text-green-900 hover:bg-green-400"
-                        >
-                          Approve
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Overview Section */}
-              <div className=" bg-white p-4 rounded-xl shadow-md">
-                <h3 className="text-lg font-semibold">
-                  Candidate Yearly Overview
-                </h3>
-                <div className="mt-4 h-60">
-                  <Line data={chartData} options={chartOptions} />
-                </div>
-              </div>
-            </div>
-
-            {/* Container 4 */}
-            <div className="mt-2 md:mt-4 lg:mt-8 rounded-xl shadow-md p-5 border bg-white">
-              <h3 className="text-lg text-slate-700 font-semibold">
-                Candidate Details
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full mt-4 border-collapse text-center min-w-max">
-                  <thead>
-                    <tr className="bg-white">
-                      <th className="p-2 border-b-2">ID</th>
-                      <th className="p-2 border-b-2">Candidate Name</th>
-                      <th className="p-2 border-b-2">Qualification</th>
-                      <th className="p-2 border-b-2">Documents</th>
-                      <th className="p-2 border-b-2">Mobile</th>
-                      <th className="p-2 border-b-2">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {candidateDetails.map((detail) => (
-                      <tr key={detail.id} className="border-b">
-                        <td className="p-2">#{detail.id}</td>
-                        <td className="p-2  ">
-                          <div className="flex items-center justify-start gap-3  ">
-                            {detail.profileImage ? (
-                              <img
-                                src={detail.profileImage}
-                                className="w-10 h-10 rounded-full "
-                                alt="Profile"
-                              />
-                            ) : (
-                              <span className="w-10 h-10 flex items-center justify-center bg-purple-300 rounded-full text-purple-800">
-                                {detail.name[0]}
-                              </span>
-                            )}
-                            <span className="whitespace-nowrap">
-                              {detail.name}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="p-2 whitespace-nowrap">
-                          {detail.qualification}
-                        </td>
-                        <td className="p-2 whitespace-nowrap">
-                          {detail.documents}
-                        </td>
-                        <td className="p-2 whitespace-nowrap">
-                          {detail.mobile}
-                        </td>
-                        <td className="p-2 flex items-center justify-center space-x-4">
-                          <Link
-                            to=""
-                            className="hover:text-purple-700 transition-transform transform hover:scale-110"
-                          >
-                            <FontAwesomeIcon icon={faEdit} size="lg" />
-                          </Link>
-                          <button className="text-red-500 hover:text-red-700 transition-transform transform hover:scale-110">
-                            <FontAwesomeIcon icon={faTrash} size="lg" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <div className={`bg-${item.color}-100 p-2 rounded-full`}>
+              <FontAwesomeIcon icon={item.icon} className={`text-${item.color}-500`} />
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* REQUESTS + CHART */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+        <div className="bg-white p-4 rounded-xl shadow-md">
+          {requests.map((req, i) => (
+            <div key={i} className="flex justify-between p-3 border-b border-slate-100">
+              <div className="flex items-center gap-4">
+                <img src={req.profileImage} className="w-12 h-12 rounded-full" />
+                <div>
+                  <h4>{req.name}</h4>
+                  <p className="text-sm">{req.qualification}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+   <Link to="/candidateProfile" className="bg-purple-300 px-3 py-2 rounded-md">
+  View Details
+</Link>
+
+
+<Link
+  to="/VerificationCandiate"
+  className="bg-green-300 px-3 py-2 rounded-md"
+>
+  Approve
+</Link>
+
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow-md h-64">
+          <Line data={chartData} options={chartOptions} />
         </div>
       </div>
+
+      {/* 🔥 UPDATED TABLE (FIGMA STYLE) */}
+      <div className="bg-white mt-6 p-5 rounded-xl shadow-md">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b border-slate-200 text-gray-600">
+              <th className="py-3">ID</th>
+              <th>Candidate Name</th>
+              <th>Qualification</th>
+              <th>Documents</th>
+              <th>Mobile</th>
+              <th className="text-center">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {candidateDetails.map(d => (
+              <tr key={d.id} className="border-b border-slate-100">
+                <td className="py-4 text-gray-500">#{d.id}</td>
+
+                <td className="flex items-center gap-3 py-4">
+                  <img
+                    src={d.profileImage}
+                    className="w-10 h-10 rounded-full"
+                    alt=""
+                  />
+                  <span className="font-medium">{d.name}</span>
+                </td>
+
+                <td className="text-gray-600">{d.qualification}</td>
+                <td className="text-gray-600">{d.documents}</td>
+                <td className="text-gray-600">{d.mobile}</td>
+
+                <td className="flex justify-center gap-4 py-4">
+                  <FontAwesomeIcon icon={faEdit} className="cursor-pointer" />
+                  <FontAwesomeIcon icon={faTrash} className="text-red-500 cursor-pointer" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
     </div>
   );
 };

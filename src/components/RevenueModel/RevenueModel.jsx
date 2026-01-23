@@ -54,11 +54,11 @@ const RevenueModel = () => {
               <div>
                 <div className="text-lg font-bold">{item.title}</div>
                 <div className="mt-4 text-2xl font-semibold">{item.value}</div>
-                <div className={`mt-2 ${item.color} font-medium`}>
+                <div className={`mt-2 ${item.color} font-medium whitespace-nowrap`}>
                   {item.change} {item.status}
                 </div>
               </div>
-              <div className="text-3xl ml-4">{item.icon}</div>
+              <div className="text-1.5xl flex-shrink-0">{item.icon}</div>
             </div>
           </div>
         ))}

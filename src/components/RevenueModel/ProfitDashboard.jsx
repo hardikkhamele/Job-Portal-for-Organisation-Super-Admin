@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LineChart, Line, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -22,14 +21,13 @@ const planData = [
 
 const ProfitDashboard = () => {
   return (
-    <div className="px-4 bg-gray-100 h-[400px] flex gap-4 my-[20px]">
+    <div className="px-2 bg-gray-100 min-h-[400px] flex gap-4 items-start -mt-10 pt-0">
 
-      
       <div className="bg-white p-4 rounded-2xl shadow-md flex-1 h-full flex flex-col justify-between">
-        <h2 className="text-xl font-semibold">Total Profit</h2>
-        <p className="text-gray-500">Last 7 days</p>
-        <h1 className="text-4xl font-bold mt-2">116K</h1>
-        <ul className="mt-4 text-lg">
+        <h2 className="text-xl font-semibold -mt-1">Total Profit</h2>
+        <p className="text-gray-500 -mt-1">Last 7 days</p>
+        <h1 className="text-4xl font-bold mt-1">116K</h1>
+        <ul className="mt-2 text-lg space-y-1">
           <li className="text-blue-500">14K</li>
           <li className="text-red-500">25K</li>
           <li className="text-green-500">42K</li>
@@ -37,7 +35,6 @@ const ProfitDashboard = () => {
         </ul>
       </div>
 
-      
       <div className="bg-white p-4 rounded-2xl shadow-md flex-1 h-full">
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={profitData}>
@@ -70,5 +67,3 @@ const ProfitDashboard = () => {
 };
 
 export default ProfitDashboard;
-
-
