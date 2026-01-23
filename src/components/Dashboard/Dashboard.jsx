@@ -17,18 +17,18 @@ function Dashboard() {
   return (
     <div className="p-2">
       {/* Header Section */}
-      <div className="flex justify-between items-center mb-2 h-8">
-        <h1 className="text-2xl font-bold ml-5">Dashboard</h1>
-        <h4 className="ml-0 pl-0 text-1xl">Hello! TechnoHire</h4>
-        <div className="flex items-center space-x-6 p-1 h-8   rounded-lg shadow-md">
-          <div className="flex space-x-3  text-gray-500 text-sm font-medium">
+      <div className="flex justify-between items-center mb-2 h-8 mt-7">
+        <h1 className="text-2xl font-bold ml-5  mr-6">Dashboard</h1>
+        <h4 className="ml-0 pl-0 text-1xl mr-4">Hello! TechnoHire</h4>
+        <div className="flex items-center gap-4 h-8 ml-auto">
+          <div className="flex items-center gap-1 bg-gray-100 rounded-md px-1 py-0.5 shadow-sm inline-flex">
             {["Daily", "Weekly", "Monthly", "Yearly"].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setSelectedFilter(filter)}
-                className={`px-3 py-1 ${
+                 className={`px-1.5 py-0.5 rounded text-[11px] transition ${
                   selectedFilter === filter
-                    ? "text-purple-600 font-bold"
+                    ? "bg-white text-purple-600 font-semibold shadow-sm"
                     : "text-gray-500"
                 }`}
               >
@@ -37,22 +37,22 @@ function Dashboard() {
             ))}
           </div>
           {/* Date Picker */}
-          <div className="flex items-center space-x-1 border-l pl-4">
+          <div className="flex items-center gap-1 bg-gray-100 rounded-md px-1 py-0.5 shadow-sm inline-flex">
             <div className="flex items-center space-x-2">
-              <Calendar size={10} className="text-purple-600" />
+              <Calendar size={18} className="text-purple-600" />
               <DatePicker
                 selected={startDate}
                 onChange={(date) => setStartDate(date)}
-                className="text-sm text-gray-700 focus:outline-none"
+                className="text-xs text-gray-700 focus:outline-none w-[85px] bg-transparent"
                 dateFormat="MMM dd, yyyy"
               />
             </div>
             <div className="flex items-center space-x-1">
-              <Clock size={10} className="text-purple-600" />
+              <Clock size={18} className="text-purple-600" />
               <DatePicker
                 selected={startDate}
                 onChange={(date) => setStartDate(date)}
-                className="text-sm text-gray-700 focus:outline-none"
+                className="text-xs text-gray-700 focus:outline-none w-[65px] bg-transparent"
                 showTimeSelect
                 showTimeSelectOnly
                 timeIntervals={15}
@@ -117,9 +117,9 @@ function Dashboard() {
       </div>
 
       {/* Action Buttons with Navigation */}
-      <div className="mr-5 ml-5 p-4 grid grid-cols-4 h-12 gap-14 mt-4">
+      <div className="mr-5 ml-5 p-4 grid grid-cols-4 gap-8 mt-4 items-center justify-items-center">
         <GradientButton
-          onClick={() => navigate("/view-employer")}
+          onClick={() => navigate("/view-employer")}  
           label="View Employer"
         />
         <GradientButton
@@ -136,10 +136,10 @@ function Dashboard() {
         />
       </div>
 
-      {/* Analytics Chart */}
-      <div className="mr-5 ml-5  p-2">
-        <AnalyticsChart filter={selectedFilter} date={startDate} />
-      </div>
+        {/* Analytics Chart */}
+        <div className="mr-5 ml-5  p-2 mt-2">
+          <AnalyticsChart filter={selectedFilter} date={startDate} />
+        </div>
 
       {/* Footer */}
      <Footer />

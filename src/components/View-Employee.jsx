@@ -3,11 +3,11 @@ import SummaryCard from "./Summary-Card";
 import AnalyticsChart from "./Analytics-Chart";
 import { FaUserTie, FaUsers, FaBriefcase, FaDollarSign } from "react-icons/fa";
 import GradientButton from "./Button";
-import { Calendar, Clock } from "lucide-react"; // Lucide icons for date and time
+import { Calendar, Clock } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Footer from "./Footer";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 function ViewEmployee() {
   const [selectedFilter, setSelectedFilter] = useState("Monthly");
@@ -17,14 +17,17 @@ function ViewEmployee() {
   return (
     <div className="p-2">
       {/* Header Section */}
-      <div className="flex justify-between items-center mb-2 h-8">
-        <h1 className=" text-3xl font-bold">Dashboard </h1>
-        <h4 className="ml-5 text-2xl ">Hello! TechnoHire</h4>
+      <div className="flex justify-between items-center mb-4">
+        {/* LEFT GROUP */}
+        <div className="flex items-center gap-4 flex-shrink-0">
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h4 className="text-2xl">Hello! TechnoHire</h4>
+        </div>
 
-        {/* Filter & Date Picker Section */}
-        <div className="flex items-center space-x-6 p-1 h-8   rounded-lg shadow-md">
+        {/* RIGHT GROUP */}
+        <div className="flex items-center space-x-6 p-1 rounded-lg shadow-md">
           {/* Filter Tabs */}
-          <div className="flex space-x-3  text-gray-500 text-sm font-medium">
+          <div className="flex space-x-3 text-gray-500 text-sm font-medium">
             {["Daily", "Weekly", "Monthly", "Yearly"].map((filter) => (
               <button
                 key={filter}
@@ -43,7 +46,7 @@ function ViewEmployee() {
           {/* Date Picker */}
           <div className="flex items-center space-x-3 border-l pl-4">
             <div className="flex items-center space-x-2">
-              <Calendar size={10} className="text-purple-600" />
+              <Calendar size={16} className="text-purple-600" />
               <DatePicker
                 selected={startDate}
                 onChange={(date) => setStartDate(date)}
@@ -52,7 +55,7 @@ function ViewEmployee() {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Clock size={10} className="text-purple-600" />
+              <Clock size={16} className="text-purple-600" />
               <DatePicker
                 selected={startDate}
                 onChange={(date) => setStartDate(date)}
@@ -67,11 +70,12 @@ function ViewEmployee() {
           </div>
         </div>
       </div>
+
       {/* Summary Cards */}
-      <div className="mr-5 ml-5 h-30 p-2  grid grid-cols-4 gap-12">
+      <div className="mr-5 ml-5 p-2 grid grid-cols-4 gap-12">
         <SummaryCard
           title="Employers"
-          value="2,000"
+          value="2,00"
           icon={
             <FaUserTie
               size={22}
@@ -118,7 +122,8 @@ function ViewEmployee() {
           growth="1.8%"
         />
       </div>
-      {/* Action Buttons */}
+
+      <Footer />
     </div>
   );
 }

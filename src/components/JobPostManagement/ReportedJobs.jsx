@@ -1,43 +1,42 @@
 import React from "react"; 
-import { FaTrashAlt, FaEye, FaChevronDown } from "react-icons/fa";
+import { FaChevronDown } from "react-icons/fa";
 
 const reportedJobs = [
   { 
     title: "Networking Engineer", 
     reported: 82, 
-    logo: "https://cdn-icons-png.flaticon.com/512/4228/4228679.png" // Network Engineer Icon
+    logo: "https://cdn-icons-png.flaticon.com/512/4228/4228679.png"
   },
   { 
     title: "Non Voice Support", 
     reported: 71, 
-    logo: "https://cdn-icons-png.flaticon.com/512/2920/2920264.png" // Customer Support Icon
+    logo: "https://cdn-icons-png.flaticon.com/512/2920/2920264.png"
   },
   { 
     title: "Technical Support", 
     reported: 79, 
-    logo: "https://cdn-icons-png.flaticon.com/512/3771/3771518.png" // Technical Support Icon
+    logo: "https://cdn-icons-png.flaticon.com/512/3771/3771518.png"
   },
   { 
     title: "UI/UX Designer", 
     reported: 67, 
-    logo: "https://cdn-icons-png.flaticon.com/512/5642/5642331.png" // UI/UX Icon
+    logo: "https://cdn-icons-png.flaticon.com/512/5642/5642331.png"
   },
 ];
-
 
 const hiringCompanies = [
   {
     hired: "30K",
     company: "Figma",
     percentage: 25.8,
-    logo: "https://cdn-icons-png.flaticon.com/512/5968/5968705.png", // Updated to correct Figma logo
+    logo: "https://cdn-icons-png.flaticon.com/512/5968/5968705.png",
     increase: true,
   },
   {
     hired: "26K",
     company: "Apple",
     percentage: 16.2,
-    logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg", // Updated to correct Apple logo
+    logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg",
     increase: false,
   },
   {
@@ -63,7 +62,6 @@ const hiringCompanies = [
   },
 ];
 
-
 const ReportedJobs = () => {
   return (
     <div className="p-1 bg-gray-100 min-h-screen">
@@ -76,18 +74,18 @@ const ReportedJobs = () => {
           </div>
 
           {reportedJobs.map((job, index) => (
-            <div key={index} className="flex items-center p-3 border rounded-md mb-3 gap-4">
+            <div key={index} className="flex items-center p-3 rounded-md mb-3 gap-4">
               <img src={job.logo} alt={job.title} className="w-8 h-8 rounded-full" />
               <div>
                 <h3 className="font-medium">{job.title}</h3>
                 <p className="text-sm text-red-500">⚠️ Reported by {job.reported} people as spam</p>
               </div>
               <div className="flex gap-2">
-                <button className="bg-purple-500 text-white px-3 py-1 rounded flex items-center">
-                  <FaEye className="mr-1" /> View
+                <button className="bg-purple-500 text-white px-3 py-1 rounded text-sm">
+                  View
                 </button>
-                <button className="bg-red-500 text-white px-3 py-1 rounded flex items-center">
-                  <FaTrashAlt className="mr-1" /> Delete
+                <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">
+                  Delete
                 </button>
               </div>
             </div>
@@ -105,7 +103,7 @@ const ReportedJobs = () => {
           </div>
 
           {/* Table Header */}
-          <div className="flex justify-between text-gray-600 text-sm pb-2 border-b">
+          <div className="flex justify-between text-gray-600 text-sm pb-2">
             <p>Companies</p>
             <p>Hiring %</p>
           </div>

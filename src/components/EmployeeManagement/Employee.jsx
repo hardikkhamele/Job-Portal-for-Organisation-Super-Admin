@@ -8,60 +8,46 @@ import EmployeeReview from "./EmployeeReview";
 
 function Employee() {
   return (
-    <div className="p-5 ">
-      <div className="mr-5 ml-5 h-30 mb-4 p-4 grid grid-cols-4 gap-12">
+    <div className="p-5">
+      {/* Header Text */}
+       <h2 className="text-2xl font-semibold">
+        <span className="text-xl">Hello! TechnoHire</span>
+        <br />
+        <br/>
+        <span className="text-3xl font-bold">Employee Management</span>
+      </h2>
+
+
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-4 gap-8 mt-5">
         <SummaryCard
-          title="Employers"
-          value="2,000"
-          icon={
-            <FaUserTie
-              size={22}
-              className="bg-blue-100 rounded-lg"
-              color="#8280FF"
-            />
-          }
-          growth="8.5%"
+          title="Total Employee"
+          value="15k"
+          icon={<FaBriefcase size={20} color="#FF6B6B" />}
         />
         <SummaryCard
-          title="Candidates"
-          value="55,000"
-          icon={
-            <FaUsers
-              size={22}
-              className="bg-yellow-100 rounded-lg"
-              color="#FEC53D"
-            />
-          }
-          growth="1.3%"
+          title="New Employee"
+          value="1k"
+          icon={<FaUsers size={20} color="#7C5CFF" />}
         />
         <SummaryCard
-          title="Jobs Posted"
-          value="10,000"
-          icon={
-            <FaBriefcase
-              size={22}
-              className="bg-green-100 rounded-lg"
-              color="#4AD991"
-            />
-          }
-          growth="-4.3%"
+          title="Active Employee"
+          value="10k"
+          icon={<FaUserTie size={20} color="#3ED8A8" />}
         />
         <SummaryCard
-          title="Revenue"
-          value="$3.42M"
-          icon={
-            <FaDollarSign
-              size={22}
-              className="bg-red-100 rounded-lg"
-              color="#F69368"
-            />
-          }
-          growth="1.8%"
+          title="Inactive Employee"
+          value="5k"
+          icon={<FaDollarSign size={20} color="#F2C94C" />}
         />
       </div>
 
-      <div className="flex rounded-lg shadow-md justify-center   w-300   mt-10 gap-4">
-        <EmpVerificationRequests />
+      {/* Remaining */}
+      <div className="flex gap-6 mt-10 items-start">
+        <div className="flex-1">
+          <EmpVerificationRequests />
+        </div>
         <EmployeeReview />
       </div>
 
@@ -69,5 +55,6 @@ function Employee() {
     </div>
   );
 }
+
 
 export default Employee;
