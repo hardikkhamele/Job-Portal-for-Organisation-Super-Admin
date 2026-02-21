@@ -14,6 +14,13 @@ import Candidate from "../components/CandidateManagement/Candidate";
 import CandidateProfile from "../components/CandidateManagement/CanditateProfile";
 import VerficationCandidate from "../components/CandidateManagement/VerficationCandidate";
 import Employee from "../components/EmployeeManagement/Employee";
+import NotificationPage from "../components/NotificationPage"
+import HRManagement from "../components/HrManagment/HrManagment";
+import CreateHR from "../components/HrManagment/CreateHr";
+import EditHr from "../components/HrManagment/EditHr"
+import HRViewDetails from "../components/HrManagment/HRViewDetails";
+import DailyWorkUpdate from "../components/HrManagment/DailyWorkUpdate";
+import CandidateProfileDetail from "../components/HrManagment/CandidateProfile";
 
 function DashboardLayout() {
   return (
@@ -42,6 +49,35 @@ function DashboardLayout() {
             element={<VerficationCandidate />}
           />
           <Route path="/employee" element={<Employee />} />
+                   <Route
+                    path="/notification-page"
+                    element={<NotificationPage />}
+                  />
+                   <Route
+                    path="/hr-managment"
+                    element={<HRManagement />}
+                  />
+                  <Route
+                    path="/create-hr"
+                    element={<CreateHR />}
+                  />
+                    <Route
+                    path="/edit-hr"
+                    element={<EditHr />}
+                  />
+                       <Route
+                    path="/hr-view-details"
+                    element={<HRViewDetails />}
+                  />
+                       <Route
+                    path="/daily-work-update"
+                    element={<DailyWorkUpdate />}
+                  />
+                 <Route
+ path="/candidate-profile"
+ element={<CandidateProfileDetail />}
+/>
+                
           </Routes>
         </div>
       </main>
