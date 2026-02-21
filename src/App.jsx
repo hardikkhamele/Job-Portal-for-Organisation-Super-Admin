@@ -14,6 +14,7 @@ import PhoneOtpverification from "./components/auth/verification/PhoneOTPVerific
 import PhoneVerifiedSuccess from "./components/auth/verification/PhoneVerifiedSuccess";
 import ResetSuccess from "./components/auth/login/ResetSuccess";
 
+
 export default function App() {
   return (
     <Router>
@@ -23,7 +24,8 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPage />} />
         <Route path="/verify-otp" element={<OtpVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/reset-success" element={<ResetSuccess />} />
+        <Route path="/reset-success" element={<ResetSuccess />} />
+
         {/* <Route path="/password-reset-success" element={<Login4 />} /> */}
 
 
@@ -43,6 +45,7 @@ export default function App() {
           path="/PhoneVerifiedSuccess"
           element={<PhoneVerifiedSuccess />}
         />
+
 
         {/* Protected Routes (Dashboard) */}
         <Route path="/*" element={<DashboardLayout />} />

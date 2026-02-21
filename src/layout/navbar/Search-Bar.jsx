@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Search, Bell, MessageSquare, Moon } from "lucide-react";
 import Ilogo from "../../assets/Ilogo.svg";
 import Switch from "./DarkMode";
+import { useNavigate } from "react-router";
 
 function SearchBar() {
   const [search, setSearch] = useState("");
-
+  const navigate = useNavigate ();
   return (
     <div className="flex h-14 mb-2 justify-between items-center bg-white p-3  shadow-md">
       {/* Search Input */}
@@ -23,15 +24,15 @@ function SearchBar() {
       {/* Icons Section */}
       <div className="flex items-center gap-4">
         {/* Dark Mode Toggle */}
-        <Switch className="flex items-center" />
+        {/* <Switch className="flex items-center" /> */}
 
         {/* Messages */}
-        <button className="p-2 bg-gray-100 rounded-full">
+        {/* <button className="p-2 bg-gray-100 rounded-full">
           <MessageSquare size={18} className="text-gray-700" />
-        </button>
+        </button> */}
 
         {/* Notifications */}
-        <button className="relative p-2 bg-gray-100 rounded-full">
+        <button onClick={()=>navigate("/notification-page")} className="relative p-2 bg-gray-100 rounded-full">
           <Bell size={18} className="text-gray-700" />
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
             2

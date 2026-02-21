@@ -32,10 +32,8 @@ export default function OtpVerification() {
 
   return (
     <div className="w-screen h-screen flex font-sans">
-      
       {/* LEFT SIDE */}
       <div className="w-1/2 flex flex-col justify-center items-center bg-white relative px-6">
-        
         {/* Logo */}
         <img
           src={TechnoHireLogo}
@@ -45,17 +43,16 @@ export default function OtpVerification() {
 
         {/* OTP Card */}
         <div className="bg-white w-[400px] h-[500px] p-8 rounded-sm shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-purple-300">
-          
           <h2 className="text-3xl font-extrabold text-[#7900BA] mb-2 text-center mt-7">
             Enter OTP
           </h2>
 
           <p className="text-gray-700 text-sm text-center">
-            We've sent a verification code to <span className="font-medium">emailaddress@gmail.com</span>
+            We've sent a verification code to{" "}
+            <span className="font-medium">emailaddress@gmail.com</span>
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-6 mt-6">
-            
             {/* OTP Boxes */}
             <div className="flex justify-center gap-3">
               {otp.map((digit, index) => (
@@ -72,19 +69,16 @@ export default function OtpVerification() {
               ))}
             </div>
 
-{/* Resend + Timer */}
-<div className="flex flex-col items-center text-xs text-gray-500 mt-2">
-  <div>
-    Didn't receive any code? 
-    <span className="cursor-pointer text-purple-600 hover:underline ml-1">
-      Resend Code
-    </span>
-  </div>
-  <div className="mt-1">
-    00:120 Sec
-  </div>
-</div>
-
+            {/* Resend + Timer */}
+            <div className="flex flex-col items-center text-xs text-gray-500 mt-2">
+              <div>
+                Didn't receive any code?
+                <span className="cursor-pointer text-purple-600 hover:underline ml-1">
+                  Resend Code
+                </span>
+              </div>
+              <div className="mt-1">00:120 Sec</div>
+            </div>
 
             {/* Go back to login */}
             <div className="flex justify-center text-xs mt-2">
@@ -92,7 +86,7 @@ export default function OtpVerification() {
                 onClick={() => navigate("/")}
                 className="text-purple-600 font-medium cursor-pointer "
               >
-                Go back to  <span className="text-orange-300" >Login</span>
+                Go back to <span className="text-orange-300">Login</span>
               </span>
             </div>
 
@@ -111,7 +105,6 @@ export default function OtpVerification() {
 
       {/* RIGHT SIDE */}
       <div className="w-1/2 relative flex items-center justify-center overflow-hidden">
-        
         {/* Purple Background */}
         <img
           src={gradientOverlay}
