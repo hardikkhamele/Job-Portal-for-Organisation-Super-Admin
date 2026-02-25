@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import useAdminDirectLogin from "../../../hooks/login/useAdminDirectLogin";
 // ✅ Import your assets
 import loginIllustration from "../../../assets/LoginPageShade.png"; // right side illustration
 import gradientOverlay from "../../../assets/PurpleShadeBg.png"; // purple gradient overlay
@@ -10,13 +10,17 @@ export default function Login1() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isChecked, setIsChecked] = useState(false);
-
+  const { loginAdmin, loading } = useAdminDirectLogin();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    navigate("/dashboard");
-  };
+const handleSubmit = async () => {
+  const success = await loginAdmin(email, password);
+  console.log("SUCCESS:", success); // should now be true on correct login
+
+  if (success) {
+    navigate("/dashboard"); // Navigation only happens here
+  }
+};
 
   return (
     <div className="w-screen h-screen flex font-sans">
@@ -36,11 +40,9 @@ export default function Login1() {
           </h2>
 
           <h2 className="text-gray-600  font-bold text-center">
-            Technokrate hire Super Admin 
+            Technokrate hire Super Admin
           </h2>
-           <h2 className="text-gray-600  font-bold text-center">
-         Dashboard
-          </h2>
+          <h2 className="text-gray-600  font-bold text-center">Dashboard</h2>
 
           <h2 className=" mt-3 mb-6 leading-relaxed text-center">
             Log in to Unlock your super admin tools, control jobs, track
@@ -102,11 +104,12 @@ export default function Login1() {
             {/* Button */}
             <button
               type="submit"
+              disabled={loading}
               className="mt-4 py-2 text-sm text-white rounded-md 
-                         bg-gradient-to-r from-purple-600 to-purple-800 
-                         hover:opacity-90 transition duration-300 w-full"
+             bg-gradient-to-r from-purple-600 to-purple-800 
+             hover:opacity-90 transition duration-300 w-full"
             >
-              Sign In
+              {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
         </div>
