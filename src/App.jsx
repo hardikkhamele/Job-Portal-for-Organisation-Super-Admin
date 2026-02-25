@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate  } from "react-router-dom";
 
 import LoginPage from "./components/auth/login/LoginPage";
 import ForgotPage from "./components/auth/login/ForgotPage";
@@ -13,23 +13,40 @@ import EmailSucessVerify from "./components/auth/verification/EmailSucessVerify"
 import PhoneOtpverification from "./components/auth/verification/PhoneOTPVerification";
 import PhoneVerifiedSuccess from "./components/auth/verification/PhoneVerifiedSuccess";
 import ResetSuccess from "./components/auth/login/ResetSuccess";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; 
 
 
 export default function App() {
+   const token = sessionStorage.getItem("token");
   return (
     <Router>
+   
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="colored"
+      />
       <Routes>
-        {/* Public Routes (Authentication) */}
-        <Route path="/" element={<LoginPage />} />
+     
+        <Route
+  path="/"
+  element={
+    sessionStorage.getItem("token")
+      ? <Navigate to="/dashboard" replace />
+      : <LoginPage />
+  }
+/>
         <Route path="/forgot-password" element={<ForgotPage />} />
         <Route path="/verify-otp" element={<OtpVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-success" element={<ResetSuccess />} />
 
         {/* <Route path="/password-reset-success" element={<Login4 />} /> */}
-
-
-
         <Route path="/Signup1" element={<Signup1 />} />
         <Route path="/VerifyAccount" element={<VerifyAccount />} />
         <Route
@@ -45,10 +62,15 @@ export default function App() {
           path="/PhoneVerifiedSuccess"
           element={<PhoneVerifiedSuccess />}
         />
-
-
-        {/* Protected Routes (Dashboard) */}
-        <Route path="/*" element={<DashboardLayout />} />
+             {/* ✅ Protected Dashboard */}
+       <Route
+  path="/*"
+  element={
+    sessionStorage.getItem("token")
+      ? <DashboardLayout />
+      : <Navigate to="/" replace />
+  }
+/>
       </Routes>
     </Router>
   );

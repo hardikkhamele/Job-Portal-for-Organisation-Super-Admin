@@ -1,14 +1,19 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import otpIllustration from "../../../assets/OtpIllustration.png";
 import gradientOverlay from "../../../assets/PurpleShadeBg.png";
 import TechnoHireLogo from "../../../assets/TalentHire.png";
+import useVerifyOtp from "../../../hooks/login/useVerifyOtp"; 
 
 export default function OtpVerification() {
   const [otp, setOtp] = useState(["", "", "", ""]); // 4 digits
   const inputsRef = useRef([]);
   const navigate = useNavigate();
+  const location = useLocation(); 
+const email = location.state?.email;
+const { verifyOtp, loading } = useVerifyOtp();
 
   const handleChange = (value, index) => {
     if (/^[0-9]?$/.test(value)) {
@@ -23,12 +28,28 @@ export default function OtpVerification() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const otpValue = otp.join("");
-    // alert(`OTP entered: ${otpValue}`);
-    navigate("/reset-password");
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const otpValue = otp.join("");
+
+  if (otpValue.length !== 4) {
+    return;
+  }
+
+  if (!email) {
+    navigate("/forgot-password");
+    return;
+  }
+
+  const success = await verifyOtp(email, otpValue);
+
+  if (success) {
+    navigate("/reset-password", {
+      state: { email },
+    });
+  }
+};
 
   return (
     <div className="w-screen h-screen flex font-sans">
@@ -49,7 +70,7 @@ export default function OtpVerification() {
 
           <p className="text-gray-700 text-sm text-center">
             We've sent a verification code to{" "}
-            <span className="font-medium">emailaddress@gmail.com</span>
+            <span className="font-medium">{email}</span>
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-6 mt-6">

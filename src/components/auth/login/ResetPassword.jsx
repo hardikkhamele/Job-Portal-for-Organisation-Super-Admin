@@ -1,32 +1,37 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// ✅ Import your assets
 import resetIllustration from "../../../assets/ResetIllustration.png"; // right side illustration
-import gradientOverlay from "../../../assets/PurpleShadeBg.png";       // purple background
-import TechnoHireLogo from "../../../assets/TalentHire.png";           // logo
+import gradientOverlay from "../../../assets/PurpleShadeBg.png"; // purple background
+import TechnoHireLogo from "../../../assets/TalentHire.png"; // logo
+import useAdminResetPassword from "../../../hooks/login/useAdminResetPassword";
+import { useLocation } from "react-router-dom";
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email;
+  const { resetAdminPassword, loading } = useAdminResetPassword();
 
-  const handleSubmit = (e) => {
+  console.log("email", email);
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-    // alert("Password reset successful!");
-    navigate("/reset-success"); // redirect after reset
+    const success = await resetAdminPassword(email, newPassword);
+
+    if (success) {
+      navigate("/reset-success");
+    }
   };
 
   return (
     <div className="w-screen h-screen flex font-sans">
-      
       {/* LEFT SIDE */}
       <div className="w-1/2 flex flex-col justify-center items-center bg-white relative px-6">
-        
         {/* Logo */}
         <img
           src={TechnoHireLogo}
@@ -36,7 +41,6 @@ export default function ResetPassword() {
 
         {/* Reset Card */}
         <div className="bg-white w-[400px] h-[500px] p-8 rounded-sm shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-purple-300">
-          
           <h2 className="text-3xl font-extrabold text-[#7900BA] mb-2 text-center mt-9">
             Reset Password
           </h2>
@@ -46,7 +50,6 @@ export default function ResetPassword() {
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
-            
             {/* New Password */}
             <div>
               <label className="text-xs text-gray-600">New Password</label>
@@ -63,7 +66,9 @@ export default function ResetPassword() {
 
             {/* Confirm Password */}
             <div>
-              <label className="text-xs text-gray-600">Confirm New Password</label>
+              <label className="text-xs text-gray-600">
+                Confirm New Password
+              </label>
               <input
                 type="password"
                 placeholder="********"
@@ -75,13 +80,13 @@ export default function ResetPassword() {
               />
             </div>
 
-                   {/* Go back to login */}
+            {/* Go back to login */}
             <div className="flex justify-center text-xs mt-2">
               <span
                 onClick={() => navigate("/")}
                 className="text-purple-600 font-medium cursor-pointer "
               >
-                Go back to  <span className="text-orange-300" >Login</span>
+                Go back to <span className="text-orange-300">Login</span>
               </span>
             </div>
 
@@ -100,7 +105,6 @@ export default function ResetPassword() {
 
       {/* RIGHT SIDE */}
       <div className="w-1/2 relative flex items-center justify-center overflow-hidden">
-        
         {/* Purple Background */}
         <img
           src={gradientOverlay}

@@ -1,26 +1,31 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useSendOtp from "../../../hooks/login/useSendOtp";
 
 // ✅ Import your assets
 import forgotIllustration from "../../../assets/forgotIllustration.png"; // right side illustration
-import gradientOverlay from "../../../assets/PurpleShadeBg.png";         // purple gradient background
-import TechnoHireLogo from "../../../assets/TalentHire.png";             // logo
+import gradientOverlay from "../../../assets/PurpleShadeBg.png"; // purple gradient background
+import TechnoHireLogo from "../../../assets/TalentHire.png"; // logo
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
-
-  const handleSubmit = (e) => {
+  const { sendOtp, loading } = useSendOtp();
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // alert(`Password reset link sent to ${email}`);
-  };
 
+    const success = await sendOtp(email);
+
+    if (success) {
+       navigate("/verify-otp", {
+        state: { email: email },
+      });
+    }
+  };
   return (
     <div className="w-screen h-screen flex font-sans">
-      
       {/* LEFT SIDE */}
       <div className="w-1/2 flex flex-col justify-center items-center bg-white relative px-6">
-        
         {/* Logo */}
         <img
           src={TechnoHireLogo}
@@ -30,12 +35,11 @@ export default function ForgotPassword() {
 
         {/* Forgot Card */}
         <div className="bg-white w-[400px]  h-[500px] p-8 rounded-sm shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-purple-300">
-          
           <h2 className="text-3xl font-extrabold text-[#7900BA] mb-2 mt-10 text-center">
             Forgot
           </h2>
           <h2 className="text-3xl font-extrabold text-[#7900BA] mb-2 text-center">
-             Password?
+            Password?
           </h2>
 
           <p className="text-gray-700 font-bold text-center">
@@ -43,10 +47,11 @@ export default function ForgotPassword() {
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
-            
             {/* Email */}
             <div>
-              <label className="text-xs text-gray-600">Enter Email Address</label>
+              <label className="text-xs text-gray-600">
+                Enter Email Address
+              </label>
               <input
                 type="email"
                 placeholder="example@gmail.com"
@@ -68,15 +73,14 @@ export default function ForgotPassword() {
               </span>
             </div>
 
-            {/* Button */}
             <button
               type="submit"
-              onClick={() => navigate ("/verify-otp")}
+              disabled={loading}
               className="mt-4 py-2 text-sm text-white rounded-md 
-                         bg-gradient-to-r from-purple-600 to-purple-800 
-                         hover:opacity-90 transition duration-300 w-full"
+             bg-gradient-to-r from-purple-600 to-purple-800 
+             hover:opacity-90 transition duration-300 w-full"
             >
-              Get OTP
+              {loading ? "Sending OTP..." : "Get OTP"}
             </button>
           </form>
         </div>
@@ -84,7 +88,6 @@ export default function ForgotPassword() {
 
       {/* RIGHT SIDE */}
       <div className="w-1/2 relative flex items-center justify-center overflow-hidden">
-        
         {/* Purple Background */}
         <img
           src={gradientOverlay}
