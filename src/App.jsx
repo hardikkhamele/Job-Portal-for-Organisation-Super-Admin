@@ -63,14 +63,15 @@ export default function App() {
           element={<PhoneVerifiedSuccess />}
         />
              {/* ✅ Protected Dashboard */}
-       <Route
+       {/* <Route
   path="/*"
   element={
     sessionStorage.getItem("token")
       ? <DashboardLayout />
       : <Navigate to="/" replace />
   }
-/>
+/> */}
+<Route path="/*" element={<DashboardLayout />} />
       </Routes>
     </Router>
   );

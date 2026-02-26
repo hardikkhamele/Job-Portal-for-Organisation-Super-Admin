@@ -2,12 +2,12 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import conf from "../../config";
 import useFetch from "../useFetch";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const useAdminDirectLogin = () => {
   const [fetchData] = useFetch();
   const [loading, setLoading] = useState(false);
-  // const navigate = useNavigate ();
+  const navigate = useNavigate ();
 
   const loginAdmin = async (email, password) => {
     setLoading(true);
@@ -24,17 +24,22 @@ const useAdminDirectLogin = () => {
         toast.error(res?.message || "Invalid Credentials");
         return false;
       }
-
+        if (res) {
+        toast.success(res?.message || "Invalid Credentials");
+         sessionStorage.setItem("token", res.token);
+         navigate ("/dashboard")
+        // return false;
+      }
       // ✅ Save token only
-      sessionStorage.setItem("token", res.token);
-      toast.success(res?.message || "Login Successful");
-      // navigate ("/dashboard")
+     
+      // toast.success(res?.message || "Login Successful");
+      
 
-      return true;
+      // return true;
     } catch (error) {
       console.error("Login Error:", error);
       toast.error("Invalid Credentials");
-      return false;
+      // return false;
     } finally {
       setLoading(false);
     }

@@ -13,15 +13,12 @@ export default function Login1() {
   const { loginAdmin, loading } = useAdminDirectLogin();
   const navigate = useNavigate();
 
-const handleSubmit = async () => {
-  const success = await loginAdmin(email, password);
-  console.log("SUCCESS:", success); // should now be true on correct login
-
-  if (success) {
-    navigate("/dashboard"); // Navigation only happens here
-  }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("handle submit")
+  await loginAdmin(email, password);
+  // console.log("SUCCESS:", success); // should now be true on correct login
 };
-
   return (
     <div className="w-screen h-screen flex font-sans">
       {/* LEFT SIDE */}

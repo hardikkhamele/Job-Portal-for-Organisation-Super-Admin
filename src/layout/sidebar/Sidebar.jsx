@@ -19,6 +19,12 @@ const Sidebar = () => {
     navigate(path);
   };
 
+  const handleLogout = () => {
+  // 🔥 Clear all session data
+  sessionStorage.clear();
+  navigate("/", { replace: true });
+};
+
   return (
     // <div className="h-screen w-[250px] bg-[#52395F] text-white flex flex-col p-4 overflow-y-auto no-scrollbar">
     <div className="
@@ -115,13 +121,12 @@ const Sidebar = () => {
           active={activeTab === "Revenue Model"}
           onClick={() => handleNavigation("Revenue Model", "/revenue-model")}
         />
-
-                       <NavItem
-          icon={<RiMoneyDollarCircleLine />}
-          text="Logout"
-          active={activeTab === "Revenue Model"}
-          onClick={() => handleNavigation("Revenue Model", "/revenue-model")}
-        />
+<NavItem
+  icon={<RiMoneyDollarCircleLine />}
+  text="Logout"
+  active={false}
+  onClick={handleLogout}
+/>
 
         {/* <NavItem
           icon={<BsPersonSquare />}
