@@ -70,6 +70,16 @@ const Sidebar = () => {
             handleNavigation("HR Management", "/hr-managment")
           }
         />
+
+        <NavItem
+          icon={<MdPostAdd />}
+          text="Employee Management"
+          onClick={() =>
+            handleNavigation("Employee Management", "/employee")
+          }
+        />
+
+
         <NavItem
           icon={<MdPostAdd />}
           text="Job seeker Management"
