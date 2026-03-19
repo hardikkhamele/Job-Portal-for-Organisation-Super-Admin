@@ -5,27 +5,43 @@ import technokreatlogo from "../../assets/Technokreat.svg";
 import banner from "../../assets/Banner.svg";
 import bannertwo from "../../assets/BannerTwo.svg";
 import TransactionHistory from "../EmployeeManagement/TransactionHistory";
+import JobInformation from "../EmployeeManagement/JobInformation";
+import CreditHistory  from "../EmployeeManagement/CreditHistory";
+import JobDetails from "../EmployeeManagement/JobDetails";
 
 function CompanyDetails() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("company");
+  const [viewJob, setViewJob] = useState(null);
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="bg-white rounded-xl p-6 shadow-sm">
+      <div className="bg-white rounded-xl p-6 ">
+
+
+
+        {viewJob ? (
+          // SHOW ONLY JOB DETAILS
+          <JobDetails job={viewJob} onBack={() => setViewJob(null)} />
+        ) : (
+          <>
+
 
         {/* HEADER */}
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => navigate(-1)}
-            className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-900 hover:bg-gray-100 transition"
+            className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-900 hover:bg-gray-100 transition"
           >
-            <ArrowLeft size={20} className="text-gray-700" />
+            <ArrowLeft size={25} className="text-gray-1000" />
           </button>
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Company Information
-          </h2>
+         {!viewJob && (
+            <>
+              <h2 className="text-3xl font-bold">Company Information</h2>
+              <hr className="mb-8" />
+            </>
+          )}
         </div>
 
         {/* BORDER  */}
@@ -45,7 +61,7 @@ function CompanyDetails() {
             </div>
 
             <div>
-              <p className="font-bold text-gray-800 text-3xl">
+              <p className="font-bold text-gray-800 text-2xl">
                 Talentrise Technokrate
               </p>
               <p className="text text-gray-700">
@@ -73,7 +89,10 @@ function CompanyDetails() {
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            <span>Company Info</span>
+            <span className="flex items-center gap-2">
+              <User size={16} />
+              Company Info
+            </span>
           </div>
         
                   {/* OTHER TABS */}
@@ -85,10 +104,13 @@ function CompanyDetails() {
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            <span>Transaction History</span>
+            <span className="flex items-center gap-2">
+            <ArrowLeftRight size={16} />
+            Transaction History
+          </span>
           </div>
         
-                   <div
+            <div
             onClick={() => setActiveTab("job")}
             className={`flex items-center gap-3 pb-2 cursor-pointer ${
               activeTab === "job"
@@ -96,7 +118,10 @@ function CompanyDetails() {
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            <span>Job Information</span>
+            <span className="flex items-center gap-2">
+              <Briefcase size={16} />
+              Job Information
+            </span>
           </div>
         
                   <div
@@ -107,7 +132,13 @@ function CompanyDetails() {
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            <span>Credit History</span>
+            <span className="flex items-center gap-2">
+              <Database
+                size={16}
+                className={activeTab === "credit" ? "text-purple-600" : "text-gray-500"}
+              />
+              Credit History
+            </span>
           </div>
         
         </div>
@@ -269,6 +300,14 @@ function CompanyDetails() {
 
      {/* Transaction history */}
        {activeTab === "transaction" && <TransactionHistory />}
+
+       {/* Job information */}
+       {activeTab === "job" && <JobInformation setViewJob={setViewJob} />}
+
+       {activeTab === "credit" && <CreditHistory />}
+
+        </>
+      )}
 
      </div>
     </div>
