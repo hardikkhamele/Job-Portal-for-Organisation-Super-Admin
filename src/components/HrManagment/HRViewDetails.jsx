@@ -1,6 +1,21 @@
-import React, { useState } from "react";
-import { Eye } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Eye,
+  CircleChevronLeft,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useNavigate } from "react-router";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
+
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 
 const reportData = [
   { id: 1, date: "Feb 2, 2026", calls: 55, emails: 100 },
@@ -17,35 +32,89 @@ const reportData = [
 
 function HRViewDetails() {
   const navigate = useNavigate();
+  const calendarRef = useRef(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  // ✅ TanStack Pagination
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5,
+  });
 
-  // 🔹 Pagination Logic
-  const totalItems = reportData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // ✅ Calendar state
+  const [selected, setSelected] = useState();
+  const [showCalendar, setShowCalendar] = useState(false);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // ✅ Outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target)
+      ) {
+        setShowCalendar(false);
+      }
+    };
 
-  const currentReports = reportData.slice(indexOfFirstItem, indexOfLastItem);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const handlePageChange = (page) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-  };
+  // ✅ Columns
+  const columns = [
+    {
+      header: "Sr.No.",
+      cell: ({ row }) =>
+        row.index + 1 + pagination.pageIndex * pagination.pageSize,
+    },
+    {
+      accessorKey: "date",
+      header: "Date",
+    },
+    {
+      accessorKey: "calls",
+      header: "Total Calls",
+    },
+    {
+      accessorKey: "emails",
+      header: "Total Emails",
+    },
+    {
+      header: "Action",
+      cell: () => (
+        <Eye
+          size={18}
+          className="text-purple-600 cursor-pointer mx-auto"
+          onClick={() => navigate("/daily-work-update")}
+        />
+      ),
+    },
+  ];
+
+  // ✅ Table instance
+  const table = useReactTable({
+    data: reportData,
+    columns,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
 
   return (
     <div className="w-full bg-[#F4F6FA] p-4 min-h-screen">
       <div className="bg-white p-5 rounded-2xl">
-        {/* 🔹 Header */}
-        <div className="flex bg-white p-4  rounded-2xl items-center gap-3 mb-5">
-          <button onClick={() => navigate(-1)}>←</button>
+        {/* Header */}
+        <div className="flex bg-white p-4 rounded-2xl items-center gap-3">
+          <button onClick={() => navigate(-1)}>
+            <CircleChevronLeft size={28} />
+          </button>
           <h1 className="text-xl font-semibold">View Details</h1>
         </div>
-        <hr></hr>
 
-        {/* 🔹 HR Profile Card */}
+        <hr className="border-gray-300 mt-2 mb-5" />
+
+        {/* Profile */}
         <div className="bg-[#F4F6FA] rounded-xl p-4 flex justify-between items-center mt-4 mb-6">
           <div className="flex items-center gap-4">
             <img
@@ -65,95 +134,119 @@ function HRViewDetails() {
           </div>
         </div>
 
-        {/* 🔹 Daily Work Report Section */}
-        <div className="bg-white rounded-xl shadow p-5">
+        {/* Report Section */}
+        <div className="bg-white border border-[rgba(211,211,211,1)] rounded-lg p-5">
           <h2 className="text-purple-600 font-medium mb-4 border-b pb-2">
             Daily Work Report
           </h2>
 
-          {/* 🔹 Search + Date Filter */}
+          {/* Search + Date */}
           <div className="flex justify-between mb-4">
-            <input
-              type="text"
-              placeholder="Search"
-              className="border px-3 py-2 rounded-lg text-sm"
-            />
+            <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-65 h-11">
+              <Search size={18} className="text-[#D3D3D3] mr-2" />
+              <input
+                type="text"
+                placeholder="Search"
+                className="bg-transparent outline-none text-sm w-full"
+              />
+            </div>
 
-            <div className="flex gap-3">
+            {/* Calendar */}
+            <div ref={calendarRef} className="flex gap-3 relative">
               <input
-                type="date"
-                className="border px-3 py-2 rounded-lg text-sm"
+                value={selected ? selected.toDateString() : ""}
+                placeholder="DD/MM/YYYY"
+                readOnly
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="border border-[rgba(211,211,211,1)] px-3 py-2 rounded-lg text-sm w-44 cursor-pointer"
               />
               <input
-                type="date"
-                className="border px-3 py-2 rounded-lg text-sm"
+                value={selected ? selected.toDateString() : ""}
+                placeholder="DD/MM/YYYY"
+                readOnly
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="border border-[rgba(211,211,211,1)] px-3 py-2 rounded-lg text-sm w-44 cursor-pointer"
               />
+
+              {showCalendar && (
+                <div className="absolute top-12 right-0 bg-white p-4 rounded-2xl shadow-lg z-50">
+                  <DayPicker
+                    mode="single"
+                    selected={selected}
+                    onSelect={(date) => {
+                      setSelected(date);
+                      setShowCalendar(false);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
-          {/* 🔹 Table */}
+          {/* Table */}
           <div className="w-full overflow-x-auto">
             <table className="w-full table-fixed border-collapse text-sm">
               <thead className="bg-gray-100 text-gray-600">
-                <tr>
-                  <th className="w-16 py-3 px-4 text-left">Sr.No.</th>
-                  <th className="w-40 py-3 px-4 text-left">Date</th>
-                  <th className="w-32 py-3 px-4 text-left">Total Calls</th>
-                  <th className="w-32 py-3 px-4 text-left">Total Emails</th>
-                  <th className="w-24 py-3 px-4 text-center">Action</th>
-                </tr>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th key={header.id} className="py-3 px-4 text-center">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
               </thead>
 
               <tbody>
-                {currentReports.map((report, index) => (
+                {table.getRowModel().rows.map((row) => (
                   <tr
-                    key={report.id}
-                    className="border-b hover:bg-gray-50 transition"
+                    key={row.id}
+                    className=" text-center border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition"
                   >
-                    <td className="py-3 px-4">
-                      {indexOfFirstItem + index + 1}
-                    </td>
-
-                    <td className="py-3 px-4">{report.date}</td>
-
-                    <td className="py-3 px-4">{report.calls}</td>
-
-                    <td className="py-3 px-4">{report.emails}</td>
-
-                    <td className="py-3 px-4 text-center">
-                      <Eye
-                        size={18}
-                        className="text-purple-600 cursor-pointer mx-auto"
-                         onClick={() => navigate("/daily-work-update")}
-                      />
-                    </td>
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="py-3 px-4">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {/* 🔹 Pagination Footer */}
+
+          {/* Pagination */}
           <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-purple-600">
-              Showing {indexOfFirstItem + 1} to{" "}
-              {Math.min(indexOfLastItem, totalItems)} of {totalItems}
+              Showing {pagination.pageIndex * pagination.pageSize + 1} to{" "}
+              {Math.min(
+                (pagination.pageIndex + 1) * pagination.pageSize,
+                reportData.length
+              )}{" "}
+              of {reportData.length}
             </p>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="w-8 h-8 border rounded-full"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-50"
               >
-                {"<"}
+                <ChevronLeft size={20} />
               </button>
 
-              {[...Array(totalPages)].map((_, i) => (
+              {[...Array(table.getPageCount())].map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => handlePageChange(i + 1)}
+                  onClick={() => table.setPageIndex(i)}
                   className={`w-8 h-8 rounded-full ${
-                    currentPage === i + 1
+                    pagination.pageIndex === i
                       ? "bg-purple-600 text-white"
                       : "border text-purple-600"
                   }`}
@@ -163,11 +256,11 @@ function HRViewDetails() {
               ))}
 
               <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="w-8 h-8 border rounded-full"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-50"
               >
-                {">"}
+                <ChevronRight size={20} />
               </button>
             </div>
           </div>
