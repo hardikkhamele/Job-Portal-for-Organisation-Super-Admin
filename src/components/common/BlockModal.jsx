@@ -4,7 +4,7 @@ function BlockModal({ isOpen, onClose, onConfirm }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
       
       {/* MODAL BOX */}
       <div className="bg-white rounded-xl p-6 w-[400px] shadow-lg border border-purple-300">
