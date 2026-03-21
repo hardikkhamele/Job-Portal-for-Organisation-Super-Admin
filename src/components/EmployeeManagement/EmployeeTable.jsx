@@ -25,7 +25,6 @@ import DeleteModal from "../common/DeleteModal";
 import BlockModal from "../common/BlockModal";
 
 
-
 const data = [
   {
     sr: 1,
