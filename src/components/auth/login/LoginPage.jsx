@@ -19,6 +19,7 @@ const handleSubmit = async (e) => {
   await loginAdmin(email, password);
   // console.log("SUCCESS:", success); // should now be true on correct login
 };
+
   return (
     <div className="w-screen h-screen flex font-sans">
       {/* LEFT SIDE */}

@@ -71,7 +71,14 @@ export default function App() {
       : <Navigate to="/" replace />
   }
 /> */}
-<Route path="/*" element={<DashboardLayout />} />
+<Route
+  path="/*"
+  element={
+    token
+      ? <DashboardLayout />
+      : <Navigate to="/" replace />
+  }
+/>
       </Routes>
     </Router>
   );
