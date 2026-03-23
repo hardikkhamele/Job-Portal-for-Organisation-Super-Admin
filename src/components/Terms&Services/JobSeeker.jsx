@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
+import Footer from "../Footer";
 
 const JobSeeker = () => {
   
@@ -10,14 +10,14 @@ const JobSeeker = () => {
       
       <div className="bg-white p-6 rounded-xl shadow-md">
 
-        {/* Heading */}
+        {/* Heading */}        
         <h1 className="text-2xl font-bold mb-4">
           Terms & Service For Job Seeker
         </h1>
         <hr className="mb-4" />
 
         {/* Content Box */}
-        <div className="border  border-gray-200 rounded-lg p-6 text-gray-900 leading-8 text-lg">
+        <div className="border border-gray-200 rounded-lg p-6 text-gray-800 leading-8 min-h-[400px] bg-white text-lg">
 
           <p>1) Users must be at least 18 years old or the minimum age required for employment in their jurisdiction.</p>
           <p>2) Users must provide accurate and truthful information during registration and when using the App.</p>
@@ -41,7 +41,7 @@ const JobSeeker = () => {
         <div className="flex justify-center mt-6 ">
           <button
             onClick={() => navigate("/jobseeker/edit")}
-            className="bg-purple-700 text-white px-25 py-2 rounded-md"
+            className="bg-purple-700 text-white px-25 py-2 rounded-md cursor-pointer"
           >
             Edit
           </button>
@@ -49,11 +49,8 @@ const JobSeeker = () => {
 
       </div>
 
-      {/* Footer */}
-      <p className="text-center text-gray-400 text-sm mt-6">
-        Copyright © 2024 TechnoHire. All rights reserved.
-      </p>
-
+     
+<Footer/>
     </div>
   );
 };

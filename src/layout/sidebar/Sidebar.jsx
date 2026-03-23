@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdDashboard, MdPostAdd, MdSubscriptions } from "react-icons/md";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
@@ -11,16 +11,19 @@ import logo from "../../assets/Logo.jpg";
 import profile from "../../assets/profile.png";
 
 
+
 const Sidebar = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const isActive = (path) => location.pathname === path;
+  // const [activeTab, setActiveTab] = useState("Dashboard");
     const [isSubOpen, setIsSubOpen] = useState(false);
     const [isTermsOpen, setIsTermsOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
   
 
   const handleNavigation = (text, path) => {
-    setActiveTab(text);
+    
     navigate(path);
   };
 
@@ -66,13 +69,13 @@ const Sidebar = () => {
         <NavItem
           icon={<MdDashboard />}
           text="Dashboard"
-          active={activeTab === "Dashboard"}
+          active={isActive("/dashboard")}
           onClick={() => handleNavigation("Dashboard", "/dashboard")}
         />
        <NavItem
           icon={<MdPostAdd />}
           text="HR Management"
-          active={activeTab === "HR Management"}
+          active={isActive("/hr-managment")}
           onClick={() =>
             handleNavigation("HR Management", "/hr-managment")
           }
@@ -81,17 +84,16 @@ const Sidebar = () => {
         <NavItem
           icon={<MdPostAdd />}
           text="Employee Management"
-           active={activeTab === "Employee Management"}
+           active={isActive("/employee")}
           onClick={() =>
             handleNavigation("Employee Management", "/employee")
           }
         />
 
-
         <NavItem
           icon={<MdPostAdd />}
           text="Job Seeker Management"
-          active={activeTab === "Job Seeker Management"}
+          active={isActive("/alljobs-post")}
           onClick={() =>
             handleNavigation("Job Seeker Management", "/alljobs-post")
           }
@@ -100,11 +102,21 @@ const Sidebar = () => {
        <NavItem
           icon={<MdPostAdd />}
           text="Database Management"
-          active={activeTab === "Database Management"}
+          active={isActive("/database")}
           onClick={() =>
             handleNavigation("Database Management", "/database")
           }
         />
+
+        <NavItem
+          icon={<MdPostAdd />}
+          text="Job Management"
+          active={isActive("/job-management")}
+          onClick={() =>
+            handleNavigation("Job Management", "/job-management")
+          }
+        />
+
 
          {/*Subscription Dropdown with Arrow */}
         
@@ -129,7 +141,7 @@ const Sidebar = () => {
 
               <div
                 className={`px-3 py-2 rounded-md cursor-pointer ${
-                  activeTab === "Job Seeker Plans"
+                  isActive("/job-seeker-plans")
                     ? "bg-yellow-400 text-white"
                     : "text-white hover:bg-white/10"
                 }`}
@@ -142,7 +154,7 @@ const Sidebar = () => {
 
               <div
               className={`px-3 py-2 rounded-md cursor-pointer ${
-                activeTab === "Employer Plans"
+                isActive("/employer-plans")
                   ? "bg-yellow-400 text-white"
                   : "text-white hover:bg-white/10"
               }`}
@@ -153,9 +165,9 @@ const Sidebar = () => {
               Employer Plans
             </div>
             
-                         <div
+              <div
               className={`px-3 py-2 rounded-md cursor-pointer ${
-                activeTab === "Custom Plans"
+                isActive("/custom-plans")
                   ? "bg-yellow-400 text-white"
                   : "text-white hover:bg-white/10"
               }`}
@@ -169,19 +181,17 @@ const Sidebar = () => {
           )}
 
           
-       
-
         <NavItem
         icon={<RiMoneyDollarCircleLine />}
         text="Credit Managment"
-        active={activeTab === "Credit Management"}
+        active={isActive("/credit-management")}
         onClick={() => handleNavigation("Credit Management", "/credit-management")}
         />
 
         <NavItem
         icon={<RiMoneyDollarCircleLine />}
         text="Revenue Managment"
-        active={activeTab === "Revenue Management"}
+        active={isActive("/revenue-management")}
         onClick={() => handleNavigation("Revenue Management", "/revenue-management")}
         />
 
@@ -206,7 +216,7 @@ const Sidebar = () => {
               
                 <div
                   className={`px-3 py-2 rounded-md cursor-pointer ${
-                    activeTab === "JobSeeker"
+                    isActive("/jobseeker")
                       ? "bg-yellow-400 text-white"
                       : "text-white hover:bg-white/10"
                   }`}
@@ -217,7 +227,7 @@ const Sidebar = () => {
                 
                 <div
                   className={`px-3 py-2 rounded-md cursor-pointer ${
-                    activeTab === "Employer"
+                    isActive("/employer")
                       ? "bg-yellow-400 text-white"
                       : "text-white hover:bg-white/10"
                   }`}
@@ -251,7 +261,7 @@ const Sidebar = () => {
               
                 <div
                   className={`px-3 py-2 rounded-md cursor-pointer ${
-                    activeTab === "FAQs"
+                    isActive("/faqs")
                       ? "bg-yellow-400 text-white"
                       : "text-white hover:bg-white/10"
                   }`}
@@ -262,7 +272,7 @@ const Sidebar = () => {
                 
                 <div
                   className={`px-3 py-2 rounded-md cursor-pointer ${
-                    activeTab === "Chat Support"
+                    isActive("/chat-support")
                       ? "bg-yellow-400 text-white"
                       : "text-white hover:bg-white/10"
                   }`}
@@ -273,7 +283,7 @@ const Sidebar = () => {
                 
                 <div
                   className={`px-3 py-2 rounded-md cursor-pointer ${
-                    activeTab === "Social Links"
+                    isActive("/social-links")
                       ? "bg-yellow-400 text-white"
                       : "text-white hover:bg-white/10"
                   }`}
@@ -350,9 +360,6 @@ const NavItem = ({ icon, text, active, onClick, className }) => {
     </div>
   );
 };
-
-
-
 
 
 export default Sidebar;
