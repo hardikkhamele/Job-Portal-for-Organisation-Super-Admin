@@ -6,13 +6,18 @@ import { MdDashboard, MdPostAdd, MdSubscriptions } from "react-icons/md";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { BsPersonSquare } from "react-icons/bs";
 import { MdPersonSearch } from "react-icons/md";
-
+import { ChevronDown, ChevronUp } from "lucide-react";
 import logo from "../../assets/Logo.jpg";
 import profile from "../../assets/profile.png";
+
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Dashboard");
+    const [isSubOpen, setIsSubOpen] = useState(false);
+    const [isTermsOpen, setIsTermsOpen] = useState(false);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
+  
 
   const handleNavigation = (text, path) => {
     setActiveTab(text);
@@ -20,20 +25,22 @@ const Sidebar = () => {
   };
 
   const handleLogout = () => {
-  // 🔥 Clear all session data
+  // Clear all session data
   sessionStorage.clear();
   navigate("/", { replace: true });
 };
+
+
 
   return (
     // <div className="h-screen w-[250px] bg-[#52395F] text-white flex flex-col p-4 overflow-y-auto no-scrollbar">
     <div className="
   h-screen 
-  w-[300px] 
+  w-[310px] 
   text-white 
   flex 
   flex-col 
-  p-4 
+  p-3 
   overflow-y-auto 
   no-scrollbar
   bg-gradient-to-b 
@@ -74,6 +81,7 @@ const Sidebar = () => {
         <NavItem
           icon={<MdPostAdd />}
           text="Employee Management"
+           active={activeTab === "Employee Management"}
           onClick={() =>
             handleNavigation("Employee Management", "/employee")
           }
@@ -82,61 +90,208 @@ const Sidebar = () => {
 
         <NavItem
           icon={<MdPostAdd />}
-          text="Job seeker Management"
-          active={activeTab === "Job Post Management"}
+          text="Job Seeker Management"
+          active={activeTab === "Job Seeker Management"}
           onClick={() =>
-            handleNavigation("Job Post Management", "/alljobs-post")
+            handleNavigation("Job Seeker Management", "/alljobs-post")
           }
+
         />
        <NavItem
           icon={<MdPostAdd />}
-          text="Database Managment"
-          active={activeTab === "Job Post Management"}
+          text="Database Management"
+          active={activeTab === "Database Management"}
           onClick={() =>
-            handleNavigation("Job Post Management", "/alljobs-post")
+            handleNavigation("Database Management", "/database")
           }
         />
-                <NavItem
-          icon={<MdSubscriptions />}
-          text="Subscription Management"
-          active={activeTab === "Subscription Management"}
-          onClick={() =>
-            handleNavigation(
-              "Subscription Management",
-              "/subscription-management"
-            )
-          }
+
+         {/*Subscription Dropdown with Arrow */}
+        
+          <div
+            onClick={() => setIsSubOpen(!isSubOpen)}
+            className={`flex items-center justify-between px-4 py-2 rounded-md cursor-pointer
+              ${isSubOpen ? "bg-[#e9d5ff] text-[#7e22ce]" : "text-white hover:bg-white/10"}
+            `}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl"><MdSubscriptions /></span>
+              <span className="text">Subscription Management</span>
+            </div>
+
+            {/* Arrow */}
+            {isSubOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </div>
+
+          {/* Dropdown */}
+          {isSubOpen && (
+            <div className="ml-9 flex flex-col gap-2 mt-1">
+
+              <div
+                className={`px-3 py-2 rounded-md cursor-pointer ${
+                  activeTab === "Job Seeker Plans"
+                    ? "bg-yellow-400 text-white"
+                    : "text-white hover:bg-white/10"
+                }`}
+                onClick={() =>
+                  handleNavigation("Job Seeker Plans", "/job-seeker-plans")
+                }
+              >
+                Job Seeker Plans
+              </div>
+
+              <div
+              className={`px-3 py-2 rounded-md cursor-pointer ${
+                activeTab === "Employer Plans"
+                  ? "bg-yellow-400 text-white"
+                  : "text-white hover:bg-white/10"
+              }`}
+              onClick={() =>
+                handleNavigation("Employer Plans", "/employer-plans")
+              }
+            >
+              Employer Plans
+            </div>
+            
+                         <div
+              className={`px-3 py-2 rounded-md cursor-pointer ${
+                activeTab === "Custom Plans"
+                  ? "bg-yellow-400 text-white"
+                  : "text-white hover:bg-white/10"
+              }`}
+              onClick={() =>
+                handleNavigation("Custom Plans", "/custom-plans")
+              }
+            >
+              Custom Plans
+            </div>
+            </div>
+          )}
+
+          
+       
+
+        <NavItem
+        icon={<RiMoneyDollarCircleLine />}
+        text="Credit Managment"
+        active={activeTab === "Credit Management"}
+        onClick={() => handleNavigation("Credit Management", "/credit-management")}
         />
-            <NavItem
-          icon={<RiMoneyDollarCircleLine />}
-          text="Credit Managment"
-          active={activeTab === "Revenue Model"}
-          onClick={() => handleNavigation("Revenue Model", "/revenue-model")}
+
+        <NavItem
+        icon={<RiMoneyDollarCircleLine />}
+        text="Revenue Managment"
+        active={activeTab === "Revenue Management"}
+        onClick={() => handleNavigation("Revenue Management", "/revenue-management")}
         />
+
+        <div>
+            <div
+              onClick={() => setIsTermsOpen(!isTermsOpen)}
+              className={`flex items-center justify-between px-4 py-2 rounded-md cursor-pointer
+                ${isTermsOpen ? "bg-[#e9d5ff] text-[#7e22ce]" : "text-white hover:bg-white/10"}
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl"><RiMoneyDollarCircleLine /></span>
+                <span className="text-base">Terms & Services</span>
+              </div>
+              
+              {isTermsOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </div>
+              
+            {/* Dropdown */}
+            {isTermsOpen && (
+              <div className="ml-10 flex flex-col gap-2 mt-2">
+              
+                <div
+                  className={`px-3 py-2 rounded-md cursor-pointer ${
+                    activeTab === "JobSeeker"
+                      ? "bg-yellow-400 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                  onClick={() => handleNavigation("JobSeeker", "/jobseeker")}
+                >
+                  Job Seeker
+                </div>
+                
+                <div
+                  className={`px-3 py-2 rounded-md cursor-pointer ${
+                    activeTab === "Employer"
+                      ? "bg-yellow-400 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                  onClick={() => handleNavigation("Employer", "/employer")}
+                >
+                  Employer
+                </div>
+                
+              </div>
+            )}
+          </div>
+          
+          <div>
+            <div
+              onClick={() => setIsHelpOpen(!isHelpOpen)}
+              className={`flex items-center justify-between px-4 py-2 rounded-md cursor-pointer
+                ${isHelpOpen ? "bg-[#e9d5ff] text-[#7e22ce]" : "text-white hover:bg-white/10"}
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl"><RiMoneyDollarCircleLine /></span>
+                <span className="text-base">Help & Support</span>
+              </div>
+              
+              {isHelpOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </div>
+              
+           {/* Dropdown */}
+            {isHelpOpen && (
+              <div className="ml-10 flex flex-col gap-2 mt-2">
+              
+                <div
+                  className={`px-3 py-2 rounded-md cursor-pointer ${
+                    activeTab === "FAQs"
+                      ? "bg-yellow-400 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                  onClick={() => handleNavigation("FAQs", "/faqs")}
+                >
+                  FAQs
+                </div>
+                
+                <div
+                  className={`px-3 py-2 rounded-md cursor-pointer ${
+                    activeTab === "Chat Support"
+                      ? "bg-yellow-400 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                  onClick={() => handleNavigation("Chat Support", "/chat-support")}
+                >
+                  Chat Support
+                </div>
+                
+                <div
+                  className={`px-3 py-2 rounded-md cursor-pointer ${
+                    activeTab === "Social Links"
+                      ? "bg-yellow-400 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                  onClick={() => handleNavigation("Social Links", "/social-links")}
+                >
+                  Social Links
+                </div>
+                
+              </div>
+            )}
+          </div>
+
         <NavItem
           icon={<RiMoneyDollarCircleLine />}
-          text="Revenue Managment"
-          active={activeTab === "Revenue Model"}
-          onClick={() => handleNavigation("Revenue Model", "/revenue-model")}
+          text="Logout"
+          active={false}
+          onClick={handleLogout}
         />
-        <NavItem
-          icon={<RiMoneyDollarCircleLine />}
-          text="Terms & Services"
-          active={activeTab === "Revenue Model"}
-          onClick={() => handleNavigation("Revenue Model", "/revenue-model")}
-        />
-                <NavItem
-          icon={<RiMoneyDollarCircleLine />}
-          text="Help & Support"
-          active={activeTab === "Revenue Model"}
-          onClick={() => handleNavigation("Revenue Model", "/revenue-model")}
-        />
-<NavItem
-  icon={<RiMoneyDollarCircleLine />}
-  text="Logout"
-  active={false}
-  onClick={handleLogout}
-/>
 
         {/* <NavItem
           icon={<BsPersonSquare />}
@@ -180,21 +335,24 @@ const Sidebar = () => {
 const NavItem = ({ icon, text, active, onClick, className }) => {
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-md cursor-pointer transition-all
+      className={`flex items-center gap-3 px-4 py-1 rounded-md cursor-pointer transition-all 
         ${
           active
-            ? "bg-[#e9d5ff] text-[#7e22ce] font-semibold"
-            : "text-white hover:bg-white/10"
+            ? "bg-[#e9d5ff] text-[#7e22ce] font-semibold px-2 py-2"
+            : "text-white hover:bg-white/10 px-3 py-2"
         }
         ${className}
       `}
       onClick={onClick}
     >
       <span className="text-lg">{icon}</span>
-      <span className="text-sm">{text}</span>
+      <span className="text-base">{text}</span>
     </div>
   );
 };
+
+
+
 
 
 export default Sidebar;
