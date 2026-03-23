@@ -32,7 +32,8 @@ import Employer from "../components/Terms&Services/Employer";
 import FAQs from "../components/Help&Support/FAQs";
 import ChatSupport from "../components/Help&Support/ChatSupport";
 import SocialLinks from "../components/Help&Support/SocialLinks";
-
+import ViewRevenue from "../components/RevenueManagement/ViewRevenue";
+import EditJobSeeker from "../components/Terms&Services/EditJobSeeker";
 
 function DashboardLayout() {
   return (
@@ -84,6 +85,8 @@ function DashboardLayout() {
             <Route path="chat-support" element={<ChatSupport/>} />
             <Route path="social-links" element={<SocialLinks/>} />
             <Route path="revenue-management" element={<RevenueModel/>} />
+            <Route path="/revenue/view" element={<ViewRevenue />} />
+            <Route path="jobseeker/edit" element={<EditJobSeeker />} />
 
             
             {/* Fallback */}
