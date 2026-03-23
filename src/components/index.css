@@ -119,21 +119,4 @@ button:focus-visible {
   }
 } */
 
-/* FORCE override Quill styles */
-/* .custom-quill .ql-editor,
-.ql-editor {
-  font-size: 20px !important;
-  line-height: 1.8 !important;
-  color: #111827 !important;
-} */
 
-/* Toolbar fix */
-/* .custom-quill .ql-toolbar {
-  border-bottom: 1px solid #e5e7eb !important;
-} */
-
-/* Container fix */
-/* .custom-quill .ql-container {
-  min-height: 300px !important;
-  border: none !important;
-} */

@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { Search, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Footer from "../Footer";
 
 
 
@@ -71,7 +72,7 @@ const RevenuePage = () => {
   });
 
   return (
-    <div className="p-10 bg-gray-100 min-h-screen">
+    <div className="p-10 bg-gray-100 min-h-screen pb-20">
       <div className="bg-white p-6 mb-3 rounded-xl shadow-md">
         
         {/* Header */}
@@ -168,6 +169,7 @@ const RevenuePage = () => {
         </div>
 
       </div>
+      <Footer/>
     </div>
   );
 };

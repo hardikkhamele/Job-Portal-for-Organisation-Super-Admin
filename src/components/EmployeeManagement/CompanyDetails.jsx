@@ -8,6 +8,7 @@ import TransactionHistory from "../EmployeeManagement/TransactionHistory";
 import JobInformation from "../EmployeeManagement/JobInformation";
 import CreditHistory  from "../EmployeeManagement/CreditHistory";
 import JobDetails from "../EmployeeManagement/JobDetails";
+import Footer from "../Footer";
 
 function CompanyDetails() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ function CompanyDetails() {
   const [viewJob, setViewJob] = useState(null);
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gray-100 min-h-screen pb-20">
       <div className="bg-white rounded-xl p-6 ">
 
 
@@ -310,6 +311,7 @@ function CompanyDetails() {
       )}
 
      </div>
+     <Footer/>
     </div>
   );
 }

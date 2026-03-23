@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Search } from "lucide-react";
+import Footer from "../Footer";
 
 const CreditModel = () => {
 
@@ -49,7 +50,7 @@ const CreditModel = () => {
 };
 
   return (
-    <div className="p-10 bg-gray-100 min-h-[180px] overflow-y-auto no-scrollbar">
+    <div className="p-10 bg-gray-100 min-h-screen flex flex-col pb-20">
       
       {/* CENTER CONTAINER */}
      <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -165,7 +166,10 @@ const CreditModel = () => {
 
       </div>
       <CreditModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+
+         <Footer />  
     </div>
+    
   );
 };
 

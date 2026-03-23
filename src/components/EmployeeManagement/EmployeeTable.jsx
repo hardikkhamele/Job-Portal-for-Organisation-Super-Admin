@@ -23,6 +23,7 @@ import nvidialogo from "../../assets/Nvidia.svg";
 import infosyslogo from "../../assets/Infosys.svg";
 import DeleteModal from "../common/DeleteModal";
 import BlockModal from "../common/BlockModal";
+import Footer from "../Footer";
 
 
 const data = [
@@ -345,7 +346,7 @@ function EmployeeTable() {
   });
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen overflow-y-auto no-scrollbar">
+    <div className="p-6 bg-gray-100 min-h-screen overflow-y-auto no-scrollbar pb-20">
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <h2 className="text-2xl font-bold text-gray-800 mb-3">
           Employer Management
@@ -455,6 +456,7 @@ function EmployeeTable() {
           onConfirm={handleDelete}
         />
       </div>
+      <Footer/>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { ArrowLeft } from "lucide-react";
+import Footer from "../Footer";
 
 const EditJobSeeker = () => {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ const EditJobSeeker = () => {
         <hr className="mb-5" />
 
         {/* Editor */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-gray-200 rounded-lg overflow-hidden min-h-[450px]">
           <ReactQuill
               theme="snow"
               value={value}
@@ -101,19 +102,20 @@ const EditJobSeeker = () => {
         <div className="flex justify-center gap-4 mt-6">
           <button
             onClick={() => navigate(-1)}
-            className="bg-purple-200 text-purple-700 px-15 py-2 rounded-md"
+            className="bg-purple-200 text-purple-700 px-15 py-2 rounded-md cursor-pointer"
           >
             Cancel
           </button>
 
           <button 
           onClick={() => navigate(-1)}
-          className="bg-purple-700 text-white px-15 py-2 rounded-md">
+          className="bg-purple-700 text-white px-15 py-2 rounded-md cursor-pointer">
             Save
           </button>
         </div>
 
       </div>
+      <Footer/>
     </div>
   );
 };

@@ -9,3 +9,24 @@
   -ms-overflow-style: none;  /* IE */
   scrollbar-width: none;     /* Firefox */
 }
+
+/* REMOVE ALL internal borders */
+.ql-toolbar.ql-snow {
+  border: none !important;
+}
+
+.ql-container.ql-snow {
+  border: none !important;
+}
+
+/* REMOVE that middle line specifically */
+.ql-container.ql-snow {
+  border-top: none !important;
+}
+
+/* Increase editor text size */
+.ql-editor {
+  font-size: 16px !important;   /* change to 20px if needed */
+  line-height: 1.8 !important;
+  color: #4b5563 !important; 
+}
