@@ -5,7 +5,7 @@ import Dashboard from "../components/Dashboard/Dashboard";
 import CandidatePage from "../components/Dashboard/dashboardCandidate/CandidatePage";
 import JobsPage from "../components/Dashboard/dashboardJobs/JobsPage";
 import RevenuePage from "../components/Dashboard/dashboardRevenue/RevenuePage";
-import AllJobsPost from "../components/JobPostManagement/AllJobs-Post";
+// import AllJobsPost from "../components/JobPostManagement/AllJobs-Post";
 // import MainReven from "../components/RevenueModel/MainReven";
 import MainsubMan from "../components/SubscriptionManagement/Main-sub-Management";
 import SubscriptionManagementEdit from "../components/SubscriptionManagement/EditSubscription/SubscriptionManagementEdit";
@@ -37,6 +37,17 @@ import EditJobSeeker from "../components/Terms&Services/EditJobSeeker";
 import EditEmployer from "../components/Terms&Services/EditEmployer";
 import JobManagment from "../components/JobManagement/JobManagment";
 import JobViewDetails from "../components/JobManagement/JobViewDetails";
+import CreateJobSeekerPlan from "../components/SubscriptionManagement/CreateJobSeekerPlan";
+import EditJobSeekerPlan from "../components/SubscriptionManagement/EditJobSeekerPlan";
+import CreateEmployerplan from "../components/SubscriptionManagement/CreateEmployerplan";
+import EditEmployerPlan from "../components/EditEmployerPlan";
+import EditCustomPlan from "../components/EditCustomPlan";
+import CreateCustomPlan from "../components/CreateCustomPlan";
+import JobSeekerManagement from "../components/JobSeekerManagement/JobSeekerManagement";
+import ViewJobSeekerManagement from "../components/JobSeekerManagement/ViewJobSeekerManagement";
+import ViewRoles from "../components/JobSeekerManagement/ViewRoles";
+import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView";
+// import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView";
 
 function DashboardLayout() {
   return (
@@ -62,9 +73,20 @@ function DashboardLayout() {
             <Route path="view-candidate" element={<CandidatePage />} />
             <Route path="view-jobs-posted" element={<JobsPage />} />
             <Route path="view-revenue" element={<RevenuePage />} />
-            <Route path="alljobs-post" element={<AllJobsPost />} />
+            {/* <Route path="alljobs-post" element={<AllJobsPost />} /> */}
+            <Route path="job-seeker" element={<JobSeekerManagement/>}/>
+            <Route path="view-job-seeker" element={<ViewJobSeekerManagement/>}/>
+            <Route path="view-roles" element={<ViewRoles/>}/>
+            <Route path="candidate-job-view" element={<CandidateJobView/>}/>
+            {/* <Route path="candidate-job-view" element={<CandidateJobView/>}/> */}
             {/* <Route path="revenue-model" element={<MainReven />} /> */}
             <Route path="subscription-management" element={<MainsubMan />} />
+            <Route path="create-job-seeker-plan" element={<CreateJobSeekerPlan/>} />
+            <Route path="edit-job-seeker-plan" element={<EditJobSeekerPlan/>} />
+            <Route path="/edit-employer-plan" element={<EditEmployerPlan/>} />
+            <Route path="create-employer-plan" element={<CreateEmployerplan/>} />
+            <Route path="create-custom-plan" element={<CreateCustomPlan/>}/>
+            <Route path="edit-custom-plan" element={<EditCustomPlan/>}/>
             <Route path="subscription-management/subscription-management-edit" element={<SubscriptionManagementEdit />} />
             <Route path="candidate" element={<Candidate />} />
             <Route path="candidateProfile" element={<CandidateProfile />} />

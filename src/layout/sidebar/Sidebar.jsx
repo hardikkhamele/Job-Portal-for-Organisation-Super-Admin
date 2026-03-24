@@ -9,8 +9,7 @@ import { MdPersonSearch } from "react-icons/md";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import logo from "../../assets/Logo.jpg";
 import profile from "../../assets/profile.png";
-
-
+import LogoutModal from "../../components/common/LogoutModal";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -20,19 +19,22 @@ const Sidebar = () => {
     const [isSubOpen, setIsSubOpen] = useState(false);
     const [isTermsOpen, setIsTermsOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
-  
-
+  const [openLogoutModal, setOpenLogoutModal] = useState(false);
+      
   const handleNavigation = (text, path) => {
     
     navigate(path);
   };
 
   const handleLogout = () => {
-  // Clear all session data
-  sessionStorage.clear();
-  navigate("/", { replace: true });
+  setOpenLogoutModal(true); // open modal only
 };
 
+const confirmLogout = () => {
+  sessionStorage.setItem("isLogout", "true"); // for isLogout not token
+  setOpenLogoutModal(false);
+  navigate("/", { replace: true }); // navigate only (NO token remove)
+};
 
 
   return (
@@ -65,6 +67,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Menu */}
+      <div className="max-h-[80vh] overflow-y-auto pr-2 no-scrollbar">
       <nav className="flex flex-col flex-grow gap-5">
         <NavItem
           icon={<MdDashboard />}
@@ -93,9 +96,9 @@ const Sidebar = () => {
         <NavItem
           icon={<MdPostAdd />}
           text="Job Seeker Management"
-          active={isActive("/alljobs-post")}
+          active={isActive("/job-seeker")}
           onClick={() =>
-            handleNavigation("Job Seeker Management", "/alljobs-post")
+            handleNavigation("Job Seeker Management", "/job-seeker")
           }
 
         />
@@ -303,19 +306,8 @@ const Sidebar = () => {
           onClick={handleLogout}
         />
 
-        {/* <NavItem
-          icon={<BsPersonSquare />}
-          text="Employer Management"
-          active={activeTab === "Employer Management"}
-          onClick={() => handleNavigation("Employer Management", "/employee")}
-        />
-        <NavItem
-          icon={<MdPersonSearch />}
-          text="Candidate Management"
-          active={activeTab === "Candidate Management"}
-          onClick={() => handleNavigation("Candidate Management", "/candidate")}
-        /> */}
       </nav>
+      </div>
 
       {/* Bottom Section (Profile & Logout) */}
       {/* <div className="mt-auto border-t border-gray-600 pt-4">
@@ -338,6 +330,11 @@ const Sidebar = () => {
           onClick={() => handleNavigation("Log out", "/logout")}
         />
       </div> */}
+      <LogoutModal
+  isOpen={openLogoutModal}
+  onClose={() => setOpenLogoutModal(false)}
+  onConfirm={confirmLogout}
+/>
     </div>
   );
 };
@@ -358,6 +355,7 @@ const NavItem = ({ icon, text, active, onClick, className }) => {
       <span className="text-lg">{icon}</span>
       <span className="text-base">{text}</span>
     </div>
+    
   );
 };
 

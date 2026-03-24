@@ -17,7 +17,7 @@ function SearchBar() {
           placeholder="Search Anything"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-10 pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full h-10 pl-10 pr-3 py-2 border border-gray-300 rounded-lg  focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
 
