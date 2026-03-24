@@ -31,7 +31,7 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 
-import Footer from "../Footer";
+
 
 const revenueData = [
   { name: "1 Mar", v1: 800, v2: 800, v3: 900, total: 2400 },
@@ -132,7 +132,7 @@ function Dashboard() {
 });
 
   return (
-  <div className="min-h-screen bg-gray-100 p-10 pb-20">
+  <div className="min-h-screen bg-gray-100 p-10 flex flex-col pb-20">
       <div className="bg-white rounded-xl border border-gray-200 p-6 ">
       <div className="max-w-7xl mx-auto">
 
@@ -507,7 +507,7 @@ function Dashboard() {
                   {icon}
                 </div>
 
-            <Footer/>
+            
               </div>
             </div>
           );
