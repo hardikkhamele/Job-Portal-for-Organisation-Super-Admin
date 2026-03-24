@@ -4,7 +4,7 @@ import BannerTwo from "../../assets/BannerTwo.svg";
 const ViewRevenue = () => {
   return (
     <div className="p-10 bg-gray-100 min-h-[90vh]">
-      <div className="bg-white p-10 rounded-xl shadow-md">
+      <div className="bg-white p-6 rounded-xl shadow-md">
 
         {/* Heading */}
         <h1 className="text-2xl font-bold mb-4">View Revenue</h1>
