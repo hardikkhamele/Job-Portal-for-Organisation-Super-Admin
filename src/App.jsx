@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate  } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import LoginPage from "./components/auth/login/LoginPage";
 import ForgotPage from "./components/auth/login/ForgotPage";
@@ -14,14 +19,24 @@ import PhoneOtpverification from "./components/auth/verification/PhoneOTPVerific
 import PhoneVerifiedSuccess from "./components/auth/verification/PhoneVerifiedSuccess";
 import ResetSuccess from "./components/auth/login/ResetSuccess";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; 
-
+import "react-toastify/dist/ReactToastify.css";
+import { useEffect, useState } from "react";
 
 export default function App() {
-   const token = sessionStorage.getItem("token");
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      setToken(localStorage.getItem("token"));
+    };
+
+    window.addEventListener("localStorageUpdate", handleStorageUpdate);
+    return () =>
+      window.removeEventListener("localStorageUpdate", handleStorageUpdate);
+  }, []);
+
   return (
     <Router>
-   
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -31,16 +46,21 @@ export default function App() {
         draggable
         theme="colored"
       />
+      
       <Routes>
-     
-        <Route
+        {/* <Route
   path="/"
   element={
     sessionStorage.getItem("token")
       ? <Navigate to="/dashboard" replace />
       : <LoginPage />
   }
-/>
+/> */}
+
+        <Route
+          path="/"
+          element={token ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+        />
         <Route path="/forgot-password" element={<ForgotPage />} />
         <Route path="/verify-otp" element={<OtpVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -62,8 +82,8 @@ export default function App() {
           path="/PhoneVerifiedSuccess"
           element={<PhoneVerifiedSuccess />}
         />
-             {/* ✅ Protected Dashboard */}
-       {/* <Route
+        {/* ✅ Protected Dashboard */}
+        {/* <Route
   path="/*"
   element={
     sessionStorage.getItem("token")
@@ -71,14 +91,10 @@ export default function App() {
       : <Navigate to="/" replace />
   }
 /> */}
-<Route
-  path="/*"
-  element={
-    token
-      ? <DashboardLayout />
-      : <Navigate to="/" replace />
-  }
-/>
+        <Route
+          path="/*"
+          element={token ? <DashboardLayout /> : <Navigate to="/" replace />}
+        />
       </Routes>
     </Router>
   );

@@ -29,7 +29,8 @@ const Sidebar = () => {
 
   const handleLogout = () => {
   // Clear all session data
-  sessionStorage.clear();
+  localStorage.clear();
+   window.dispatchEvent(new Event("localStorageUpdate"))
   navigate("/", { replace: true });
 };
 

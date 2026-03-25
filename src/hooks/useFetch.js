@@ -5,7 +5,7 @@ function useFetch() {
   const fetchData = useCallback(async ({ method, url, data, params }) => {
     try {
       // Correct token key retrzieval
-      const token = sessionStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const axiosConfig = {
         method,
         url,
