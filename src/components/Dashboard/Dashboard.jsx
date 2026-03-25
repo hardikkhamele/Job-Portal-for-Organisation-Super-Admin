@@ -506,8 +506,6 @@ function Dashboard() {
                <div className="opacity-90">
                   {icon}
                 </div>
-
-            
               </div>
             </div>
           );
