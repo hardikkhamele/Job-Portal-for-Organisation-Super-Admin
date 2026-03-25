@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAdminDirectLogin from "../../../hooks/login/useAdminDirectLogin";
-// ✅ Import your assets
-import loginIllustration from "../../../assets/LoginPageShade.png"; // right side illustration
-import gradientOverlay from "../../../assets/PurpleShadeBg.png"; // purple gradient overlay
-import TechnoHireLogo from "../../../assets/TalentHire.png"; // logo
+import loginIllustration from "../../../assets/LoginPageShade.png";
+import gradientOverlay from "../../../assets/PurpleShadeBg.png";
+import TechnoHireLogo from "../../../assets/TalentHire.png"; 
 
 export default function Login1() {
   const [email, setEmail] = useState("");
@@ -17,7 +16,6 @@ const handleSubmit = async (e) => {
   e.preventDefault();
   console.log("handle submit")
   await loginAdmin(email, password);
-  // console.log("SUCCESS:", success); // should now be true on correct login
 };
 
   return (
@@ -51,6 +49,7 @@ const handleSubmit = async (e) => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Email */}
             <div>
+              <p className="text-red-500 text-center">krismistry74@gmail.com kris@123</p>
               <label className="text-xs text-gray-600">
                 Enter Email Address
               </label>
