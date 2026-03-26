@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
@@ -6,7 +5,22 @@ import { MdDashboard, MdPostAdd, MdSubscriptions } from "react-icons/md";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { BsPersonSquare } from "react-icons/bs";
 import { MdPersonSearch } from "react-icons/md";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  User,
+  Database,
+  Briefcase,
+  CreditCard,
+  Wallet,
+  FileText,
+  HelpCircle,
+  LogOut,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
 import logo from "../../assets/Logo.jpg";
 import profile from "../../assets/profile.png";
 
@@ -68,13 +82,14 @@ const Sidebar = () => {
       {/* Navigation Menu */}
       <nav className="flex flex-col flex-grow gap-5">
         <NavItem
-          icon={<MdDashboard />}
+        
+          icon={<LayoutDashboard size={18}/>}
           text="Dashboard"
           active={isActive("/dashboard")}
           onClick={() => handleNavigation("Dashboard", "/dashboard")}
         />
        <NavItem
-          icon={<MdPostAdd />}
+          icon={<Users size={18} />}
           text="HR Management"
           active={isActive("/hr-managment")}
           onClick={() =>
@@ -83,7 +98,7 @@ const Sidebar = () => {
         />
 
         <NavItem
-          icon={<MdPostAdd />}
+          icon={<Building2 size={18} />}
           text="Employee Management"
            active={isActive("/employee")}
           onClick={() =>
@@ -92,7 +107,7 @@ const Sidebar = () => {
         />
 
         <NavItem
-          icon={<MdPostAdd />}
+          icon={<User size={18}  />}
           text="Job Seeker Management"
           active={isActive("/alljobs-post")}
           onClick={() =>
@@ -101,7 +116,7 @@ const Sidebar = () => {
 
         />
        <NavItem
-          icon={<MdPostAdd />}
+          icon={<Database size={18} />}
           text="Database Management"
           active={isActive("/database")}
           onClick={() =>
@@ -110,7 +125,7 @@ const Sidebar = () => {
         />
 
         <NavItem
-          icon={<MdPostAdd />}
+          icon={<Briefcase size={18} />}
           text="Job Management"
           active={isActive("/job-management")}
           onClick={() =>
@@ -183,14 +198,14 @@ const Sidebar = () => {
 
           
         <NavItem
-        icon={<RiMoneyDollarCircleLine />}
+        icon={<CreditCard size={18} />}
         text="Credit Managment"
         active={isActive("/credit-management")}
         onClick={() => handleNavigation("Credit Management", "/credit-management")}
         />
 
         <NavItem
-        icon={<RiMoneyDollarCircleLine />}
+        icon={<FileText size={18} />}
         text="Revenue Managment"
         active={isActive("/revenue-management")}
         onClick={() => handleNavigation("Revenue Management", "/revenue-management")}
@@ -204,7 +219,7 @@ const Sidebar = () => {
               `}
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl"><RiMoneyDollarCircleLine /></span>
+                <span className="text-xl"><ShieldCheck size={18}  /></span>
                 <span className="text-base">Terms & Services</span>
               </div>
               
@@ -249,7 +264,7 @@ const Sidebar = () => {
               `}
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl"><RiMoneyDollarCircleLine /></span>
+                <span className="text-xl"><HelpCircle size={18} /></span>
                 <span className="text-base">Help & Support</span>
               </div>
               
@@ -298,7 +313,7 @@ const Sidebar = () => {
           </div>
 
         <NavItem
-          icon={<RiMoneyDollarCircleLine />}
+          icon={<LogOut size={18} />}
           text="Logout"
           active={false}
           onClick={handleLogout}

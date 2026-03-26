@@ -61,7 +61,7 @@ const EditJobSeeker = () => {
 
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-10 bg-gray-100 min-h-screen">
       
       {/* MAIN CONTAINER */}
       <div className="w-full bg-white rounded-xl shadow-md p-6">

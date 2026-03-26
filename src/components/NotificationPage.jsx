@@ -1,4 +1,5 @@
 import React from "react";
+import Footer from "./Footer";
 
 const notifications = [
   {
@@ -33,7 +34,7 @@ const notifications = [
 
 function Notifications() {
   return (
-    <div className="w-full bg-[#F4F6FA] p-8">
+    <div className="w-full bg-[#F4F6FA] p-10 pb-20">
       <div className="w-full mx-auto">
 
         {/* Header */}
@@ -41,22 +42,18 @@ function Notifications() {
           <h1 className="text-2xl font-bold text-gray-800">
             Notifications
           </h1>
-        </div>
+       
 
         {/* Notifications List */}
-        <div className="space-y-5">
+        <div className="space-y-5 p-6">
           {notifications.map((item) => (
             <NotificationCard key={item.id} {...item} />
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="text-center text-gray-400 text-sm mt-12">
-          Copyright © 2024 TechnoHire. All rights reserved.
-        </div>
-
       </div>
     </div>
+     </div>
   );
 }
 
@@ -68,13 +65,13 @@ function NotificationCard({ title, message, time, type }) {
 
   return (
     <div
-      className={`rounded-xl p-6 shadow-sm flex justify-between items-center ${bgColor}`}
+      className={`rounded-xl p-8 shadow-sm flex justify-between items-center ${bgColor}`}
     >
       <div>
-        <h3 className="font-semibold text-gray-800 text-lg">
+        <h3 className="font-semibold text-gray-800 text-xl">
           {title}
         </h3>
-        <p className="text-gray-600 text-sm mt-1">
+        <p className="text-gray-600 text-sm mt-4">
           {message}
         </p>
       </div>
@@ -82,6 +79,7 @@ function NotificationCard({ title, message, time, type }) {
       <div className="text-sm text-gray-500 whitespace-nowrap">
         {time}
       </div>
+      <Footer/>
     </div>
   );
 }

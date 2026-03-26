@@ -32,8 +32,8 @@ function SearchBar() {
         </button> */}
 
         {/* Notifications */}
-        <button onClick={()=>navigate("/notification-page")} className="relative p-2 bg-gray-100 rounded-full">
-          <Bell size={18} className="text-gray-700" />
+        <button onClick={()=>navigate("/notification-page")} className="relative p-2 bg-gray-100 rounded-full cursor-pointer">
+          <Bell size={20} className="text-gray-700" />
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
             2
           </span>
