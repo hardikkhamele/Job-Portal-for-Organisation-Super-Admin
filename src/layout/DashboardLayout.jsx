@@ -69,9 +69,8 @@ function DashboardLayout() {
 
             {/* Main pages */}
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="employee" element={<Employee />} />
             <Route path="job-management" element={<JobManagment/>} /> 
-            <Route path="job-view-details" element={<JobViewDetails/>} />
+            <Route path="/job-management/job-view-details/:id" element={<JobViewDetails/>} />
             {/* Other pages */}
             <Route path="view-candidate" element={<CandidatePage />} />
             <Route path="view-jobs-posted" element={<JobsPage />} />
@@ -95,13 +94,16 @@ function DashboardLayout() {
             <Route path="candidateProfile" element={<CandidateProfile />} />
             <Route path="verification-candidate" element={<VerficationCandidate />} />
             <Route path="notification-page" element={<NotificationPage />} />
-            <Route path="hr-managment" element={<HRManagement />} />
-            <Route path="create-hr" element={<CreateHR />} />
+            <Route path="/hr-management" element={<HRManagement />} />
+            <Route path="/hr-management/create-hr" element={<CreateHR />} />
             <Route path="edit-hr" element={<EditHr />} />
-            <Route path="hr-view-details" element={<HRViewDetails />} />
+            <Route path="/hr-management/hr-view-details" element={<HRViewDetails />} />
             <Route path="daily-work-update" element={<DailyWorkUpdate />} />
             <Route path="candidate-profile" element={<CandidateProfileDetail />} />
-            <Route path="company-details" element={<CompanyDetails />} />
+
+            <Route path="employee" element={<Employee />} />
+            <Route path="/employee/company-details" element={<CompanyDetails />} />
+
             <Route path="credit-management" element={<CreditModel />}/>
             <Route path="database" element={<DatabaseManagement/>} />
             <Route path="job-seeker-plans" element={<JobSeekerPlans/>} />

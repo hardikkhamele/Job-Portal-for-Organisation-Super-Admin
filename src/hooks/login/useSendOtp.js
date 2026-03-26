@@ -15,7 +15,7 @@ const useSendOtp = () => {
         method: "POST",
         url: `${conf.apiBaseUrl}/api/auth/admin/send-otp`,
         data: { email },
-        headers: {
+        headers: {  
           "Content-Type": "application/json",
           // If token required:
           // token: sessionStorage.getItem("token"),
