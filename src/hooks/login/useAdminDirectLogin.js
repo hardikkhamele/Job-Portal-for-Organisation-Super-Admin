@@ -70,7 +70,7 @@ const useAdminDirectLogin = () => {
     try {
       const res = await fetchData({
         method: "POST",
-        url: `${conf.apiBaseUrl}auth/admin/login`,
+        url: `${conf.apiBaseUrl}/api/auth/admin/login`,
         data: { email, password },
       });
 

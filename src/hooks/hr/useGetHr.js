@@ -19,7 +19,7 @@ const useGetHr = () => {
     try {
       const response = await axios({
         method: "GET",
-        url: `${conf.apiBaseUrl}admin/hr/gethr`,
+        url: `${conf.apiBaseUrl}/api/admin/hr/gethr`,
         params: { 
           page, 
           limit: 10, 
