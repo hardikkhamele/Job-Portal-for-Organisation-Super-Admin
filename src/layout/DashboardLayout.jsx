@@ -35,6 +35,9 @@ import SocialLinks from "../components/Help&Support/SocialLinks";
 import ViewRevenue from "../components/RevenueManagement/ViewRevenue";
 import EditJobSeeker from "../components/Terms&Services/EditJobSeeker";
 import EditEmployer from "../components/Terms&Services/EditEmployer";
+import ChatConversation from "../components/Help&Support/ChatConversation";
+import EditSocialLinks from "../components/Help&Support/EditSocialLinks";
+
 import JobManagment from "../components/JobManagement/JobManagment";
 import JobViewDetails from "../components/JobManagement/JobViewDetails";
 import CreateJobSeekerPlan from "../components/SubscriptionManagement/CreateJobSeekerPlan";
@@ -114,6 +117,9 @@ function DashboardLayout() {
             <Route path="/revenue/view" element={<ViewRevenue />} />
             <Route path="jobseeker/edit" element={<EditJobSeeker />} />
             <Route path="/employer/edit" element={<EditEmployer />} />
+            <Route path="chat-conversation" element={<ChatConversation />} />
+            <Route path="/edit-social-links" element={<EditSocialLinks />} />
+           
 
             
             {/* Fallback */}

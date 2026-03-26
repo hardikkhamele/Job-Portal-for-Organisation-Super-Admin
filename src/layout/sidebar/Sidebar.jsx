@@ -5,7 +5,22 @@ import { MdDashboard, MdPostAdd, MdSubscriptions } from "react-icons/md";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { BsPersonSquare } from "react-icons/bs";
 import { MdPersonSearch } from "react-icons/md";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  User,
+  Database,
+  Briefcase,
+  CreditCard,
+  Wallet,
+  FileText,
+  HelpCircle,
+  LogOut,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
 import logo from "../../assets/Logo.jpg";
 import profile from "../../assets/profile.png";
 import LogoutModal from "../../components/common/LogoutModal";
@@ -173,23 +188,20 @@ const Sidebar = () => {
             </div>
           )}
 
-          <NavItem
-            icon={<RiMoneyDollarCircleLine />}
-            text="Credit Managment"
-            active={isActive("/credit-management")}
-            onClick={() =>
-              handleNavigation("Credit Management", "/credit-management")
-            }
-          />
+          
+        <NavItem
+        icon={<CreditCard size={18} />}
+        text="Credit Managment"
+        active={isActive("/credit-management")}
+        onClick={() => handleNavigation("Credit Management", "/credit-management")}
+        />
 
-          <NavItem
-            icon={<RiMoneyDollarCircleLine />}
-            text="Revenue Managment"
-            active={isActive("/revenue-management")}
-            onClick={() =>
-              handleNavigation("Revenue Management", "/revenue-management")
-            }
-          />
+        <NavItem
+        icon={<FileText size={18} />}
+        text="Revenue Managment"
+        active={isActive("/revenue-management")}
+        onClick={() => handleNavigation("Revenue Management", "/revenue-management")}
+        />
 
           <div>
             <div
@@ -199,9 +211,7 @@ const Sidebar = () => {
               `}
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl">
-                  <RiMoneyDollarCircleLine />
-                </span>
+                <span className="text-xl"><ShieldCheck size={18}  /></span>
                 <span className="text-base">Terms & Services</span>
               </div>
 
@@ -248,9 +258,7 @@ const Sidebar = () => {
               `}
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl">
-                  <RiMoneyDollarCircleLine />
-                </span>
+                <span className="text-xl"><HelpCircle size={18} /></span>
                 <span className="text-base">Help & Support</span>
               </div>
 
@@ -311,6 +319,36 @@ const Sidebar = () => {
             <div className="">
               <h3>Tehnokrate Hire</h3>
               <p>Smart hiring,fastest carrier</p>
+        <NavItem
+          icon={<LogOut size={18} />}
+          text="Logout"
+          active={false}
+          onClick={handleLogout}
+        />
+
+        {/* <NavItem
+          icon={<BsPersonSquare />}
+          text="Employer Management"
+          active={activeTab === "Employer Management"}
+          onClick={() => handleNavigation("Employer Management", "/employee")}
+        />
+        <NavItem
+          icon={<MdPersonSearch />}
+          text="Candidate Management"
+          active={activeTab === "Candidate Management"}
+          onClick={() => handleNavigation("Candidate Management", "/candidate")}
+        /> */}
+      </nav>
+
+      {/* Bottom Section (Profile & Logout) */}
+      {/* <div className="mt-auto border-t border-gray-600 pt-4">
+       
+        <div className="flex items-center gap-3 mb-4">
+          <img className="w-10 h-10 rounded-full" src={profile} alt="Profile" />
+          <div>
+            <div className="text-sm">TechnoHire</div>
+            <div className="bg-orange-500 text-xs text-center rounded-full px-2">
+              Admin
             </div>
           </div>
         </nav>

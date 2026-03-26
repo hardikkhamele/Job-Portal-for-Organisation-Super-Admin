@@ -29,12 +29,12 @@ function CompanyDetails() {
 
 
         {/* HEADER */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4 ">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-900 hover:bg-gray-100 transition"
+            className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-900 hover:bg-gray-100 transition cursor-pointer"
           >
-            <ArrowLeft size={25} className="text-gray-1000" />
+            <ArrowLeft size={25} className="text-gray-1000 cursor-pointer" />
           </button>
 
          {!viewJob && (
