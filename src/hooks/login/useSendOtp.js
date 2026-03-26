@@ -13,7 +13,7 @@ const useSendOtp = () => {
     try {
       const res = await fetchData({
         method: "POST",
-        url: `${conf.apiBaseUrl}auth/admin/send-otp`,
+        url: `${conf.apiBaseUrl}/api/auth/admin/send-otp`,
         data: { email },
         headers: {
           "Content-Type": "application/json",

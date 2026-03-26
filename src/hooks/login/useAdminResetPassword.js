@@ -12,7 +12,7 @@ const useAdminResetPassword = () => {
     try {
       const res = await fetchData({
         method: "POST",
-        url: `${conf.apiBaseUrl}auth/admin/reset-password`,
+        url: `${conf.apiBaseUrl}/api/auth/admin/reset-password`,
         data: { email, newPassword }, // sending as body
       });
 

@@ -17,7 +17,7 @@ const useVerifyOtp = () => {
     try {
       const res = await fetchData({
         method: "POST",
-        url: `${conf.apiBaseUrl}auth/admin/verify-otp`,
+        url: `${conf.apiBaseUrl}/api/auth/admin/verify-otp`,
         data: { email, otp },
         headers: {
           "Content-Type": "application/json",

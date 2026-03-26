@@ -35,9 +35,14 @@ import SocialLinks from "../components/Help&Support/SocialLinks";
 import ViewRevenue from "../components/RevenueManagement/ViewRevenue";
 import EditJobSeeker from "../components/Terms&Services/EditJobSeeker";
 import EditEmployer from "../components/Terms&Services/EditEmployer";
+<<<<<<< HEAD
 import ChatConversation from "../components/Help&Support/ChatConversation";
 import EditSocialLinks from "../components/Help&Support/EditSocialLinks";
 
+=======
+import JobManagment from "../components/JobManagement/JobManagment";
+import JobViewDetails from "../components/JobManagement/JobViewDetails";
+>>>>>>> 4d6d3f8368a106e34c530b51171173f217d90b7a
 
 function DashboardLayout() {
   return (
@@ -57,7 +62,8 @@ function DashboardLayout() {
             {/* Main pages */}
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="employee" element={<Employee />} />
-            
+            <Route path="job-management" element={<JobManagment/>} /> 
+            <Route path="job-view-details" element={<JobViewDetails/>} />
             {/* Other pages */}
             <Route path="view-candidate" element={<CandidatePage />} />
             <Route path="view-jobs-posted" element={<JobsPage />} />
