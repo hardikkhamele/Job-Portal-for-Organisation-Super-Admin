@@ -12,7 +12,7 @@ const ChatConversation = () => {
     <div className="p-10 bg-gray-100 min-h-screen pb-20">
       <div className="bg-white rounded-xl p-6 shadow">
 
-        {/* Header */}
+       
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3">
           <div
@@ -31,22 +31,22 @@ const ChatConversation = () => {
 
         <hr className="mb-4" />
 
-        {/* Status */}
+      
         <div className="flex items-center  mb-4 gap-4">
           <Wifi size={20} className="text-yellow-500" />
           <span className="text-yellow-500 text">Ongoing</span>
         </div>
 
-        {/* Chat Area */}
+        
         <div className="bg-white p-4 rounded-sm h-[500px] overflow-y-auto space-y-4  no-scrollbar">
 
-          {/* Left messages */}
+        
           <div className="max-w-xs">
           <div className="bg-purple-100 p-3 rounded-sm">
             Hi, how are you today?
           </div>
 
-          {/* Info (below message) */}
+          
           <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
             <img
               src={Image1}
@@ -62,7 +62,7 @@ const ChatConversation = () => {
           <div className="bg-purple-100 p-3 rounded-sm">
             I need help how can i apply for job ?
           </div>
-          {/* Info (below message) */}
+          
           <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
             <img
               src={Image1}
@@ -74,7 +74,7 @@ const ChatConversation = () => {
           </div>
           </div>
 
-          {/* Right messages */}
+          
           <div className="ml-auto max-w-xs">
             <div className="bg-yellow-100 p-3 rounded-sm">
               Set up account first
@@ -95,7 +95,7 @@ const ChatConversation = () => {
           <div className=" bg-yellow-100 p-3 rounded-sm">
             Go to browse Job
           </div>
-          {/* Info */}
+          
               <div className="flex items-center justify-end gap-2 mt-1 text-sm text-gray-500">
                 <span>09:24 AM</span>
                 <span>Executive</span>
@@ -111,7 +111,7 @@ const ChatConversation = () => {
           <div className=" bg-yellow-100 p-3 rounded-sm">
             Hit search button and apply
           </div>
-          {/* Info */}
+          
               <div className="flex items-center justify-end gap-2 mt-1 text-sm text-gray-500">
                 <span>09:24 AM</span>
                 <span>Executive</span>
@@ -123,12 +123,12 @@ const ChatConversation = () => {
               </div>
               </div>
 
-          {/* More */}
+         
             <div className="max-w-xs">
           <div className=" bg-purple-100 p-3 rounded-sm">
             Yes got it on the desktop page
           </div>
-          {/* Info (below message) */}
+          
           <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
             <img
               src={Image1}
@@ -144,7 +144,7 @@ const ChatConversation = () => {
           <div className=" bg-purple-100 p-3 rounded-sm">
             Done Thanks for helping me
           </div>
-          {/* Info (below message) */}
+          
           <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
             <img
               src={Image1}
@@ -160,7 +160,7 @@ const ChatConversation = () => {
           <div className=" bg-purple-100 p-3 rounded-sm">
         Typing....
           </div>
-          {/* Info (below message) */}
+          
           <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
             <img
               src={Image1}
@@ -175,7 +175,7 @@ const ChatConversation = () => {
 
         </div>
 
-        {/* Input */}
+        
         <div className="flex gap-3 mt-4">
           <input
             placeholder="Enter Message"
