@@ -14,7 +14,8 @@ import profile from "../../assets/profile.png";
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isActive = (path) => location.pathname === path;
+  // const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname.startsWith(path);
   // const [activeTab, setActiveTab] = useState("Dashboard");
     const [isSubOpen, setIsSubOpen] = useState(false);
     const [isTermsOpen, setIsTermsOpen] = useState(false);
@@ -75,9 +76,9 @@ const Sidebar = () => {
        <NavItem
           icon={<MdPostAdd />}
           text="HR Management"
-          active={isActive("/hr-managment")}
+          active={isActive("/hr-management")}
           onClick={() =>
-            handleNavigation("HR Management", "/hr-managment")
+            handleNavigation("HR Management", "/hr-management")
           }
         />
 
