@@ -28,12 +28,6 @@ const Sidebar = () => {
   const handleLogout = () => {
     setOpenLogoutModal(true); // open modal only
   };
-  // Clear all session data
-  localStorage.clear();
-   window.dispatchEvent(new Event("localStorageUpdate"))
-  navigate("/", { replace: true });
-};
-
 
   const confirmLogout = () => {
     sessionStorage.setItem("isLogout", "true"); // for isLogout not token
