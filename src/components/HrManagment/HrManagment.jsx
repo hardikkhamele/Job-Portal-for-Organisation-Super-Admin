@@ -227,7 +227,7 @@ function HRManagement() {
         </div>
 
         <div className="text-center text-gray-400 text-sm mt-12 mb-4">
-          Copyright © 2026 TechnoHire. All rights reserved.
+         Desing And Developed By Talentrise Technokrate Copyright © 2024 TechnoHire Job Portal Super Admin. All Rights Are Reserved.
         </div>
 
         {/* Modal Fix: Props passed correctly here */}

@@ -186,7 +186,7 @@ function EditHR() {
         name: existingHr.hrName || "",
         designation: existingHr.designation || "",
         email: existingHr.email || "",
-        password: "", // Security ke liye password autofill nahi hota
+        password: "", 
         image: existingHr.image?.url || null,
       });
     }
@@ -207,7 +207,7 @@ function EditHR() {
 
     const result = await updateHr(existingHr._id, formData);
     if (result) {
-      navigate(-1); // Success ke baad wapas list par jayein
+      navigate(-1);
     }
   };
 
@@ -254,7 +254,7 @@ function EditHR() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-700">Email id</label>
+              <label className="text-sm text-gray-700">Email</label>
               <input
                 type="email"
                 name="email"
@@ -266,7 +266,7 @@ function EditHR() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-700">Password (Leave blank to keep current)</label>
+              <label className="text-sm text-gray-700">Password (Leave Blank To Keep Current)</label>
               <input
                 type="password"
                 name="password"
@@ -290,7 +290,7 @@ function EditHR() {
               </div>
               {/* Image Preview Helper */}
               {typeof formData.image === "string" && (
-                <p className="text-xs text-gray-400 mt-1">Current image exists</p>
+                <p className="text-xs text-gray-400 mt-1">Current Image Exists</p>
               )}
             </div>
           </form>
@@ -317,7 +317,7 @@ function EditHR() {
         </div>
 
         <div className="text-center text-gray-500 text-sm mt-8">
-          Copyright © 2024 TechnoHire. All rights reserved.
+          Desing And Developed By Talentrise Technokrate Copyright © 2024 TechnoHire Job Portal Super Admin. All Rights Are Reserved.
         </div>
       </div>
     </div>

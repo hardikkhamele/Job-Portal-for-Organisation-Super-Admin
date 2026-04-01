@@ -87,7 +87,7 @@ function CreateHR() {
 
             {/* Email */}
             <div>
-              <label className="text-sm text-gray-700">Email id</label>
+              <label className="text-sm text-gray-700">Email</label>
               <input
                 type="email"
                 name="email"
