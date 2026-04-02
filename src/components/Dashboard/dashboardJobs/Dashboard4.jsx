@@ -10,6 +10,7 @@ import { Chart as ChartJS, ArcElement,  CategoryScale,
   Title,Tooltip, Legend } from "chart.js";
 import Databar from "./components/Databar";
 import Switch from "./components/Switch";
+import Footer from "../../Footer";
 // import { Switch } from "@mui/material";
 
 ChartJS.register(ArcElement,CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -248,9 +249,7 @@ export default function Dashboard4() {
               </div>
             </div>
           </div>
-          <div className="w-full h-9 bg-white flex items-center px-5">
-            <p className="text-[#000000A1] text-[10px]">Copyright © 2024 TechnoHire. All rights reserved.</p>
-          </div>
+         <Footer/>
         </div>
       </div>
     </div>

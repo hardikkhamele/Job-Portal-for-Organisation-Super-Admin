@@ -6,43 +6,67 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";  
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
 import HrModal from "../common/HrModal";
-import useGetHr from "../../hooks/hr/useGetHr";
-import useDeleteHr from "../../hooks/hr/useDeleteHr";
+import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
+import { deleteHr, resetDeleteState } from "../../redux/slice/hrManagement/deleteHr";
+import Footer from "../Footer";
 
 function HRManagement() {
   const navigate = useNavigate();
-  const { getHrData, hrList, totalHr, loading } = useGetHr();
-  const { deleteHr, deleting } = useDeleteHr();
+  const dispatch = useDispatch();
+
+  // Redux State
+  const { hrList, total, loading } = useSelector((state) => state.allHr);
+  const { loading: deleting, success: deleteSuccess } = useSelector((state) => state.deleteHr);
+
+  // Local States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
 
-  // API fetch call on page or search change
+  // Function to fetch HR list (re-usable)
+  const loadHrData = () => {
+    dispatch(
+      fetchAllHr({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: searchTerm,
+      })
+    );
+  };
+
+  // Fetch Data on Change
   useEffect(() => {
-    getHrData(pagination.pageIndex + 1, searchTerm);
-  }, [pagination.pageIndex, searchTerm, getHrData]);
+    loadHrData();
+  }, [dispatch, pagination.pageIndex, pagination.pageSize, searchTerm]);
 
-  // Modal confirm button handler
+  // Handle Refresh after successful delete
+  useEffect(() => {
+    if (deleteSuccess) {
+      setIsModalOpen(false);
+      setSelectedId(null);
+      dispatch(resetDeleteState());
+      loadHrData();
+    }
+  }, [deleteSuccess, dispatch]);
+
+  // Real Delete Handler
   const handleDelete = () => {
     if (selectedId) {
-      deleteHr(selectedId, () => {
-        getHrData(pagination.pageIndex + 1, searchTerm);
-        setIsModalOpen(false);
-        setSelectedId(null);
-      });
+      dispatch(deleteHr(selectedId));
     }
   };
 
@@ -69,23 +93,23 @@ function HRManagement() {
         const hr = row.original;
         return (
           <div className="flex justify-center gap-4 text-purple-600">
-            <Eye 
-              size={18} 
-              className="cursor-pointer hover:scale-110 transition" 
-              onClick={() => navigate("/hr-management/hr-view-details", { state: { hr } })} 
+            <Eye
+              size={18}
+              className="cursor-pointer hover:scale-110 transition"
+              onClick={() => navigate(`/hr-management/hr-view-details/${hr._id}`, { state: { hr } })}
             />
-            <Edit 
-              size={18} 
-              className="cursor-pointer hover:scale-110 transition" 
-              onClick={() => navigate("/edit-hr", { state: { hr } })} 
+            <Edit
+              size={18}
+              className="cursor-pointer hover:scale-110 transition"
+              onClick={() => navigate(`/hr-management/edit-hr/${hr._id}`, { state: { hr } })}
             />
-            <Trash2 
-              size={18} 
-              className="cursor-pointer text-red-500 hover:scale-110 transition" 
-              onClick={() => { 
-                setSelectedId(hr._id); 
+            <Trash2
+              size={18}
+              className="cursor-pointer text-red-500 hover:scale-110 transition"
+              onClick={() => {
+                setSelectedId(hr._id);
                 setIsModalOpen(true);
-              }} 
+              }}
             />
           </div>
         );
@@ -96,11 +120,12 @@ function HRManagement() {
   const table = useReactTable({
     data: hrList || [],
     columns,
-    pageCount: Math.ceil(totalHr / pagination.pageSize),
+    // FIX 1: Safe pageCount — handles undefined/0 total
+    pageCount: Math.max(1, Math.ceil((total || 0) / pagination.pageSize)),
     state: { pagination },
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    manualPagination: true, 
+    manualPagination: true,
   });
 
   return (
@@ -111,7 +136,6 @@ function HRManagement() {
           <hr className="border-gray-300 mt-2 mb-5" />
 
           <div className="border border-[rgba(211,211,211,1)] rounded-lg p-6">
-            {/* Top Controls */}
             <div className="flex justify-between items-center mb-5">
               <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-65 h-11 focus-within:border-purple-400 transition">
                 <Search size={18} className="text-[#D3D3D3] mr-2" />
@@ -121,7 +145,7 @@ function HRManagement() {
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setPagination(prev => ({ ...prev, pageIndex: 0 })); 
+                    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
                   }}
                   className="bg-transparent outline-none text-sm w-full"
                 />
@@ -137,8 +161,7 @@ function HRManagement() {
               </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto min-h-[400px]">
+            <div className="overflow-x-auto h-auto">
               <table className="w-full text-sm text-center border-collapse">
                 <thead>
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -157,8 +180,8 @@ function HRManagement() {
                     <tr>
                       <td colSpan={columns.length} className="py-20 text-gray-500">
                         <div className="flex flex-col justify-center items-center gap-3">
-                           <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                           <span className="font-medium">Loading HR Records...</span>
+                          <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="font-medium">Loading HR Records...</span>
                         </div>
                       </td>
                     </tr>
@@ -175,7 +198,7 @@ function HRManagement() {
                   ) : (
                     <tr>
                       <td colSpan={columns.length} className="py-20 text-gray-400 italic">
-                        No HR records found for "{searchTerm}"
+                        No HR records found {searchTerm && `for "${searchTerm}"`}
                       </td>
                     </tr>
                   )}
@@ -183,12 +206,12 @@ function HRManagement() {
               </table>
             </div>
 
-            {/* Pagination UI */}
-            <div className="flex justify-between items-center mt-6">
+            <div className="flex justify-between items-center mt-3">
+              {/* FIX 2: Safe total count display — handles undefined total */}
               <p className="text-sm text-purple-600 font-medium">
-                Showing {hrList?.length > 0 ? (pagination.pageIndex * pagination.pageSize + 1) : 0} to{" "}
-                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalHr)}{" "}
-                of {totalHr} HRs
+                Showing {(hrList?.length > 0) ? pagination.pageIndex * pagination.pageSize + 1 : 0} to{" "}
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, total || 0)}{" "}
+                of {total || 0} HRs
               </p>
 
               <div className="flex items-center gap-2">
@@ -200,7 +223,8 @@ function HRManagement() {
                   <ChevronLeft size={20} />
                 </button>
 
-                {[...Array(table.getPageCount())].map((_, i) => (
+                {/* FIX 3: Always render at least 1 page button */}
+                {[...Array(Math.max(1, table.getPageCount()))].map((_, i) => (
                   <button
                     key={i}
                     onClick={() => table.setPageIndex(i)}
@@ -226,11 +250,8 @@ function HRManagement() {
           </div>
         </div>
 
-        <div className="text-center text-gray-400 text-sm mt-12 mb-4">
-         Desing And Developed By Talentrise Technokrate Copyright © 2024 TechnoHire Job Portal Super Admin. All Rights Are Reserved.
-        </div>
+        {/* <CopyRight /> */}
 
-        {/* Modal Fix: Props passed correctly here */}
         <HrModal
           isOpen={isModalOpen}
           onClose={() => {
@@ -241,6 +262,7 @@ function HRManagement() {
           loading={deleting}
         />
       </div>
+      <Footer/>
     </div>
   );
 }
