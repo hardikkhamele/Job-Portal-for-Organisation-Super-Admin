@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const fetchJobById = createAsyncThunk(
   "job/fetchJobById",
   async (id, { rejectWithValue }) => {
@@ -9,7 +9,7 @@ export const fetchJobById = createAsyncThunk(
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        `https://new-job-portal-be-2f6y.onrender.com/api/admin/employer/getJobById/${id}`,
+        `${BASE_URL}/api/admin/employer/getJobById/${id}`,
         {
           headers: {
             // 2. Add the Authorization header

@@ -26,13 +26,10 @@ function HRViewDetails() {
   const dispatch = useDispatch();
   const calendarRef = useRef(null);
 
-  // Get HR ID from navigation state
   const hrId = location.state?.hr?._id;
 
-  // Redux State - Accessing the nested structure from your JSON
   const { hrDetails, loading } = useSelector((state) => state.hrDetails);
   
-  // Safe access to nested data
   const hrInfo = hrDetails?.hr;
   const summaryList = hrDetails?.dailySummary || []; 
   const totalRecords = hrDetails?.pagination?.total || 0;
@@ -69,7 +66,6 @@ function HRViewDetails() {
     {
       accessorKey: "date",
       header: "Date",
-      // Formatting the date if it comes from API
       cell: ({ getValue }) => {
         const val = getValue();
         return val ? new Date(val).toLocaleDateString() : "N/A";
@@ -96,7 +92,7 @@ function HRViewDetails() {
   ];
 
   const table = useReactTable({
-    data: summaryList.length > 0 ? summaryList : [], // Using API summary
+    data: summaryList.length > 0 ? summaryList : [], 
     columns,
     state: { pagination },
     onPaginationChange: setPagination,
