@@ -221,9 +221,7 @@ export default function Login1() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <p className="text-red-500 text-center text-xs mb-2">
-                krismistry74@gmail.com kris@123
-              </p>
+             
               <label className="text-xs text-gray-600">
                 Email 
               </label>
