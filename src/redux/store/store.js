@@ -6,6 +6,7 @@ import resetReducer from "../slice/auth/resetSlice"
 import createHrReducer from "../slice/hrManagement/createHr"
 import getAllHrReducer from "../slice/hrManagement/getAllHr"
 import getHrByIdReducer from "../slice/hrManagement/getHrById"
+import updateStatusReducer from "../slice/hrManagement/updateStatus"
 import updateHrReducer from "../slice/hrManagement/updateHr"
 import deleteHrReducer from "../slice/hrManagement/deleteHr"
 import getAllEmployerReducer from "../slice/employer/getAllEmployer"
@@ -26,6 +27,7 @@ export const store = configureStore({
     hrDetails: getHrByIdReducer,
     updateHr: updateHrReducer,
     deleteHr: deleteHrReducer,
+    updateStatus: updateStatusReducer,
 
     // employer
     allEmployer: getAllEmployerReducer,
