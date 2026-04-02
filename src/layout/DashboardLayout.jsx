@@ -65,10 +65,12 @@ function DashboardLayout() {
           <Routes>
 
             {/* Default redirect */}
-            <Route path="/" element={<Navigate to="dashboard" />} />
+            {/* <Route path="/" element={<Navigate to="dashboard" />} /> */}
+
+            <Route index element={<Dashboard />} />
 
             {/* Main pages */}
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="job-management" element={<JobManagment/>} /> 
             <Route path="/job-management/job-view-details/:id" element={<JobViewDetails/>} />
             {/* Other pages */}
@@ -96,13 +98,13 @@ function DashboardLayout() {
             <Route path="notification-page" element={<NotificationPage />} />
             <Route path="/hr-management" element={<HRManagement />} />
             <Route path="/hr-management/create-hr" element={<CreateHR />} />
-            <Route path="edit-hr" element={<EditHr />} />
-            <Route path="/hr-management/hr-view-details" element={<HRViewDetails />} />
-            <Route path="daily-work-update" element={<DailyWorkUpdate />} />
-            <Route path="candidate-profile" element={<CandidateProfileDetail />} />
+            <Route path="/hr-management/edit-hr/:id" element={<EditHr />} />
+            <Route path="/hr-management/hr-view-details/:id" element={<HRViewDetails />} />
+            <Route path="/hr-management/daily-work-update" element={<DailyWorkUpdate />} />
+            <Route path="/hr-management/candidate-profile" element={<CandidateProfileDetail />} />
 
             <Route path="employee" element={<Employee />} />
-            <Route path="/employee/company-details" element={<CompanyDetails />} />
+            <Route path="/employee/company-details/:id" element={<CompanyDetails />} />
 
             <Route path="credit-management" element={<CreditModel />}/>
             <Route path="database" element={<DatabaseManagement/>} />
@@ -135,3 +137,4 @@ function DashboardLayout() {
 }
 
 export default DashboardLayout;
+

@@ -5,6 +5,7 @@ import candidateimg from "../../assets/university.png";
 import profile from "../../assets/cadidate.png";
 import profile2 from "../../assets/cadidate2.png"
 import profile3 from "../../assets/cadidate3.png"
+import Footer from "../Footer";
 function CandidateProfile() {
   const navigate = useNavigate();
 
@@ -179,6 +180,7 @@ function CandidateProfile() {
           </div>
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }

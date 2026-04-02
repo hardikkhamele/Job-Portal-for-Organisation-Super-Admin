@@ -14,6 +14,7 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
+import Footer from "../Footer";
 
 const workUpdateData = [
   { id: 1, name: "Aman Kumar", education: "B.Tech", position: "Android Developer", phone: "7798855406", type: "Call", status: "Selected" },
@@ -68,7 +69,7 @@ function DailyWorkUpdate() {
         <Eye
           size={18}
           className="text-purple-600 mx-auto cursor-pointer"
-          onClick={() => navigate("/candidate-profile")}
+          onClick={() => navigate("/hr-management/candidate-profile")}
         />
       ),
     },
@@ -86,7 +87,7 @@ function DailyWorkUpdate() {
 
   return (
     <div className="w-full bg-[#F4F6FA] p-4 min-h-screen">
-      <div className="bg-white p-5 rounded-2xl">
+      <div className="bg-white p-5 rounded-2xl mb-35">
 
         {/* Header */}
         <div className="flex bg-white p-4 rounded-2xl items-center gap-3">
@@ -214,6 +215,7 @@ function DailyWorkUpdate() {
 
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }
