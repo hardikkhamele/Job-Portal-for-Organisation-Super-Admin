@@ -13,6 +13,7 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
+import Footer from "../../Footer";
 
 // import { Switch } from "@mui/material";
 
@@ -299,9 +300,7 @@ export default function JobsPage() {
             </div>
           </div>
         </div>
-        <p className="w-full h-4 bg-white flex items-center text-[#000000A1] text-[10px]">
-          Copyright © 2024 TechnoHire. All rights reserved.
-        </p>
+       <Footer/>
       </div>
     </div>
   );

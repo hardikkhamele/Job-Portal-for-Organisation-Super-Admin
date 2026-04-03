@@ -1,162 +1,573 @@
-import React, { useState } from "react";
-import { Eye, Pencil, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router";
+// import React, { useState, useEffect } from "react";
+// import {
+//   Eye,
+//   Edit,
+//   Trash2,
+//   Search,
+//   ChevronLeft,
+//   ChevronRight,
+// } from "lucide-react";
+// import { useNavigate } from "react-router-dom";
+// import { useDispatch, useSelector } from "react-redux";
+// import {
+//   useReactTable,
+//   getCoreRowModel,
+//   flexRender,
+// } from "@tanstack/react-table";
+// import HrModal from "../common/HrModal";
+// import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
+// import { deleteHr, resetDeleteState } from "../../redux/slice/hrManagement/deleteHr";
+// import Footer from "../Footer";
 
-const hrData = [
-  { id: 1, name: "Kristian Watson", designation: "HR Manager", email: "kristian@gmail.com", password: "Password@12345" },
-  { id: 2, name: "Jenny Wilson", designation: "HR Manager", email: "jenny@gmail.com", password: "Password@12345" },
-  { id: 3, name: "Rane Watson", designation: "HR Manager", email: "rane1@gmail.com", password: "Password@12345" },
-  { id: 4, name: "Alex Brown", designation: "Recruiter", email: "alex@gmail.com", password: "Password@12345" },
-  { id: 5, name: "John Doe", designation: "HR Manager", email: "john@gmail.com", password: "Password@12345" },
-  { id: 6, name: "Emma Stone", designation: "Recruiter", email: "emma@gmail.com", password: "Password@12345" },
-  { id: 7, name: "Robert Fox", designation: "HR Manager", email: "robert@gmail.com", password: "Password@12345" },
-  { id: 8, name: "Sophia Lee", designation: "Recruiter", email: "sophia@gmail.com", password: "Password@12345" },
-  { id: 9, name: "James Bond", designation: "HR Manager", email: "bond@gmail.com", password: "Password@12345" },
-  { id: 10, name: "William Clark", designation: "Recruiter", email: "william@gmail.com", password: "Password@12345" },
-];
+// function HRManagement() {
+//   const navigate = useNavigate();
+//   const dispatch = useDispatch();
+
+//   // Redux State
+//   const { hrList, total, loading } = useSelector((state) => state.allHr);
+//   const { loading: deleting, success: deleteSuccess } = useSelector((state) => state.deleteHr);
+
+//   // Local States
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [isModalOpen, setIsModalOpen] = useState(false);
+//   const [selectedId, setSelectedId] = useState(null);
+
+//   const [pagination, setPagination] = useState({
+//     pageIndex: 0,
+//     pageSize: 10,
+//   });
+
+//   // Function to fetch HR list (re-usable)
+//   const loadHrData = () => {
+//     dispatch(
+//       fetchAllHr({
+//         page: pagination.pageIndex + 1,
+//         limit: pagination.pageSize,
+//         search: searchTerm,
+//       })
+//     );
+//   };
+
+//   // Fetch Data on Change
+//   useEffect(() => {
+//     loadHrData();
+//   }, [dispatch, pagination.pageIndex, pagination.pageSize, searchTerm]);
+
+//   // Handle Refresh after successful delete
+//   useEffect(() => {
+//     if (deleteSuccess) {
+//       setIsModalOpen(false);
+//       setSelectedId(null);
+//       dispatch(resetDeleteState());
+//       loadHrData();
+//     }
+//   }, [deleteSuccess, dispatch]);
+
+//   // Real Delete Handler
+//   const handleDelete = () => {
+//     if (selectedId) {
+//       dispatch(deleteHr(selectedId));
+//     }
+//   };
+
+//   const columns = [
+//     {
+//       header: "Sr.No.",
+//       cell: ({ row }) => row.index + 1 + pagination.pageIndex * pagination.pageSize,
+//     },
+//     {
+//       accessorKey: "hrName",
+//       header: "HR Name",
+//     },
+//     {
+//       accessorKey: "designation",
+//       header: "Designation",
+//     },
+//     {
+//       accessorKey: "email",
+//       header: "Email ID",
+//     },
+//     {
+//       header: "Action",
+//       cell: ({ row }) => {
+//         const hr = row.original;
+//         return (
+//           <div className="flex justify-center gap-4 text-purple-600">
+//             <Eye
+//               size={18}
+//               className="cursor-pointer hover:scale-110 transition"
+//               onClick={() => navigate(`/hr-management/hr-view-details/${hr._id}`, { state: { hr } })}
+//             />
+//             <Edit
+//               size={18}
+//               className="cursor-pointer hover:scale-110 transition"
+//               onClick={() => navigate(`/hr-management/edit-hr/${hr._id}`, { state: { hr } })}
+//             />
+//             <Trash2
+//               size={18}
+//               className="cursor-pointer text-red-500 hover:scale-110 transition"
+//               onClick={() => {
+//                 setSelectedId(hr._id);
+//                 setIsModalOpen(true);
+//               }}
+//             />
+//           </div>
+//         );
+//       },
+//     },
+//   ];
+
+//   const table = useReactTable({
+//     data: hrList || [],
+//     columns,
+//     // FIX 1: Safe pageCount — handles undefined/0 total
+//     pageCount: Math.max(1, Math.ceil((total || 0) / pagination.pageSize)),
+//     state: { pagination },
+//     onPaginationChange: setPagination,
+//     getCoreRowModel: getCoreRowModel(),
+//     manualPagination: true,
+//   });
+
+//   return (
+//     <div className="w-full bg-[#F4F6FA] p-3 min-h-screen">
+//       <div className="w-full mx-auto">
+//         <div className="bg-white rounded-xl shadow-sm p-6">
+//           <h4 className="text-2xl font-bold text-black">HR Management</h4>
+//           <hr className="border-gray-300 mt-2 mb-5" />
+
+//           <div className="border border-[rgba(211,211,211,1)] rounded-lg p-6">
+//             <div className="flex justify-between items-center mb-5">
+//               <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-65 h-11 focus-within:border-purple-400 transition">
+//                 <Search size={18} className="text-[#D3D3D3] mr-2" />
+//                 <input
+//                   type="text"
+//                   placeholder="Search HR..."
+//                   value={searchTerm}
+//                   onChange={(e) => {
+//                     setSearchTerm(e.target.value);
+//                     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+//                   }}
+//                   className="bg-transparent outline-none text-sm w-full"
+//                 />
+//               </div>
+
+//               <div className="flex gap-3">
+//                 <button
+//                   className="bg-[rgba(211,171,42,1)] rounded-lg hover:bg-yellow-600 text-white px-5 py-2 text-sm font-medium transition"
+//                   onClick={() => navigate("/hr-management/create-hr")}
+//                 >
+//                   Create HR
+//                 </button>
+//               </div>
+//             </div>
+
+//             <div className="overflow-x-auto h-auto">
+//               <table className="w-full text-sm text-center border-collapse">
+//                 <thead>
+//                   {table.getHeaderGroups().map((headerGroup) => (
+//                     <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
+//                       {headerGroup.headers.map((header) => (
+//                         <th key={header.id} className="py-3 px-4 font-semibold">
+//                           {flexRender(header.column.columnDef.header, header.getContext())}
+//                         </th>
+//                       ))}
+//                     </tr>
+//                   ))}
+//                 </thead>
+
+//                 <tbody>
+//                   {loading ? (
+//                     <tr>
+//                       <td colSpan={columns.length} className="py-20 text-gray-500">
+//                         <div className="flex flex-col justify-center items-center gap-3">
+//                           <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+//                           <span className="font-medium">Loading HR Records...</span>
+//                         </div>
+//                       </td>
+//                     </tr>
+//                   ) : hrList?.length > 0 ? (
+//                     table.getRowModel().rows.map((row) => (
+//                       <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
+//                         {row.getVisibleCells().map((cell) => (
+//                           <td key={cell.id} className="py-4 px-4 text-gray-700">
+//                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
+//                           </td>
+//                         ))}
+//                       </tr>
+//                     ))
+//                   ) : (
+//                     <tr>
+//                       <td colSpan={columns.length} className="py-20 text-gray-400 italic">
+//                         No HR records found {searchTerm && `for "${searchTerm}"`}
+//                       </td>
+//                     </tr>
+//                   )}
+//                 </tbody>
+//               </table>
+//             </div>
+
+//             <div className="flex justify-between items-center mt-3">
+//               {/* FIX 2: Safe total count display — handles undefined total */}
+//               <p className="text-sm text-purple-600 font-medium">
+//                 Showing {(hrList?.length > 0) ? pagination.pageIndex * pagination.pageSize + 1 : 0} to{" "}
+//                 {Math.min((pagination.pageIndex + 1) * pagination.pageSize, total || 0)}{" "}
+//                 of {total || 0} HRs
+//               </p>
+
+//               <div className="flex items-center gap-2">
+//                 <button
+//                   onClick={() => table.previousPage()}
+//                   disabled={!table.getCanPreviousPage() || loading}
+//                   className="w-8 h-8 rounded-full border border-purple-200 flex items-center justify-center text-purple-600 disabled:opacity-30 hover:bg-purple-50 transition"
+//                 >
+//                   <ChevronLeft size={20} />
+//                 </button>
+
+//                 {/* FIX 3: Always render at least 1 page button */}
+//                 {[...Array(Math.max(1, table.getPageCount()))].map((_, i) => (
+//                   <button
+//                     key={i}
+//                     onClick={() => table.setPageIndex(i)}
+//                     className={`w-8 h-8 rounded-full text-xs font-semibold transition ${
+//                       pagination.pageIndex === i
+//                         ? "bg-purple-600 text-white shadow-md"
+//                         : "border border-purple-200 text-purple-600 hover:bg-purple-50"
+//                     }`}
+//                   >
+//                     {i + 1}
+//                   </button>
+//                 ))}
+
+//                 <button
+//                   onClick={() => table.nextPage()}
+//                   disabled={!table.getCanNextPage() || loading}
+//                   className="w-8 h-8 rounded-full border border-purple-200 flex items-center justify-center text-purple-600 disabled:opacity-30 hover:bg-purple-50 transition"
+//                 >
+//                   <ChevronRight size={20} />
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* <CopyRight /> */}
+
+//         <HrModal
+//           isOpen={isModalOpen}
+//           onClose={() => {
+//             setIsModalOpen(false);
+//             setSelectedId(null);
+//           }}
+//           onConfirm={handleDelete}
+//           loading={deleting}
+//         />
+//       </div>
+//       <Footer/>
+//     </div>
+//   );
+// }
+
+// export default HRManagement;
+
+
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+} from "@tanstack/react-table";
+import HrModal from "../common/HrModal";
+import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
+import { deleteHr, resetDeleteState } from "../../redux/slice/hrManagement/deleteHr";
+import { toggleHrStatus } from "../../redux/slice/hrManagement/updateStatus"; // Import Toggle Action
+import Footer from "../Footer";
 
 function HRManagement() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const totalItems = hrData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // Redux States
+  const { hrList, total, loading } = useSelector((state) => state.allHr);
+  const { loading: deleting, success: deleteSuccess } = useSelector((state) => state.deleteHr);
+  const { loadingId } = useSelector((state) => state.updateStatus); // Toggle loading state
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentHRs = hrData.slice(indexOfFirstItem, indexOfLastItem);
-  const navigate = useNavigate ()
-  const handlePageChange = (page) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
+  // Local States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const loadHrData = () => {
+    dispatch(
+      fetchAllHr({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: searchTerm,
+      })
+    );
   };
+
+  useEffect(() => {
+    loadHrData();
+  }, [dispatch, pagination.pageIndex, pagination.pageSize, searchTerm]);
+
+  useEffect(() => {
+    if (deleteSuccess) {
+      setIsModalOpen(false);
+      setSelectedId(null);
+      dispatch(resetDeleteState());
+      loadHrData();
+    }
+  }, [deleteSuccess, dispatch]);
+
+  const handleDelete = () => {
+    if (selectedId) {
+      dispatch(deleteHr(selectedId));
+    }
+  };
+
+  // Status Toggle Handler
+  const handleStatusToggle = (id) => {
+    // API call karenge aur fir table refresh karenge
+    dispatch(toggleHrStatus(id)).then(() => {
+      loadHrData(); 
+    });
+  };
+
+  const columns = [
+    {
+      header: "Sr.No.",
+      cell: ({ row }) => row.index + 1 + pagination.pageIndex * pagination.pageSize,
+    },
+    {
+      accessorKey: "hrName",
+      header: "HR Name",
+    },
+    {
+      accessorKey: "designation",
+      header: "Designation",
+    },
+    {
+      accessorKey: "email",
+      header: "Email ID",
+    },
+    {
+      header: "Status",
+      accessorKey: "isActive",
+      cell: ({ row }) => {
+        const hr = row.original;
+        const isCurrentLoading = loadingId === hr._id; // Is specific row ka toggle load ho raha hai?
+
+        return (
+          <div className="flex justify-center">
+            <button
+              onClick={() => handleStatusToggle(hr._id)}
+              disabled={isCurrentLoading} // Click hone par disable ho jayega
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                isCurrentLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+              } ${hr.isActive ? "bg-green-500" : "bg-gray-300"}`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  hr.isActive ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        );
+      },
+    },
+    {
+      header: "Action",
+      cell: ({ row }) => {
+        const hr = row.original;
+        return (
+          <div className="flex justify-center gap-4 text-purple-600">
+            <Eye
+              size={18}
+              className="cursor-pointer hover:scale-110 transition"
+              onClick={() => navigate(`/hr-management/hr-view-details/${hr._id}`, { state: { hr } })}
+            />
+            <Edit
+              size={18}
+              className="cursor-pointer hover:scale-110 transition"
+              onClick={() => navigate(`/hr-management/edit-hr/${hr._id}`, { state: { hr } })}
+            />
+            <Trash2
+              size={18}
+              className="cursor-pointer text-red-500 hover:scale-110 transition"
+              onClick={() => {
+                setSelectedId(hr._id);
+                setIsModalOpen(true);
+              }}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
+  const table = useReactTable({
+    data: hrList || [],
+    columns,
+    pageCount: Math.max(1, Math.ceil((total || 0) / pagination.pageSize)),
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
 
   return (
     <div className="w-full bg-[#F4F6FA] p-3 min-h-screen">
       <div className="w-full mx-auto">
-        
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">HR Management</h1>
-        </div>
-
-        {/* Table Section */}
         <div className="bg-white rounded-xl shadow-sm p-6">
+          <h4 className="text-2xl font-bold text-black">HR Management</h4>
+          <hr className="border-gray-300 mt-2 mb-5" />
 
-          
-          {/* Top Controls */}
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex gap-3">
-              <input
-                type="text"
-                placeholder="Search"
-                className="border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-                    <div className="flex gap-3">
+          <div className="border border-[rgba(211,211,211,1)] rounded-lg p-6">
+            <div className="flex justify-between items-center mb-5">
+              <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-65 h-11 focus-within:border-purple-400 transition">
+                <Search size={18} className="text-[#D3D3D3] mr-2" />
+                <input
+                  type="text"
+                  placeholder="Search HR..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                  }}
+                  className="bg-transparent outline-none text-sm w-full"
+                />
+              </div>
 
-              <select className="border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                <option>Designation</option>
-                <option>HR Manager</option>
-                <option>Recruiter</option>
-              </select>
-
-         <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-lg text-sm font-medium"
-           onClick={()=>navigate("/create-hr")}>
-              Create HR
-            </button>
-            </div>
-
-
-          </div>
-
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-100 text-gray-600">
-                  <th className="py-3 px-4">Sr.No.</th>
-                  <th className="py-3 px-4">HR Name</th>
-                  <th className="py-3 px-4">Designation</th>
-                  <th className="py-3 px-4">Email ID</th>
-                  <th className="py-3 px-4">Password</th>
-                  <th className="py-3 px-4 text-center">Action</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {currentHRs.map((hr, index) => (
-                  <tr key={hr.id} className="border-b hover:bg-gray-50 transition">
-                    <td className="py-4 px-4">
-                      {indexOfFirstItem + index + 1}
-                    </td>
-                    <td className="py-4 px-4">{hr.name}</td>
-                    <td className="py-4 px-4">{hr.designation}</td>
-                    <td className="py-4 px-4">{hr.email}</td>
-                    <td className="py-4 px-4">{hr.password}</td>
-                    <td className="py-4 px-4">
-                      <div className="flex justify-center gap-4 text-purple-600">
-                        <Eye size={18} className="cursor-pointer"  onClick={() => navigate("/hr-view-details")} />
-                        <Pencil size={18} className="cursor-pointer" onClick={()=>navigate("/edit-hr")} />
-                        <Trash2 size={18} className="cursor-pointer text-red-500" />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Footer Pagination */}
-          <div className="flex justify-between items-center mt-6">
-            <p className="text-sm text-purple-600">
-              Showing {indexOfFirstItem + 1} to{" "}
-              {Math.min(indexOfLastItem, totalItems)} of {totalItems} HRs
-            </p>
-
-            <div className="flex items-center gap-2">
-              {/* Previous */}
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-50"
-              >
-                {"<"}
-              </button>
-
-              {/* Page Numbers */}
-              {[...Array(totalPages)].map((_, i) => (
+              <div className="flex gap-3">
                 <button
-                  key={i}
-                  onClick={() => handlePageChange(i + 1)}
-                  className={`w-8 h-8 rounded-full ${
-                    currentPage === i + 1
-                      ? "bg-purple-600 text-white"
-                      : "border text-purple-600"
-                  }`}
+                  className="bg-[rgba(211,171,42,1)] rounded-lg hover:bg-yellow-600 text-white px-5 py-2 text-sm font-medium transition"
+                  onClick={() => navigate("/hr-management/create-hr")}
                 >
-                  {i + 1}
+                  Create HR
                 </button>
-              ))}
+              </div>
+            </div>
 
-              {/* Next */}
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-50"
-              >
-                {">"}
-              </button>
+            <div className="overflow-x-auto h-auto">
+              <table className="w-full text-sm text-center border-collapse">
+                <thead>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
+                      {headerGroup.headers.map((header) => (
+                        <th key={header.id} className="py-3 px-4 font-semibold">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={columns.length} className="py-20 text-gray-500">
+                        <div className="flex flex-col justify-center items-center gap-3">
+                          <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="font-medium">Loading HR Records...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : hrList?.length > 0 ? (
+                    table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="py-4 px-4 text-gray-700">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={columns.length} className="py-20 text-gray-400 italic">
+                        No HR records found {searchTerm && `for "${searchTerm}"`}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination UI remain same */}
+            <div className="flex justify-between items-center mt-3">
+              <p className="text-sm text-purple-600 font-medium">
+                Showing {(hrList?.length > 0) ? pagination.pageIndex * pagination.pageSize + 1 : 0} to{" "}
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, total || 0)}{" "}
+                of {total || 0} HRs
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage() || loading}
+                  className="w-8 h-8 rounded-full border border-purple-200 flex items-center justify-center text-purple-600 disabled:opacity-30 hover:bg-purple-50 transition"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+
+                {[...Array(Math.max(1, table.getPageCount()))].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => table.setPageIndex(i)}
+                    className={`w-8 h-8 rounded-full text-xs font-semibold transition ${
+                      pagination.pageIndex === i
+                        ? "bg-purple-600 text-white shadow-md"
+                        : "border border-purple-200 text-purple-600 hover:bg-purple-50"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage() || loading}
+                  className="w-8 h-8 rounded-full border border-purple-200 flex items-center justify-center text-purple-600 disabled:opacity-30 hover:bg-purple-50 transition"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="text-center text-gray-400 text-sm mt-12">
-          Copyright © 2024 TechnoHire. All rights reserved.
-        </div>
+        <HrModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedId(null);
+          }}
+          onConfirm={handleDelete}
+          loading={deleting}
+        />
       </div>
+      <Footer/>
     </div>
   );
 }

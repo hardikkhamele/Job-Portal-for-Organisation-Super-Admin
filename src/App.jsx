@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate  } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import LoginPage from "./components/auth/login/LoginPage";
 import ForgotPage from "./components/auth/login/ForgotPage";
@@ -14,14 +19,23 @@ import PhoneOtpverification from "./components/auth/verification/PhoneOTPVerific
 import PhoneVerifiedSuccess from "./components/auth/verification/PhoneVerifiedSuccess";
 import ResetSuccess from "./components/auth/login/ResetSuccess";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; 
-
+import "react-toastify/dist/ReactToastify.css";
+import { useEffect, useState } from "react";
 
 export default function App() {
-   const token = sessionStorage.getItem("token");
+  
+function PublicRoute({ children }) {
+  const token = localStorage.getItem("token");
+  return token ? <Navigate to="/dashboard" replace /> : children;
+}
+
+function PrivateRoute({ children }) {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/" replace />;
+}
+
   return (
     <Router>
-   
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -31,22 +45,31 @@ export default function App() {
         draggable
         theme="colored"
       />
+      
       <Routes>
-     
-        <Route
-  path="/"
-  element={
-    sessionStorage.getItem("token")
-      ? <Navigate to="/dashboard" replace />
-      : <LoginPage />
-  }
-/>
+         <Route
+          path="/"
+          element={
+            localStorage.getItem("token")
+              ? <Navigate to="/dashboard" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+        {/* <Route path="/" element={<LoginPage />} /> */}
+        
+          {/* <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/forgot-password" element={<ForgotPage />} />
         <Route path="/verify-otp" element={<OtpVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/reset-success" element={<ResetSuccess />} />
+        <Route path="/reset-success" element={<ResetSuccess />} /> */}
 
-        {/* <Route path="/password-reset-success" element={<Login4 />} /> */}
+
+        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+<Route path="/forgot-password" element={<PublicRoute><ForgotPage /></PublicRoute>} />
+<Route path="/verify-otp" element={<PublicRoute><OtpVerification /></PublicRoute>} />
+<Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+<Route path="/reset-success" element={<PublicRoute><ResetSuccess /></PublicRoute>} />
+
         <Route path="/Signup1" element={<Signup1 />} />
         <Route path="/VerifyAccount" element={<VerifyAccount />} />
         <Route
@@ -62,17 +85,13 @@ export default function App() {
           path="/PhoneVerifiedSuccess"
           element={<PhoneVerifiedSuccess />}
         />
-             {/* ✅ Protected Dashboard */}
-       {/* <Route
-  path="/*"
-  element={
-    sessionStorage.getItem("token")
-      ? <DashboardLayout />
-      : <Navigate to="/" replace />
-  }
-/> */}
-<Route path="/*" element={<DashboardLayout />} />
+     
+       
+        {/* <Route path="/*" element={<DashboardLayout />} /> */}
+         <Route path="/*" element={<PrivateRoute><DashboardLayout /></PrivateRoute>} />
       </Routes>
     </Router>
   );
 }
+
+

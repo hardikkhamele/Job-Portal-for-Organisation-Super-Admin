@@ -17,7 +17,7 @@ function SearchBar() {
           placeholder="Search Anything"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-10 pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full h-10 pl-10 pr-3 py-2 border border-gray-300 rounded-lg  focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
 
@@ -32,8 +32,8 @@ function SearchBar() {
         </button> */}
 
         {/* Notifications */}
-        <button onClick={()=>navigate("/notification-page")} className="relative p-2 bg-gray-100 rounded-full">
-          <Bell size={18} className="text-gray-700" />
+        <button onClick={()=>navigate("/notification-page")} className="relative p-2 bg-gray-100 rounded-full cursor-pointer">
+          <Bell size={20} className="text-gray-700" />
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
             2
           </span>

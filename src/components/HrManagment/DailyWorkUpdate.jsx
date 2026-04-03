@@ -1,6 +1,20 @@
 import React, { useState } from "react";
-import { Eye } from "lucide-react";
+import {
+  Eye,
+  CircleChevronLeft,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useNavigate } from "react-router";
+
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  flexRender,
+} from "@tanstack/react-table";
+import Footer from "../Footer";
 
 const workUpdateData = [
   { id: 1, name: "Aman Kumar", education: "B.Tech", position: "Android Developer", phone: "7798855406", type: "Call", status: "Selected" },
@@ -13,23 +27,13 @@ const workUpdateData = [
 ];
 
 function DailyWorkUpdate() {
-
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
 
-  const totalItems = workUpdateData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-
-  const currentItems = workUpdateData.slice(indexOfFirstItem, indexOfLastItem);
-
-  const handlePageChange = (page) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-  };
+  // ✅ TanStack pagination
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5,
+  });
 
   const getStatusColor = (status) => {
     if (status === "Selected") return "text-green-600";
@@ -38,111 +42,159 @@ function DailyWorkUpdate() {
     if (status === "Not Interested") return "text-gray-500";
   };
 
+  // ✅ Columns
+  const columns = [
+    {
+      header: "Sr.No",
+      cell: ({ row }) =>
+        row.index + 1 + pagination.pageIndex * pagination.pageSize,
+    },
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "education", header: "Education" },
+    { accessorKey: "position", header: "Position" },
+    { accessorKey: "phone", header: "Phone" },
+    { accessorKey: "type", header: "Interaction" },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <span className={`font-medium ${getStatusColor(row.original.status)}`}>
+          {row.original.status}
+        </span>
+      ),
+    },
+    {
+      header: "Action",
+      cell: () => (
+        <Eye
+          size={18}
+          className="text-purple-600 mx-auto cursor-pointer"
+          onClick={() => navigate("/hr-management/candidate-profile")}
+        />
+      ),
+    },
+  ];
+
+  // ✅ Table
+  const table = useReactTable({
+    data: workUpdateData,
+    columns,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
   return (
-
-    // 🔹 SAME OUTER BG
     <div className="w-full bg-[#F4F6FA] p-4 min-h-screen">
+      <div className="bg-white p-5 rounded-2xl mb-35">
 
-      {/* 🔹 SAME WHITE PARENT CARD */}
-      <div className="bg-white p-5 rounded-2xl">
-
-        {/* 🔹 HEADER SAME */}
-        <div className="flex bg-white p-4 rounded-2xl items-center gap-3 mb-5">
-          <button onClick={() => navigate(-1)}>←</button>
+        {/* Header */}
+        <div className="flex bg-white p-4 rounded-2xl items-center gap-3">
+          <button onClick={() => navigate(-1)}>
+            <CircleChevronLeft size={28} />
+          </button>
           <h1 className="text-xl font-semibold">
             Daily Work Update
           </h1>
         </div>
 
-        <hr />
+        <hr className="border-gray-300 mt-2 mb-5" />
 
-        {/* 🔹 INNER CONTENT CARD */}
-        <div className="bg-white rounded-xl shadow p-5 mt-4">
+        {/* Inner Card */}
+        <div className="bg-white border border-gray-300 rounded-lg p-5 mt-4">
 
-          {/* 🔹 Search + Filters */}
+          {/* Search + Filters */}
           <div className="flex justify-between mb-4">
-            <input
-              type="text"
-              placeholder="Search"
-              className="border px-3 py-2 rounded-lg text-sm"
-            />
+            <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-65 h-11">
+              <Search size={18} className="text-[#D3D3D3] mr-2" />
+              <input
+                type="text"
+                placeholder="Search"
+                className="bg-transparent outline-none text-sm w-full"
+              />
+            </div>
 
             <div className="flex gap-3">
-              <select className="border px-3 py-2 rounded-lg text-sm">
+              <select className="border border-[rgba(211,211,211,1)] px-3 py-2 rounded-lg text-sm">
                 <option>Status</option>
                 <option>Selected</option>
                 <option>Processing</option>
                 <option>Rejected</option>
               </select>
 
-              <select className="border px-3 py-2 rounded-lg text-sm">
+              <select className="border border-[rgba(211,211,211,1)] px-3 py-2 rounded-lg text-sm">
                 <option>Today</option>
                 <option>Yesterday</option>
               </select>
             </div>
           </div>
 
-          {/* 🔹 TABLE */}
+          {/* Table */}
           <div className="w-full overflow-x-auto">
             <table className="w-full table-fixed border-collapse text-sm">
+              
+              {/* THEAD */}
               <thead className="bg-gray-100 text-gray-600">
-                <tr>
-                  <th className="py-3 px-4 text-left">Sr.No</th>
-                  <th className="py-3 px-4 text-left">Name</th>
-                  <th className="py-3 px-4 text-left">Education</th>
-                  <th className="py-3 px-4 text-left">Position</th>
-                  <th className="py-3 px-4 text-left">Phone</th>
-                  <th className="py-3 px-4 text-left">Interaction</th>
-                  <th className="py-3 px-4 text-left">Status</th>
-                  <th className="py-3 px-4 text-center">Action</th>
-                </tr>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th key={header.id} className="py-3 px-4 text-center">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
               </thead>
 
+              {/* TBODY */}
               <tbody>
-                {currentItems.map((item, index) => (
-                  <tr key={item.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4">
-                      {indexOfFirstItem + index + 1}
-                    </td>
-                    <td className="py-3 px-4">{item.name}</td>
-                    <td className="py-3 px-4">{item.education}</td>
-                    <td className="py-3 px-4">{item.position}</td>
-                    <td className="py-3 px-4">{item.phone}</td>
-                    <td className="py-3 px-4">{item.type}</td>
-                    <td className={`py-3 px-4 font-medium ${getStatusColor(item.status)}`}>
-                      {item.status}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <Eye size={18} className="text-purple-600 mx-auto cursor-pointer"  onClick={() => navigate("/candidate-profile")} />
-                    </td>
+                {table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className=" text-center border-b border-[rgba(211,211,211,1)] hover:bg-gray-50">
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="py-3 px-4">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
+
             </table>
           </div>
 
-          {/* 🔹 PAGINATION */}
+          {/* Pagination */}
           <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-purple-600">
-              Showing {indexOfFirstItem + 1} to{" "}
-              {Math.min(indexOfLastItem, totalItems)} of {totalItems}
+              Showing {pagination.pageIndex * pagination.pageSize + 1} to{" "}
+              {Math.min(
+                (pagination.pageIndex + 1) * pagination.pageSize,
+                workUpdateData.length
+              )}{" "}
+              of {workUpdateData.length}
             </p>
 
             <div className="flex gap-2">
               <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="w-8 h-8 border rounded-full"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-50"
               >
-                {"<"}
+                <ChevronLeft size={20} />
               </button>
 
-              {[...Array(totalPages)].map((_, i) => (
+              {[...Array(table.getPageCount())].map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => handlePageChange(i + 1)}
+                  onClick={() => table.setPageIndex(i)}
                   className={`w-8 h-8 rounded-full ${
-                    currentPage === i + 1
+                    pagination.pageIndex === i
                       ? "bg-purple-600 text-white"
                       : "border text-purple-600"
                   }`}
@@ -152,17 +204,18 @@ function DailyWorkUpdate() {
               ))}
 
               <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="w-8 h-8 border rounded-full"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-50"
               >
-                {">"}
+                <ChevronRight size={20} />
               </button>
             </div>
           </div>
 
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }
