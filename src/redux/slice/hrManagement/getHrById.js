@@ -26,7 +26,12 @@ const getHrByIdSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearHrDetails: (state) => {
+      state.hrDetails = null;
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchHrById.pending, (state) => {
@@ -42,5 +47,5 @@ const getHrByIdSlice = createSlice({
       });
   },
 });
-
+export const { clearHrDetails } = getHrByIdSlice.actions;
 export default getHrByIdSlice.reducer;

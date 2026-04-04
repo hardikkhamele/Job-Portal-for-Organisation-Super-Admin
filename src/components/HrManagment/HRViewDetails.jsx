@@ -10,8 +10,7 @@ import { useNavigate, useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import { fetchHrById } from "../../redux/slice/hrManagement/getHrById";
-
+import { fetchHrById, clearHrDetails } from "../../redux/slice/hrManagement/getHrById";
 import {
   useReactTable,
   getCoreRowModel,
@@ -38,6 +37,10 @@ function HRViewDetails() {
     if (hrId) {
       dispatch(fetchHrById(hrId));
     }
+    
+    return () => {
+      dispatch(clearHrDetails());
+    };
   }, [dispatch, hrId]);
 
   const [pagination, setPagination] = useState({
@@ -79,20 +82,27 @@ function HRViewDetails() {
       accessorKey: "totalEmails",
       header: "Total Emails",
     },
-    {
-      header: "Action",
-      cell: () => (
+   {
+    header: "Action",
+    cell: ({ row }) => {
+      const rawDate = row.original.date; // Table row se date li
+      const formattedDate = rawDate ? new Date(rawDate).toISOString().split('T')[0] : "";
+      
+      return (
         <Eye
           size={18}
           className="text-purple-600 cursor-pointer mx-auto"
-          onClick={() => navigate("/hr-management/daily-work-update")}
+          onClick={() => navigate("/hr-management/daily-work-update", { 
+            state: { hrId, date: formattedDate } // Data pass ho raha hai
+          })}
         />
-      ),
+      );
     },
+  },
   ];
 
   const table = useReactTable({
-    data: summaryList.length > 0 ? summaryList : [], 
+    data: summaryList, 
     columns,
     state: { pagination },
     onPaginationChange: setPagination,
@@ -114,10 +124,10 @@ function HRViewDetails() {
         <hr className="border-gray-300 mt-4 mb-5" />
 
         {/* Profile Section */}
-        {loading ? (
-          <div className="w-full h-24 flex items-center justify-center bg-gray-50 rounded-xl mb-6">
-            <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
+        {loading && !hrInfo ? ( // Sirf tabhi loader dikhaye jab data bilkul na ho
+          <div className="flex flex-col justify-center items-center gap-3 h-[150px]">
+                          <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
         ) : (
           <div className="bg-[#F4F6FA] rounded-xl p-4 flex justify-between items-center mt-4 mb-6">
             <div className="flex items-center gap-4">
@@ -195,7 +205,16 @@ function HRViewDetails() {
               </thead>
 
               <tbody>
-                {summaryList.length > 0 ? (
+                {loading ? ( // Jab naya data load ho raha ho, loader dikhayein
+                  <tr>
+                    <td colSpan={columns.length} className="py-10 text-center">
+                     <div className="flex flex-col justify-center items-center gap-3">
+                          <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="font-medium">Loading Daily Reports...</span>
+                        </div>
+                    </td>
+                  </tr>
+                ) : summaryList.length > 0 ? (
                   table.getRowModel().rows.map((row) => (
                     <tr key={row.id} className="text-center border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
                       {row.getVisibleCells().map((cell) => (
@@ -226,7 +245,7 @@ function HRViewDetails() {
             <div className="flex gap-2 items-center">
               <button
                 onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
+                disabled={!table.getCanPreviousPage() || loading}
                 className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-30 hover:bg-purple-50"
               >
                 <ChevronLeft size={20} />
@@ -236,6 +255,7 @@ function HRViewDetails() {
                 <button
                   key={i}
                   onClick={() => table.setPageIndex(i)}
+                  disabled={loading}
                   className={`w-8 h-8 rounded-full text-xs font-semibold ${
                     pagination.pageIndex === i ? "bg-purple-600 text-white" : "border text-purple-600"
                   }`}
@@ -246,7 +266,7 @@ function HRViewDetails() {
 
               <button
                 onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
+                disabled={!table.getCanNextPage() || loading}
                 className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-30 hover:bg-purple-50"
               >
                 <ChevronRight size={20} />

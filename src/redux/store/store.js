@@ -14,6 +14,7 @@ import getEmployeeByIdReducer from "../slice/employer/getEmployeeById"
 import getAllJobReducer from "../slice/jobManagement/getAllJob"
 import jobByIdReducer from "../slice/jobManagement/getJobId"
 import getCreditReducer from "../slice/credit/getCredit"
+import hrReportsReducer from "../slice/hrManagement/getReportofHr"
 export const store = configureStore({
   reducer: {
     // auth
@@ -29,6 +30,7 @@ export const store = configureStore({
     updateHr: updateHrReducer,
     deleteHr: deleteHrReducer,
     updateStatus: updateStatusReducer,
+      hrReports: hrReportsReducer,
 
     // employer
     allEmployer: getAllEmployerReducer,
