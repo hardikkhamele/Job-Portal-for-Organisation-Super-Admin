@@ -93,7 +93,7 @@ const Sidebar = () => {
               <div className="ml-9 flex flex-col gap-2 mt-1">
                 <div
                   className={`px-3 py-2 rounded-md cursor-pointer ${
-                    isActive("/database-candidate")
+                    isActive("/candidates")
                       ? "bg-yellow-400 text-white"
                       : "text-white hover:bg-white/10"
                   }`}
