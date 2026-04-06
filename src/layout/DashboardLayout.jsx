@@ -54,6 +54,8 @@ import AddEmployee from "../components/EmployeeManagement/AddEmployee";
 // import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView";
 import DatabaseCandidate from "../components/DatabaseManagement/DatabaseCandidate";
 import AcceptReject from "../components/DatabaseManagement/AcceptReject";
+import CandidateDetails from "../components/DatabaseManagement/CandidateDetails";
+
 function DashboardLayout() {
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -128,6 +130,7 @@ function DashboardLayout() {
             <Route path="/edit-social-links" element={<EditSocialLinks />} />
             <Route path="/candidates" element={<DatabaseCandidate />} />
             <Route path="/accept-reject" element={<AcceptReject />} />
+            <Route path="/candidate-details" element={<CandidateDetails />} />
            
 
             
