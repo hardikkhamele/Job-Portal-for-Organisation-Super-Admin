@@ -88,7 +88,7 @@ const DatabaseCandidate = () => {
                 <Eye
                   className="text-purple-600 cursor-pointer mx-auto"
                   size={20}
-                  onClick={() => navigate("/hr-management/candidate-profile")}
+                  onClick={() => navigate("/candidate-details")}
                 />
               </td>
               </tr>
