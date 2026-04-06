@@ -70,16 +70,16 @@ function DailyWorkUpdate() {
         </span>
       ),
     },
-    {
-      header: "Action",
-      cell: () => (
-        <Eye
-          size={18}
-          className="text-purple-600 mx-auto cursor-pointer"
-          onClick={() => navigate("/hr-management/candidate-profile")}
-        />
-      ),
-    },
+   {
+  header: "Action",
+  cell: ({ row }) => (
+    <Eye
+      size={18}
+      className="text-purple-600 mx-auto cursor-pointer hover:scale-110 transition"
+      onClick={() => navigate(`/hr-management/candidate-profile/${row.original.id}`)}
+    />
+  ),
+},
   ];
 
   const table = useReactTable({
