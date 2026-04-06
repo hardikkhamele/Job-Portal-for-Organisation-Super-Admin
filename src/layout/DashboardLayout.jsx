@@ -50,6 +50,7 @@ import JobSeekerManagement from "../components/JobSeekerManagement/JobSeekerMana
 import ViewJobSeekerManagement from "../components/JobSeekerManagement/ViewJobSeekerManagement";
 import ViewRoles from "../components/JobSeekerManagement/ViewRoles";
 import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView";
+import AddEmployee from "../components/EmployeeManagement/AddEmployee";
 // import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView";
 
 function DashboardLayout() {
@@ -105,6 +106,7 @@ function DashboardLayout() {
 
             <Route path="employee" element={<Employee />} />
             <Route path="/employee/company-details/:id" element={<CompanyDetails />} />
+            <Route path="/employee/add-employee" element={<AddEmployee/>} />
 
             <Route path="credit-management" element={<CreditModel />}/>
             <Route path="database" element={<DatabaseManagement/>} />

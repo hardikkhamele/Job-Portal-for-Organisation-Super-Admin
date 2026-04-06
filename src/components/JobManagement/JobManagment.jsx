@@ -23,7 +23,6 @@ const JobManagement = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  // 1. Updated selector to match the new paginated slice structure
   const { jobs, loading, pagination: reduxPagination } = useSelector((state) => state.allJobs);
 
   const [globalFilter, setGlobalFilter] = useState("");
@@ -31,19 +30,29 @@ const JobManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  // TanStack table internal state
   const [pagination, setPagination] = useState({
-    pageIndex: 0, // 0-based index for UI
+    pageIndex: 0, 
     pageSize: 10,
   });
 
-  // 2. Trigger API call whenever pageIndex changes
+  // Search ya Category change hone par page 1 par reset karein
   useEffect(() => {
-    dispatch(fetchAllJobs({ 
-      page: pagination.pageIndex + 1, // API expects 1-based index
-      limit: pagination.pageSize 
-    }));
-  }, [dispatch, pagination.pageIndex, pagination.pageSize]);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [globalFilter, category]);
+
+  // API Trigger with Search Params
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      dispatch(fetchAllJobs({ 
+        page: pagination.pageIndex + 1, 
+        limit: pagination.pageSize,
+        search: globalFilter,
+        category: category
+      }));
+    }, 500); // Debounce taaki typing ke waqt lagatar API call na ho
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [dispatch, pagination.pageIndex, pagination.pageSize, globalFilter, category]);
 
   const handleConfirmDelete = () => {
     setIsModalOpen(false);
@@ -55,27 +64,10 @@ const JobManagement = () => {
     setIsModalOpen(true);
   };
 
-  // Filter Logic (Client-side filtering on the current page's data)
-  const filteredData = useMemo(() => {
-    const dataArray = Array.isArray(jobs) ? jobs : [];
-    return dataArray.filter((item) => {
-      const search = globalFilter.toLowerCase();
-      const matchesSearch =
-        (item.jobTitle || "").toLowerCase().includes(search) ||
-        (item.employerName || "").toLowerCase().includes(search);
-
-      const matchesCategory =
-        category === "All" || item.subCategory?.name === category;
-
-      return matchesSearch && matchesCategory;
-    });
-  }, [jobs, globalFilter, category]);
-
   const columns = [
     {
       header: "Sr.No.",
-      cell: ({ row }) =>
-        pagination.pageIndex * pagination.pageSize + row.index + 1,
+      cell: ({ row }) => pagination.pageIndex * pagination.pageSize + row.index + 1,
     },
     {
       header: "Employer",
@@ -83,14 +75,8 @@ const JobManagement = () => {
         const logo = row.original.companyLogo?.[0] || defaultLogo;
         return (
           <div className="flex items-center gap-3">
-            <img
-              src={logo}
-              alt="logo"
-              className="w-9 h-9 rounded-full bg-gray-100 p-1 object-contain border border-gray-300"
-            />
-            <span className="font-medium text-gray-800">
-              {row.original.employerName || "N/A"}
-            </span>
+            <img src={logo} alt="logo" className="w-9 h-9 rounded-full bg-gray-100 p-1 object-contain border border-gray-300" />
+            <span className="font-medium text-gray-800">{row.original.employerName || "N/A"}</span>
           </div>
         );
       },
@@ -102,9 +88,7 @@ const JobManagement = () => {
           <p className="font-medium">{row.original.jobTitle}</p>
           <div className="flex items-center gap-1 text-sm text-gray-500">
             <MapPin size={14} className="text-gray-400" />
-            <span>
-              {row.original.jobType} • {row.original.subCategory?.name}
-            </span>
+            <span>{row.original.jobType} • {row.original.subCategory?.name}</span>
           </div>
         </div>
       ),
@@ -134,34 +118,20 @@ const JobManagement = () => {
       header: "Action",
       cell: ({ row }) => (
         <div className="flex gap-3 justify-center">
-          <Eye
-            className="text-purple-600 cursor-pointer hover:scale-110 transition"
-            size={18}
-            onClick={() =>
-              navigate(`/job-management/job-view-details/${row.original._id}`, {
-                state: row.original,
-              })
-            }
-          />
-          <Trash2
-            className="text-red-500 cursor-pointer hover:scale-110 transition"
-            size={18}
-            onClick={() => handleDeleteClick(row.original)}
-          />
+          <Eye className="text-purple-600 cursor-pointer hover:scale-110 transition" size={18} onClick={() => navigate(`/job-management/job-view-details/${row.original._id}`, { state: row.original })} />
+          <Trash2 className="text-red-500 cursor-pointer hover:scale-110 transition" size={18} onClick={() => handleDeleteClick(row.original)} />
         </div>
       ),
     },
   ];
 
   const table = useReactTable({
-    data: filteredData,
+    data: jobs || [],
     columns,
-    pageCount: reduxPagination.totalPages, // 3. Get total pages from Redux
-    state: {
-      pagination,
-    },
+    pageCount: reduxPagination.totalPages,
+    state: { pagination },
     onPaginationChange: setPagination,
-    manualPagination: true, // 4. Tell table we are handling pagination via API
+    manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -197,52 +167,53 @@ const JobManagement = () => {
             </select>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-600 text-sm">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <th key={header.id} className="p-4 font-semibold text-center">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                        </th>
+          <div className="overflow-x-auto min-h-[400px]">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600 text-sm">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th key={header.id} className="p-4 font-semibold text-center border-b">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+
+              <tbody className="text-gray-700">
+                {loading ? (
+                  /* --- Loader inside table body --- */
+                  <tr>
+                    <td colSpan={columns.length} className="p-20 text-center">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
+                        <p className="text-gray-500 font-medium animate-pulse">Loading data...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : table.getRowModel().rows.length > 0 ? (
+                  table.getRowModel().rows.map((row) => (
+                    <tr key={row.id} className="border-b border-gray-200 hover:bg-purple-50/30 transition text-center">
+                      {row.getVisibleCells().map((cell) => (
+                        <td key={cell.id} className="p-4">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
                       ))}
                     </tr>
-                  ))}
-                </thead>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={columns.length} className="p-10 text-center text-gray-400">
+                      No jobs found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-                <tbody className="text-gray-700">
-                  {table.getRowModel().rows.length > 0 ? (
-                    table.getRowModel().rows.map((row) => (
-                      <tr
-                        key={row.id}
-                        className="border-b border-gray-200 hover:bg-purple-50/30 transition text-center"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td key={cell.id} className="p-4">
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={columns.length} className="p-10 text-center text-gray-400">
-                        No jobs found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* 5. Pagination UI linked to Redux metadata */}
+          {/* Pagination UI */}
           <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-gray-500">
               Showing <span className="font-medium text-purple-600">
@@ -263,15 +234,12 @@ const JobManagement = () => {
               </button>
 
               <div className="flex gap-1">
-                {/* Generate dynamic page numbers */}
                 {Array.from({ length: table.getPageCount() }, (_, i) => (
                   <button
                     key={i}
                     onClick={() => table.setPageIndex(i)}
                     className={`w-9 h-9 rounded-lg text-sm font-medium transition ${
-                      pagination.pageIndex === i
-                        ? "bg-purple-600 text-white shadow-md"
-                        : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                      pagination.pageIndex === i ? "bg-purple-600 text-white shadow-md" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     {i + 1}
@@ -291,11 +259,7 @@ const JobManagement = () => {
         </div>
       </div>
       <Footer/>
-      <DeleteModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-      />
+      <DeleteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmDelete} />
     </div>
   );
 };

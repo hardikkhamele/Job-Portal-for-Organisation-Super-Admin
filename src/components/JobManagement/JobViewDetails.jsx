@@ -15,6 +15,7 @@ import {
   Link,
 } from "lucide-react";
 import CopyRight from "../common/CopyRight";
+import Footer from "../Footer";
 
 function JobViewDetails() {
   const { id } = useParams();
@@ -60,32 +61,32 @@ function JobViewDetails() {
           <h2 className="text-lg font-semibold">View Details</h2>
         </div>
 
-        <hr className="border-gray-300 mt-2 mb-5" />
+        <hr className="border-gray-300 mt-2 mb-1" />
 
         {/* 🔹 Company Section */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-4">
             {/* Logic for logo - fallback if not in API */}
-            <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center font-bold text-purple-700">
+            {/* <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center font-bold text-purple-700">
               {job.jobTitle.charAt(0)}
-            </div>
+            </div> */}
             <div>
-              <h3 className="font-semibold text-lg">{job.jobRole}</h3>
+              {/* <h3 className="font-semibold text-lg">{job.jobRole}</h3> */}
               {/* <p className="text-sm text-gray-500">
                 Status: {job.status}
               </p> */}
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-sm">
+          {/* <div className="flex items-center gap-4 text-sm">
             <span className="text-green-600 flex items-center gap-1">
               <CircleCheck size={20} />
               {job.status === "active" ? "Active" : "Inactive"}
             </span>
-          </div>
+          </div> */}
         </div>
 
-        <hr className="border-gray-300 mt-2 mb-5" />
+        {/* <hr className="border-gray-300 mt-2 mb-5" /> */}
 
         {/* 🔹 Job Title */}
         <div className="mb-4 flex items-center gap-2">
@@ -190,7 +191,7 @@ function JobViewDetails() {
           </div>
         </div>
       </div>
-      <CopyRight />
+      <Footer/>
     </div>
   );
 }

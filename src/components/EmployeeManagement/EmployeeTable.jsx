@@ -154,12 +154,12 @@ function EmployeeTable() {
         <h2 className="text-2xl font-bold text-gray-800 mb-3">Employer Management</h2>
         <div className="border-b border-gray-500 mb-5"></div>
 
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <div className="flex items-center w-[240px] h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-lg">
             <Search size={16} className="text-gray-500 mr-2" />
             <input
               type="text"
-              placeholder="Search"
+              placeholder="Search here....."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -168,7 +168,35 @@ function EmployeeTable() {
               className="bg-transparent outline-none text-sm w-full"
             />
           </div>
-        </div>
+        </div> */}
+
+
+        <div className="mb-6 flex items-center justify-between">
+  {/* Search Bar - Left Side */}
+  <div className="flex items-center w-[240px] h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-lg">
+    <Search size={16} className="text-gray-500 mr-2" />
+    <input
+      type="text"
+      placeholder="Search here....."
+      value={searchTerm}
+      onChange={(e) => {
+        setSearchTerm(e.target.value);
+        setPage(1); // Reset to page 1 on search
+      }}
+      className="bg-transparent outline-none text-sm w-full"
+    />
+  </div>
+
+  <button 
+    onClick={() => {
+      console.log("Add Employee Clicked");
+      navigate("/employee/add-employee")
+    }}
+    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+  >
+    + Add Employee
+  </button>
+</div>
 
         <div className="border border-gray-200 rounded-lg overflow-hidden min-h-[400px]">
           <table className="w-full text-base border-collapse">
