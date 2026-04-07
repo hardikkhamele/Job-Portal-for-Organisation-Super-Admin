@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Upload, Eye, EyeOff } from "lucide-react"; 
 import { useDispatch, useSelector } from "react-redux";
 import { getHrForEdit, updateHrDetails, resetUpdateState } from "../../redux/slice/hrManagement/updateHr";
-import CopyRight from "../common/CopyRight";
-import toast from "react-hot-toast"; // Agar toast use kar rahe ho toh
+import toast from "react-hot-toast";
 import Footer from "../Footer";
 
 function EditHR() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { id } = useParams(); // URL se ID lene ke liye
+  const { id } = useParams();
 
   // Redux States
   const { hrData, loading, updateLoading, success } = useSelector((state) => state.updateHr);
@@ -23,6 +22,9 @@ function EditHR() {
     password: "",
     image: null,
   });
+
+  // Password visibility state
+  const [showPassword, setShowPassword] = useState(false);
 
   // 1. Fetch data if not passed through state (Direct URL access)
   useEffect(() => {
@@ -40,7 +42,7 @@ function EditHR() {
         designation: hr.designation || "",
         email: hr.email || "",
         password: "",
-        image: null, // Image field ko null rakhein jab tak user change na kare
+        image: null,
       });
     }
   }, [location.state, hrData]);
@@ -67,7 +69,6 @@ function EditHR() {
     e.preventDefault();
     if (!id) return;
 
-    // Create FormData object
     const data = new FormData();
     data.append("hrName", formData.hrName);
     data.append("designation", formData.designation);
@@ -78,7 +79,7 @@ function EditHR() {
     dispatch(updateHrDetails({ id, formData: data }));
   };
 
-  if (loading) return <div className="p-10 text-center">Loading HR Details...</div>;
+  if (loading) return <div className="p-10 text-center font-bold text-purple-600">Loading HR Details...</div>;
 
   return (
     <div className="w-full min-h-screen bg-[#EDEDED] p-4">
@@ -98,55 +99,64 @@ function EditHR() {
         <div className="border border-gray-300 rounded-lg p-6 min-h-[500px] flex flex-col justify-between">
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-x-10 gap-y-6">
             <div>
-              <label className="text-sm text-gray-700">HR Name</label>
+              <label className="text-sm text-gray-700 font-medium">HR Name</label>
               <input
                 type="text"
                 name="hrName"
                 placeholder="Enter HR Name"
                 value={formData.hrName}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-700">Designation</label>
+              <label className="text-sm text-gray-700 font-medium">Designation</label>
               <input
                 type="text"
                 name="designation"
                 placeholder="Enter Designation"
                 value={formData.designation}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-700">Email</label>
+              <label className="text-sm text-gray-700 font-medium">Email</label>
               <input
                 type="email"
                 name="email"
                 placeholder="Enter Email Id"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-700">Password (Leave Blank To Keep Current)</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter New Password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
-              />
+              <label className="text-sm text-gray-700 font-medium">Password (Leave Blank To Keep Current)</label>
+              <div className="relative mt-2">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter New Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full bg-gray-100 border border-gray-300 rounded-md px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-gray-500 hover:text-purple-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div className="col-span-2">
-              <label className="text-sm text-gray-700">Upload Image</label>
+              <label className="text-sm text-gray-700 font-medium">Upload Image</label>
               <div className="relative mt-2 w-[320px]">
                 <input
                   type="file"
@@ -181,13 +191,13 @@ function EditHR() {
               className="px-12 py-2 rounded-md bg-gradient-to-r from-purple-600 to-purple-800 text-white font-medium disabled:opacity-50 hover:opacity-90 transition shadow-md"
               disabled={updateLoading}
             >
-              {updateLoading ? "Updating..." : "Edit"}
+              {updateLoading ? "Updating..." : "Update"}
             </button>
           </div>
         </div>
-       <Footer/>
+        <Footer />
       </div>
-    </div>  
+    </div>
   );
 }
 
