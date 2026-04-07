@@ -23,7 +23,7 @@ import CandidateProfileDetail from "../components/HrManagment/CandidateProfile";
 import CompanyDetails from "../components/EmployeeManagement/CompanyDetails";
 import CreditModel from "../components/CreditManagement/CreditModel";
 import RevenueModel from "../components/RevenueManagement/RevenueModel";
-import DatabaseManagement from "../components/DatabaseManagement/DatabaseManagement";
+// import DatabaseManagement from "../components/DatabaseManagement/DatabaseManagement";
 import JobSeekerPlans from "../components/SubscriptionManagement/JobSeekerPlans";
 import EmployerPlans from "../components/SubscriptionManagement/EmployerPlans";
 import CustomPlans from "../components/SubscriptionManagement/CustomPlans";
@@ -134,7 +134,8 @@ function DashboardLayout() {
             />
             <Route path="/employee/add-employee" element={<AddEmployee />} />
             <Route path="credit-management" element={<CreditModel />} />
-            <Route path="database" element={<DatabaseManagement />} />
+            {/* <Route path="database" element={<DatabaseManagement />} /> */}
+            <Route path="/candidates/candidate-details/:id" element={<CandidateDetails />} />
             <Route path="job-seeker-plans" element={<JobSeekerPlans />} />
             <Route path="employer-plans" element={<EmployerPlans />} />
             <Route path="custom-plans" element={<CustomPlans />} />
@@ -151,7 +152,7 @@ function DashboardLayout() {
             <Route path="/edit-social-links" element={<EditSocialLinks />} />
             <Route path="/candidates" element={<DatabaseCandidate />} />
             <Route path="/accept-reject" element={<AcceptReject />} />
-            <Route path="/candidate-details" element={<CandidateDetails />} />
+            
             
 
             // Job Seeker Management

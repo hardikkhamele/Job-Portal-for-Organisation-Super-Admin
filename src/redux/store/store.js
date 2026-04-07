@@ -36,6 +36,11 @@ import getCreditReducer from "../slice/credit/getCredit";
 // ─── Category (Job Seeker Management) ────────────────────────
 import categoryReducer from "../slice/category/categorySlice";
 
+import getAllCandidateReducer from "../slice/databaseManagement/getAllCandidate"
+import candidateByIdReducer from "../slice/databaseManagement/getCandidateByIdSlice"
+import acceptRejectReducer from "../slice/databaseManagement/getAcceptRejectSlice"
+
+
 export const store = configureStore({
   reducer: {
     // Auth
@@ -74,5 +79,10 @@ export const store = configureStore({
 
     // Job Seeker
     jobseeker: jobseekerReducer,
+
+    // database management
+    allCandidate: getAllCandidateReducer,
+    candidateDetail: candidateByIdReducer,
+    acceptReject: acceptRejectReducer,
   },
 });
