@@ -10,24 +10,16 @@ import resetReducer from "../slice/auth/resetSlice";
 import createHrReducer from "../slice/hrManagement/createHr";
 import getAllHrReducer from "../slice/hrManagement/getAllHr";
 import candidateProfileReducer from "../slice/hrManagement/getProfile"
-<<<<<<< HEAD
-import getHrByIdReducer from "../slice/hrManagement/getHrById"
 import updateStatusReducer from "../slice/hrManagement/updateStatus"
 import updateHrReducer from "../slice/hrManagement/updateHr"
-import deleteHrReducer from "../slice/hrManagement/deleteHr"
-import getAllEmployerReducer from "../slice/employer/getAllEmployer"
 import deleteEmployeeReducer from "../slice/employer/deleteEmployeeSlice"
 import updateempStatusReducer from "../slice/employer/updateStatusSlice"
-=======
 import getHrByIdReducer from "../slice/hrManagement/getHrById";
-import updateStatusReducer from "../slice/hrManagement/updateStatus";
-import updateHrReducer from "../slice/hrManagement/updateHr";
 import deleteHrReducer from "../slice/hrManagement/deleteHr";
 import hrReportsReducer from "../slice/hrManagement/getReportofHr";
 
 // ─── Employer ────────────────────────────────────────────────
 import getAllEmployerReducer from "../slice/employer/getAllEmployer";
->>>>>>> cf9307c318e6bd5ea7e55d6ec3150082dfcc7047
 import addEmployeeReducer from "../slice/employer/addEmployeeSlice"
 import getEmployeeByIdReducer from "../slice/employer/getEmployeeById";
 
