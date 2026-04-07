@@ -42,6 +42,7 @@
     "recoil": "^0.7.7",
     "recoil-persist": "^5.1.0",
     "tailwindcss": "^4.0.6",
+    "xlsx": "^0.18.5",
     "yup": "^1.7.1"
   },
   "devDependencies": {
