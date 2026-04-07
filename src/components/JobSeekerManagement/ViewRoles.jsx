@@ -1,57 +1,57 @@
-import { useState } from "react";
-import {
-  ArrowLeft,
-  Search,
-  Edit,
-  Trash2,
-  Smartphone,
-  Globe,
-  Code,
-  Monitor,
-  Server,
-  Layers,
-  Cpu,
-  Database,
-  Gamepad2,
-  ChevronRight,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { ArrowLeft, Search, Edit, Trash2, ChevronRight, Loader2 } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 import DesignationModal from "../common/DesignationModal";
 import DeleteModal from "../common/DeleteModal";
+import {
+  getDesignationsBySubCategoryId,
+  deleteDesignation,
+  setActiveSubCategoryId,
+} from "../../redux/slice/category/categorySlice";
+
 function ViewRoles() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { subCategoryId } = useParams(); // ← reads from URL
+
+  const {
+    designations,
+    designationsLoading,
+    designationActionLoading,
+    activeCategoryId,
+  } = useSelector((state) => state.category);
+
   const [openDesignation, setOpenDesignation] = useState(false);
   const [mode, setMode] = useState("create");
   const [selectedDesignation, setSelectedDesignation] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (subCategoryId) {
+      dispatch(setActiveSubCategoryId(subCategoryId));
+      dispatch(getDesignationsBySubCategoryId(subCategoryId));
+    }
+  }, [subCategoryId, dispatch]);
+
+  const filtered = designations.filter((d) =>
+    d.designationName?.toLowerCase().includes(search.toLowerCase())
+  );
 
   const handleDelete = () => {
-    console.log("Deleted:", selectedItem);
-
-    setDeleteOpen(false);
+    if (itemToDelete) {
+      dispatch(deleteDesignation(itemToDelete.id)).then(() => {
+        setDeleteOpen(false);
+        setItemToDelete(null);
+      });
+    }
   };
-
-  const roles = [
-    { title: "Android Developer", icon: <Smartphone size={20} /> },
-    { title: "iOS Developer", icon: <Smartphone size={20} /> },
-    { title: "Web Developer", icon: <Globe size={20} /> },
-    { title: "Frontend Developer", icon: <Monitor size={20} /> },
-    { title: "Backend Developer", icon: <Server size={20} /> },
-    { title: "Full Stack Developer", icon: <Layers size={20} /> },
-    { title: "React Developer", icon: <Code size={20} /> },
-    { title: "Node.js Developer", icon: <Cpu size={20} /> },
-    { title: "Python Developer", icon: <Database size={20} /> },
-    { title: "Java Developer", icon: <Code size={20} /> },
-    { title: "Mobile App Developer", icon: <Smartphone size={20} /> },
-    { title: "Game Developer", icon: <Gamepad2 size={20} /> },
-  ];
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Container */}
       <div className="bg-white rounded-lg shadow p-6">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-3">
           <div
             onClick={() => navigate(-1)}
@@ -59,26 +59,22 @@ function ViewRoles() {
           >
             <ArrowLeft size={18} />
           </div>
-          <h2 className="text-xl font-semibold">Job seeker Management</h2>
+          <h2 className="text-xl font-semibold">Job Seeker Management</h2>
         </div>
-
         <hr className="border-gray-300 mt-2 mb-5" />
 
-        {/* Box */}
         <div className="border border-gray-300 rounded-lg p-6">
-          {/* Top Bar */}
           <div className="flex justify-between items-center mb-6">
-            {/* Search */}
             <div className="flex items-center border border-gray-300 rounded-md px-3 py-2 w-64 bg-gray-50">
               <Search size={16} className="text-gray-400 mr-2" />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search designations..."
                 className="bg-transparent outline-none text-sm w-full"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-
-            {/* Button */}
             <button
               className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded-md"
               onClick={() => {
@@ -87,70 +83,99 @@ function ViewRoles() {
                 setOpenDesignation(true);
               }}
             >
-              Create Designation
+              + Create Designation
             </button>
           </div>
 
-          {/* Grid */}
-          <div className="grid grid-cols-3 gap-6">
-            {roles.map((item, index) => (
-              <div
-                key={index}
-                className="bg-white border border-[#D3D3D3] rounded-lg p-4 shadow-[0px_4px_4px_0px_#00000040]"
-              >
-                {/* Top */}
-                <div className="flex justify-between items-center mb-3">
-                  <div className="bg-purple-100 text-purple-600 p-2 rounded-md">
-                    {item.icon}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Edit
-                      size={16}
-                      className="text-purple-600 cursor-pointer"
-                      onClick={() => {
-                        setMode("edit");
-                        setSelectedDesignation({
-                          name: item.title,
-                        });
-                        setOpenDesignation(true);
-                      }}
-                    />
-                    <Trash2
-                      size={16}
-                      className="text-red-500 cursor-pointer"
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setDeleteOpen(true);
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Title */}
-                <h3 className="font-semibold text-sm mb-2">{item.title}</h3>
-
-                {/* View */}
-                <p className="flex items-center gap-1 text-purple-600 text-xs cursor-pointer"
-                onClick={() => navigate("/candidate-job-view")}
+          {designationsLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="animate-spin text-purple-600" size={36} />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20 text-gray-400">
+              No designations found.
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-6">
+              {filtered.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white border border-[#D3D3D3] rounded-lg p-4 shadow-[0px_4px_4px_0px_#00000040]"
                 >
-                  View <ChevronRight size={15}/>
-                </p>
-              </div>
-            ))}
-          </div>
+                  <div className="flex justify-between items-center mb-3">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.designationName}
+                        className="w-10 h-10 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="bg-purple-100 text-purple-600 p-2 rounded-md">
+                        <Edit size={20} />
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Edit
+                        size={16}
+                        className="text-purple-600 cursor-pointer"
+                        onClick={() => {
+                          setMode("edit");
+                          setSelectedDesignation(item);
+                          setOpenDesignation(true);
+                        }}
+                      />
+                      <Trash2
+                        size={16}
+                        className="text-red-500 cursor-pointer"
+                        onClick={() => {
+                          setItemToDelete(item);
+                          setDeleteOpen(true);
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <h3 className="font-semibold text-sm mb-1">
+                    {item.designationName}
+                  </h3>
+                  {item.description && (
+                    <p className="text-xs text-gray-500 mb-2 line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+
+                  {/* ← passes designationId in URL */}
+                  <p
+                    className="flex items-center gap-1 text-purple-600 text-xs cursor-pointer mt-1"
+                    onClick={() =>
+                      navigate(`/candidate-job-view/${item.id}`)
+                    }
+                  >
+                    View Candidates <ChevronRight size={14} />
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
       <DesignationModal
         open={openDesignation}
         setOpen={setOpenDesignation}
         mode={mode}
         initialData={selectedDesignation}
+        categoryId={activeCategoryId}
+        subCategoryId={subCategoryId}
       />
       <DeleteModal
         isOpen={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
+        onClose={() => {
+          setDeleteOpen(false);
+          setItemToDelete(null);
+        }}
         onConfirm={handleDelete}
+        loading={designationActionLoading}
       />
     </div>
   );
