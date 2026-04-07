@@ -8,9 +8,9 @@ function SearchBar() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate ();
   return (
-    <div className="flex h-14 mb-2 justify-between items-center bg-white p-3  shadow-md">
+    <div className="flex h-14 justify-between items-center bg-white px-3 border-b  border-purple-400">
       {/* Search Input */}
-      <div className="relative w-1/3">
+      {/* <div className="relative w-1/3">
         <Search className="absolute left-3 top-3 text-gray-500" size={18} />
         <input
           type="text"
@@ -19,6 +19,9 @@ function SearchBar() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full h-10 pl-10 pr-3 py-2 border border-gray-300 rounded-lg  focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
+      </div> */}
+      <div>
+        <p className="text-lg font-semibold text-purple-800 tracking-tighter">Super Admin Panel</p>
       </div>
 
       {/* Icons Section */}
