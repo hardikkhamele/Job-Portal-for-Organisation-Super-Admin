@@ -164,7 +164,7 @@ function HRManagement() {
       <div className="w-full mx-auto">
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h4 className="text-2xl font-bold text-black">HR Management</h4>
-          <hr className="border-gray-300 mt-2 mb-5" />
+          <hr className="border-gray-300 mt-3 mb-5" />
 
           <div className="border border-[rgba(211,211,211,1)] rounded-lg p-6">
             <div className="flex justify-between items-center mb-5">
