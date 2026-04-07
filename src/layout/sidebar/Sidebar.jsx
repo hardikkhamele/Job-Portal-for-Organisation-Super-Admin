@@ -13,6 +13,7 @@ const Sidebar = () => {
   const isActive = (path) => location.pathname.startsWith(path);
   const dispatch = useDispatch();
   const [isSubOpen, setIsSubOpen] = useState(false);
+  const [isDatabaseOpen, setIsDatabaseOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
@@ -72,12 +73,51 @@ const Sidebar = () => {
               handleNavigation("Job Seeker Management", "/job-seeker")
             }
           />
-          <NavItem
-            icon={<MdPostAdd />}
-            text="Database Management"
-            active={isActive("/database")}
-            onClick={() => handleNavigation("Database Management", "/database")}
-          />
+         {/* Database Management Dropdown */}
+            <div
+              onClick={() => setIsDatabaseOpen(!isDatabaseOpen)}
+              className={`flex items-center justify-between px-4 py-2 rounded-md cursor-pointer
+                ${isDatabaseOpen ? "bg-[#e9d5ff] text-[#7e22ce]" : "text-white hover:bg-white/10"}
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">
+                  <MdPostAdd />
+                </span>
+                <span className="text">Database Management</span>
+              </div>
+              {isDatabaseOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </div>
+              
+            {isDatabaseOpen && (
+              <div className="ml-9 flex flex-col gap-2 mt-1">
+                <div
+                  className={`px-3 py-2 rounded-md cursor-pointer ${
+                    isActive("/candidates")
+                      ? "bg-yellow-400 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                  onClick={() =>
+                    handleNavigation("Database Candidate", "/candidates")
+                  }
+                >
+                  Database Candidate
+                </div>
+                
+                <div
+                  className={`px-3 py-2 rounded-md cursor-pointer ${
+                    isActive("/accept-reject")
+                      ? "bg-yellow-400 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                  onClick={() =>
+                    handleNavigation("Accept Reject", "/accept-reject")
+                  }
+                >
+                  Accept Reject
+                </div>
+              </div>
+            )}
           <NavItem
             icon={<MdPostAdd />}
             text="Job Management"

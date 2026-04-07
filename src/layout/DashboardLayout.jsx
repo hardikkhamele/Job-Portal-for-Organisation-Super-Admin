@@ -50,7 +50,12 @@ import JobSeekerManagement from "../components/JobSeekerManagement/JobSeekerMana
 import ViewJobSeekerManagement from "../components/JobSeekerManagement/ViewJobSeekerManagement";
 import ViewRoles from "../components/JobSeekerManagement/ViewRoles";
 import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView";
+import AddEmployee from "../components/EmployeeManagement/AddEmployee";
 // import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView";
+import DatabaseCandidate from "../components/DatabaseManagement/DatabaseCandidate";
+import AcceptReject from "../components/DatabaseManagement/AcceptReject";
+import CandidateDetails from "../components/DatabaseManagement/CandidateDetails";
+import CandidateDetail from "../components/JobSeekerManagement/CandidateDetail";
 
 function DashboardLayout() {
   return (
@@ -61,74 +66,112 @@ function DashboardLayout() {
         <SearchBar />
 
         <div className="flex-1 overflow-y-auto no-scrollbar">
-        
           <Routes>
-
             {/* Default redirect */}
             {/* <Route path="/" element={<Navigate to="dashboard" />} /> */}
-
             <Route index element={<Dashboard />} />
-
             {/* Main pages */}
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="job-management" element={<JobManagment/>} /> 
-            <Route path="/job-management/job-view-details/:id" element={<JobViewDetails/>} />
+            <Route path="job-management" element={<JobManagment />} />
+            <Route
+              path="/job-management/job-view-details/:id"
+              element={<JobViewDetails />}
+            />
             {/* Other pages */}
             <Route path="view-candidate" element={<CandidatePage />} />
             <Route path="view-jobs-posted" element={<JobsPage />} />
             <Route path="view-revenue" element={<RevenuePage />} />
             {/* <Route path="alljobs-post" element={<AllJobsPost />} /> */}
-            <Route path="job-seeker" element={<JobSeekerManagement/>}/>
-            <Route path="view-job-seeker" element={<ViewJobSeekerManagement/>}/>
-            <Route path="view-roles" element={<ViewRoles/>}/>
-            <Route path="candidate-job-view" element={<CandidateJobView/>}/>
+            <Route path="job-seeker" element={<JobSeekerManagement />} />
             {/* <Route path="candidate-job-view" element={<CandidateJobView/>}/> */}
             {/* <Route path="revenue-model" element={<MainReven />} /> */}
             <Route path="subscription-management" element={<MainsubMan />} />
-            <Route path="create-job-seeker-plan" element={<CreateJobSeekerPlan/>} />
-            <Route path="edit-job-seeker-plan" element={<EditJobSeekerPlan/>} />
-            <Route path="/edit-employer-plan" element={<EditEmployerPlan/>} />
-            <Route path="create-employer-plan" element={<CreateEmployerplan/>} />
-            <Route path="create-custom-plan" element={<CreateCustomPlan/>}/>
-            <Route path="edit-custom-plan" element={<EditCustomPlan/>}/>
-            <Route path="subscription-management/subscription-management-edit" element={<SubscriptionManagementEdit />} />
+            <Route
+              path="create-job-seeker-plan"
+              element={<CreateJobSeekerPlan />}
+            />
+            <Route
+              path="edit-job-seeker-plan"
+              element={<EditJobSeekerPlan />}
+            />
+            <Route path="/edit-employer-plan" element={<EditEmployerPlan />} />
+            <Route
+              path="create-employer-plan"
+              element={<CreateEmployerplan />}
+            />
+            <Route path="create-custom-plan" element={<CreateCustomPlan />} />
+            <Route path="edit-custom-plan" element={<EditCustomPlan />} />
+            <Route
+              path="subscription-management/subscription-management-edit"
+              element={<SubscriptionManagementEdit />}
+            />
             <Route path="candidate" element={<Candidate />} />
             <Route path="candidateProfile" element={<CandidateProfile />} />
-            <Route path="verification-candidate" element={<VerficationCandidate />} />
+            <Route
+              path="verification-candidate"
+              element={<VerficationCandidate />}
+            />
             <Route path="notification-page" element={<NotificationPage />} />
             <Route path="/hr-management" element={<HRManagement />} />
             <Route path="/hr-management/create-hr" element={<CreateHR />} />
             <Route path="/hr-management/edit-hr/:id" element={<EditHr />} />
-            <Route path="/hr-management/hr-view-details/:id" element={<HRViewDetails />} />
-            <Route path="/hr-management/daily-work-update" element={<DailyWorkUpdate />} />
-            <Route path="/hr-management/candidate-profile" element={<CandidateProfileDetail />} />
-
+            <Route
+              path="/hr-management/hr-view-details/:id"
+              element={<HRViewDetails />}
+            />
+            <Route
+              path="/hr-management/daily-work-update"
+              element={<DailyWorkUpdate />}
+            />
+            <Route
+              path="/hr-management/candidate-profile/:id"
+              element={<CandidateProfileDetail />}
+            />
             <Route path="employee" element={<Employee />} />
-            <Route path="/employee/company-details/:id" element={<CompanyDetails />} />
-
-            <Route path="credit-management" element={<CreditModel />}/>
-            <Route path="database" element={<DatabaseManagement/>} />
-            <Route path="job-seeker-plans" element={<JobSeekerPlans/>} />
-            <Route path="employer-plans" element={<EmployerPlans/>} />
-            <Route path="custom-plans" element={<CustomPlans/>} />
-            <Route path="custom-plans" element={<CustomPlans/>} />
-            <Route path="jobseeker" element={<JobSeeker/>} />
-            <Route path="employer" element={<Employer/>} />
-            <Route path="faqs" element={<FAQs/>} />
-            <Route path="chat-support" element={<ChatSupport/>} />
-            <Route path="social-links" element={<SocialLinks/>} />
-            <Route path="revenue-management" element={<RevenueModel/>} />
+            <Route
+              path="/employee/company-details/:id"
+              element={<CompanyDetails />}
+            />
+            <Route path="/employee/add-employee" element={<AddEmployee />} />
+            <Route path="credit-management" element={<CreditModel />} />
+            <Route path="database" element={<DatabaseManagement />} />
+            <Route path="job-seeker-plans" element={<JobSeekerPlans />} />
+            <Route path="employer-plans" element={<EmployerPlans />} />
+            <Route path="custom-plans" element={<CustomPlans />} />
+            <Route path="custom-plans" element={<CustomPlans />} />
+            <Route path="employer" element={<Employer />} />
+            <Route path="faqs" element={<FAQs />} />
+            <Route path="chat-support" element={<ChatSupport />} />
+            <Route path="social-links" element={<SocialLinks />} />
+            <Route path="revenue-management" element={<RevenueModel />} />
             <Route path="/revenue/view" element={<ViewRevenue />} />
             <Route path="jobseeker/edit" element={<EditJobSeeker />} />
             <Route path="/employer/edit" element={<EditEmployer />} />
             <Route path="chat-conversation" element={<ChatConversation />} />
             <Route path="/edit-social-links" element={<EditSocialLinks />} />
-           
-
+            <Route path="/candidates" element={<DatabaseCandidate />} />
+            <Route path="/accept-reject" element={<AcceptReject />} />
+            <Route path="/candidate-details" element={<CandidateDetails />} />
             
-            {/* Fallback */}
-            <Route path="*" element={<Dashboard />} />
 
+            // Job Seeker Management
+            <Route path="job-seeker" element={<JobSeekerManagement />} />
+            {/* Changed categoryId to match the param name for consistency */}
+            <Route
+              path="view-job-seeker/:categoryId"
+              element={<ViewJobSeekerManagement />}
+            />
+            <Route path="view-roles/:subCategoryId" element={<ViewRoles />} />
+            <Route
+              path="candidate-job-view/:designationId"
+              element={<CandidateJobView />}
+            />
+            <Route
+              path="candidate-profile/:userId"
+              element={<CandidateDetail />}
+            />
+            {/* Fallback */}
+            {/* <Route path="*" element={<Dashboard />} /> */}
           </Routes>
         </div>
       </main>
@@ -137,4 +180,3 @@ function DashboardLayout() {
 }
 
 export default DashboardLayout;
-

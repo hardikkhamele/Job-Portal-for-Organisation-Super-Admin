@@ -9,6 +9,7 @@ import resetReducer from "../slice/auth/resetSlice";
 // ─── HR Management ───────────────────────────────────────────
 import createHrReducer from "../slice/hrManagement/createHr";
 import getAllHrReducer from "../slice/hrManagement/getAllHr";
+import candidateProfileReducer from "../slice/hrManagement/getProfile"
 import getHrByIdReducer from "../slice/hrManagement/getHrById";
 import updateStatusReducer from "../slice/hrManagement/updateStatus";
 import updateHrReducer from "../slice/hrManagement/updateHr";
@@ -17,11 +18,15 @@ import hrReportsReducer from "../slice/hrManagement/getReportofHr";
 
 // ─── Employer ────────────────────────────────────────────────
 import getAllEmployerReducer from "../slice/employer/getAllEmployer";
+import addEmployeeReducer from "../slice/employer/addEmployeeSlice"
 import getEmployeeByIdReducer from "../slice/employer/getEmployeeById";
 
 // ─── Job Management ──────────────────────────────────────────
 import getAllJobReducer from "../slice/jobManagement/getAllJob";
 import jobByIdReducer from "../slice/jobManagement/getJobId";
+
+// ─── Job Seeker ───────────────────────────────────────────────
+import jobseekerReducer from "../slice/jobseeker/jobseekerSlice";
 
 // ─── Credit ──────────────────────────────────────────────────
 import getCreditReducer from "../slice/credit/getCredit";
@@ -44,11 +49,14 @@ export const store = configureStore({
     updateHr: updateHrReducer,
     deleteHr: deleteHrReducer,
     updateStatus: updateStatusReducer,
+    candidateProfile: candidateProfileReducer,
     hrReports: hrReportsReducer,
 
     // Employer
     allEmployer: getAllEmployerReducer,
     employeeDetails: getEmployeeByIdReducer,
+    addEmployee: addEmployeeReducer,
+
 
     // Job Management
     allJobs: getAllJobReducer,
@@ -59,5 +67,8 @@ export const store = configureStore({
 
     // Category (Job Seeker Management)
     category: categoryReducer,
+
+    // Job Seeker
+    jobseeker: jobseekerReducer,
   },
 });

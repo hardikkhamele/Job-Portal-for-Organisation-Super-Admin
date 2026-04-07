@@ -126,7 +126,7 @@ function JobSeekerManagement() {
                     className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-1 w-28 rounded"
                     onClick={() => {
                       dispatch(setActiveCategoryId(cat.id));
-                      navigate("/view-job-seeker");
+                      navigate(`/view-job-seeker/${cat.id}`);
                     }}
                   >
                     View

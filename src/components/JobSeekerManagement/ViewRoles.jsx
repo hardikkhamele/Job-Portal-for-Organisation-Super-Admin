@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeft, Search, Edit, Trash2, ChevronRight, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import DesignationModal from "../common/DesignationModal";
 import DeleteModal from "../common/DeleteModal";
 import {
   getDesignationsBySubCategoryId,
   deleteDesignation,
+  setActiveSubCategoryId,
 } from "../../redux/slice/category/categorySlice";
 
 function ViewRoles() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { designations, designationsLoading, designationActionLoading, activeSubCategoryId } =
-    useSelector((state) => state.category);
+  const { subCategoryId } = useParams(); // ← reads from URL
+
+  const {
+    designations,
+    designationsLoading,
+    designationActionLoading,
+    activeCategoryId,
+  } = useSelector((state) => state.category);
 
   const [openDesignation, setOpenDesignation] = useState(false);
   const [mode, setMode] = useState("create");
@@ -23,8 +30,11 @@ function ViewRoles() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    if (activeSubCategoryId) dispatch(getDesignationsBySubCategoryId(activeSubCategoryId));
-  }, [activeSubCategoryId, dispatch]);
+    if (subCategoryId) {
+      dispatch(setActiveSubCategoryId(subCategoryId));
+      dispatch(getDesignationsBySubCategoryId(subCategoryId));
+    }
+  }, [subCategoryId, dispatch]);
 
   const filtered = designations.filter((d) =>
     d.designationName?.toLowerCase().includes(search.toLowerCase())
@@ -43,7 +53,10 @@ function ViewRoles() {
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center gap-3 mb-3">
-          <div onClick={() => navigate(-1)} className="border rounded-full p-2 cursor-pointer hover:bg-gray-100">
+          <div
+            onClick={() => navigate(-1)}
+            className="border rounded-full p-2 cursor-pointer hover:bg-gray-100"
+          >
             <ArrowLeft size={18} />
           </div>
           <h2 className="text-xl font-semibold">Job Seeker Management</h2>
@@ -64,7 +77,11 @@ function ViewRoles() {
             </div>
             <button
               className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded-md"
-              onClick={() => { setMode("create"); setSelectedDesignation(null); setOpenDesignation(true); }}
+              onClick={() => {
+                setMode("create");
+                setSelectedDesignation(null);
+                setOpenDesignation(true);
+              }}
             >
               + Create Designation
             </button>
@@ -75,14 +92,23 @@ function ViewRoles() {
               <Loader2 className="animate-spin text-purple-600" size={36} />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-20 text-gray-400">No designations found.</div>
+            <div className="text-center py-20 text-gray-400">
+              No designations found.
+            </div>
           ) : (
             <div className="grid grid-cols-3 gap-6">
               {filtered.map((item) => (
-                <div key={item.id} className="bg-white border border-[#D3D3D3] rounded-lg p-4 shadow-[0px_4px_4px_0px_#00000040]">
+                <div
+                  key={item.id}
+                  className="bg-white border border-[#D3D3D3] rounded-lg p-4 shadow-[0px_4px_4px_0px_#00000040]"
+                >
                   <div className="flex justify-between items-center mb-3">
                     {item.image ? (
-                      <img src={item.image} alt={item.designationName} className="w-10 h-10 rounded object-cover" />
+                      <img
+                        src={item.image}
+                        alt={item.designationName}
+                        className="w-10 h-10 rounded object-cover"
+                      />
                     ) : (
                       <div className="bg-purple-100 text-purple-600 p-2 rounded-md">
                         <Edit size={20} />
@@ -92,22 +118,40 @@ function ViewRoles() {
                       <Edit
                         size={16}
                         className="text-purple-600 cursor-pointer"
-                        onClick={() => { setMode("edit"); setSelectedDesignation(item); setOpenDesignation(true); }}
+                        onClick={() => {
+                          setMode("edit");
+                          setSelectedDesignation(item);
+                          setOpenDesignation(true);
+                        }}
                       />
                       <Trash2
                         size={16}
                         className="text-red-500 cursor-pointer"
-                        onClick={() => { setItemToDelete(item); setDeleteOpen(true); }}
+                        onClick={() => {
+                          setItemToDelete(item);
+                          setDeleteOpen(true);
+                        }}
                       />
                     </div>
                   </div>
-                  <h3 className="font-semibold text-sm mb-2">{item.designationName}</h3>
-                  {item.description && <p className="text-xs text-gray-500 mb-2 line-clamp-2">{item.description}</p>}
+
+                  <h3 className="font-semibold text-sm mb-1">
+                    {item.designationName}
+                  </h3>
+                  {item.description && (
+                    <p className="text-xs text-gray-500 mb-2 line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+
+                  {/* ← passes designationId in URL */}
                   <p
-                    className="flex items-center gap-1 text-purple-600 text-xs cursor-pointer"
-                    onClick={() => navigate("/candidate-job-view")}
+                    className="flex items-center gap-1 text-purple-600 text-xs cursor-pointer mt-1"
+                    onClick={() =>
+                      navigate(`/candidate-job-view/${item.id}`)
+                    }
                   >
-                    View <ChevronRight size={15} />
+                    View Candidates <ChevronRight size={14} />
                   </p>
                 </div>
               ))}
@@ -121,12 +165,15 @@ function ViewRoles() {
         setOpen={setOpenDesignation}
         mode={mode}
         initialData={selectedDesignation}
-        categoryId={useSelector((s) => s.category.activeCategoryId)}
-        subCategoryId={activeSubCategoryId}
+        categoryId={activeCategoryId}
+        subCategoryId={subCategoryId}
       />
       <DeleteModal
         isOpen={deleteOpen}
-        onClose={() => { setDeleteOpen(false); setItemToDelete(null); }}
+        onClose={() => {
+          setDeleteOpen(false);
+          setItemToDelete(null);
+        }}
         onConfirm={handleDelete}
         loading={designationActionLoading}
       />

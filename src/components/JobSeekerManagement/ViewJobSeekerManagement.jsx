@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeft, Search, Trash2, Edit, ChevronRight, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SubCategoryModal from "../common/SubCategoryModal";
 import DeleteModal from "../common/DeleteModal";
 import {
@@ -13,8 +13,8 @@ import {
 function ViewJobSeekerManagement() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { subCategories, subCategoriesLoading, subCategoryActionLoading, activeCategoryId } =
-    useSelector((state) => state.category);
+  const { categoryId } = useParams();
+ const { subCategories, subCategoriesLoading, subCategoryActionLoading } = useSelector((state) => state.category);
 
   const [openSub, setOpenSub] = useState(false);
   const [mode, setMode] = useState("create");
@@ -23,9 +23,12 @@ function ViewJobSeekerManagement() {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    if (activeCategoryId) dispatch(getSubCategoriesByCategoryId(activeCategoryId));
-  }, [activeCategoryId, dispatch]);
+useEffect(() => {
+    // Always fetch based on the URL ID to handle page refreshes
+    if (categoryId) {
+      dispatch(getSubCategoriesByCategoryId(categoryId));
+    }
+  }, [categoryId, dispatch]);
 
   const filtered = subCategories.filter((s) =>
     s.subCategoryName?.toLowerCase().includes(search.toLowerCase())
@@ -106,7 +109,7 @@ function ViewJobSeekerManagement() {
                   {item.description && <p className="text-xs text-gray-500 mb-2 line-clamp-2">{item.description}</p>}
                   <p
                     className="flex items-center gap-1 text-purple-600 text-xs cursor-pointer mt-2"
-                    onClick={() => { dispatch(setActiveSubCategoryId(item.id)); navigate("/view-roles"); }}
+                    onClick={() => { dispatch(setActiveSubCategoryId(item.id)); navigate(`/view-roles/${item.id}`); }}
                   >
                     View Roles <ChevronRight size={14} />
                   </p>
@@ -122,7 +125,7 @@ function ViewJobSeekerManagement() {
         setOpen={setOpenSub}
         mode={mode}
         initialData={selectedSubCategory}
-        categoryId={activeCategoryId}
+        categoryId={categoryId}
       />
       <DeleteModal
         isOpen={deleteOpen}
