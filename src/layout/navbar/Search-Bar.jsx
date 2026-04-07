@@ -8,9 +8,10 @@ function SearchBar() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate ();
   return (
-    <div className="flex h-14 mb-2 justify-between items-center bg-white p-3  shadow-md">
+    // do here justify-between if use search bar here
+    <div className="flex h-14 mb-2 justify-end items-center bg-white p-3  shadow-md">
       {/* Search Input */}
-      <div className="relative w-1/3">
+      {/* <div className="relative w-1/3">
         <Search className="absolute left-3 top-3 text-gray-500" size={18} />
         <input
           type="text"
@@ -19,7 +20,7 @@ function SearchBar() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full h-10 pl-10 pr-3 py-2 border border-gray-300 rounded-lg  focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
-      </div>
+      </div> */}
 
       {/* Icons Section */}
       <div className="flex items-center gap-4">

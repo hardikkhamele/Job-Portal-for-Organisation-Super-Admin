@@ -3,7 +3,7 @@ import EmployeeTable from "./EmployeeTable";
 
 function Employee() {
   return (
-    <div className="p-5">
+    <div className="">
       <EmployeeTable />
     </div>
   );

@@ -11,6 +11,8 @@ import updateStatusReducer from "../slice/hrManagement/updateStatus"
 import updateHrReducer from "../slice/hrManagement/updateHr"
 import deleteHrReducer from "../slice/hrManagement/deleteHr"
 import getAllEmployerReducer from "../slice/employer/getAllEmployer"
+import deleteEmployeeReducer from "../slice/employer/deleteEmployeeSlice"
+import updateempStatusReducer from "../slice/employer/updateStatusSlice"
 import addEmployeeReducer from "../slice/employer/addEmployeeSlice"
 import getEmployeeByIdReducer from "../slice/employer/getEmployeeById"
 import getAllJobReducer from "../slice/jobManagement/getAllJob"
@@ -33,12 +35,14 @@ export const store = configureStore({
     deleteHr: deleteHrReducer,
     updateStatus: updateStatusReducer,
     candidateProfile: candidateProfileReducer,
-      hrReports: hrReportsReducer,
+    hrReports: hrReportsReducer,
 
     // employer
     allEmployer: getAllEmployerReducer,
     employeeDetails: getEmployeeByIdReducer,
     addEmployee: addEmployeeReducer,
+    updateEmpStatus: updateempStatusReducer,
+    deleteEmployee: deleteEmployeeReducer,
 
 
     // job Management

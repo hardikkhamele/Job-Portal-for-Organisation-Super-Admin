@@ -47,8 +47,8 @@ function CompanyDetails() {
     return typeof item === "string" ? item : (item?.url || placeholder);
   };
 
-  const logo = getSafeImage(companyInfo.companyLogo, logoPlaceholder);
-  const banner = getSafeImage(companyInfo.companyBanner, bannerPlaceholder);
+  const logo = getSafeImage(companyInfo.companyLogo);
+  const banner = getSafeImage(companyInfo.companyBanner);
 
   // Location string construction
   const locationStr = [
@@ -73,7 +73,7 @@ function CompanyDetails() {
               >
                 <ArrowLeft size={25} className="text-gray-900" />
               </button>
-              <h2 className="text-3xl font-bold text-gray-800">Company Information</h2>
+              <h2 className="text-2xl font-bold text-gray-800">Company Information</h2>
             </div>
 
             <div className="border-b border-gray-200 mb-4"></div>
@@ -81,7 +81,7 @@ function CompanyDetails() {
             {/* TOP BAR: NAME & STATUS */}
             <div className="flex items-center justify-between px-2 mb-6">
               <div>
-                <p className="font-bold text-gray-800 text-3xl">{employer.name || "N/A"}</p>
+                <p className="font-bold text-gray-800 text-2xl">{employer.name || "N/A"}</p>
                 <p className="text-gray-600 text-lg">{businessInfo.typeOfCompany || "N/A"}</p>
               </div>
 

@@ -37,8 +37,8 @@ const getAllEmployerSlice = createSlice({
       .addCase(fetchEmployers.fulfilled, (state, action) => {
         state.loading = false;
         state.employers = action.payload.data;
-        state.total = action.payload.total;
-        state.pages = action.payload.pages;
+        state.total = action.payload?.pagination?.total || 0;
+        state.pages = action.payload?.pagination?.pages;
       })
       .addCase(fetchEmployers.rejected, (state, action) => {
         state.loading = false;
