@@ -4,7 +4,7 @@ import { FaSignOutAlt } from "react-icons/fa";
 import { MdDashboard, MdPostAdd, MdSubscriptions } from "react-icons/md";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import logo from "../../assets/Logo.jpg";
+import logo from "../../assets/Logo.svg";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slice/auth/loginSlice";
 const Sidebar = () => {
@@ -34,9 +34,9 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="h-screen w-[310px] text-white flex flex-col p-3 overflow-y-auto no-scrollbar bg-gradient-to-b from-[#efe8f5] via-[#b07ad9] to-[#8e44c3]">
+      <div className="h-screen w-[300px] text-white flex flex-col  overflow-y-auto no-scrollbar bg-gradient-to-b from-[#efe8f5] via-[#b07ad9] to-[#8e44c3] border-r border-purple-400">
         {/* Logo Section */}
-        <div className="flex flex-col items-center mb-8 relative">
+        <div className="sticky top-0 z-10 flex bg-white flex-col items-center mb-2 border-b border-purple-400 ">
           <div className="absolute w-[190px] h-[90px] blur-xl opacity-50 rounded-lg"></div>
           <img
             src={logo}
@@ -46,7 +46,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex flex-col flex-grow gap-5">
+        <nav className="flex flex-col flex-grow gap-1 px-2 ">
           <NavItem
             icon={<MdDashboard />}
             text="Dashboard"
@@ -76,8 +76,8 @@ const Sidebar = () => {
          {/* Database Management Dropdown */}
             <div
               onClick={() => setIsDatabaseOpen(!isDatabaseOpen)}
-              className={`flex items-center justify-between px-4 py-2 rounded-md cursor-pointer
-                ${isDatabaseOpen ? "bg-[#e9d5ff] text-[#7e22ce]" : "text-white hover:bg-white/10"}
+              className={`flex items-center font-semibold justify-between px-4 py-3 rounded-xl cursor-pointer
+                ${isDatabaseOpen ? "bg-[#ffffff] text-[#7e22ce] font-semibold border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}
               `}
             >
               <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ const Sidebar = () => {
                 <div
                   className={`px-3 py-2 rounded-md cursor-pointer ${
                     isActive("/candidates")
-                      ? "bg-yellow-400 text-white"
+                      ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2"
                       : "text-white hover:bg-white/10"
                   }`}
                   onClick={() =>
@@ -107,7 +107,7 @@ const Sidebar = () => {
                 <div
                   className={`px-3 py-2 rounded-md cursor-pointer ${
                     isActive("/accept-reject")
-                      ? "bg-yellow-400 text-white"
+                      ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2"
                       : "text-white hover:bg-white/10"
                   }`}
                   onClick={() =>
@@ -130,8 +130,8 @@ const Sidebar = () => {
           {/* Subscription Dropdown */}
           <div
             onClick={() => setIsSubOpen(!isSubOpen)}
-            className={`flex items-center justify-between px-4 py-2 rounded-md cursor-pointer
-              ${isSubOpen ? "bg-[#e9d5ff] text-[#7e22ce]" : "text-white hover:bg-white/10"}
+            className={`flex font-semibold items-center justify-between px-4 py-2 rounded-xl cursor-pointer
+              ${isSubOpen ? "bg-[#ffffff] text-[#7e22ce] font-semibold border-l-6 px-2 py-3" : "text-white hover:bg-white/10"}
             `}
           >
             <div className="flex items-center gap-3">
@@ -146,7 +146,7 @@ const Sidebar = () => {
           {isSubOpen && (
             <div className="ml-9 flex flex-col gap-2 mt-1">
               <div
-                className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/job-seeker-plans") ? "bg-yellow-400 text-white" : "text-white hover:bg-white/10"}`}
+                className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/job-seeker-plans") ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}`}
                 onClick={() =>
                   handleNavigation("Job Seeker Plans", "/job-seeker-plans")
                 }
@@ -154,7 +154,7 @@ const Sidebar = () => {
                 Job Seeker Plans
               </div>
               <div
-                className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/employer-plans") ? "bg-yellow-400 text-white" : "text-white hover:bg-white/10"}`}
+                className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/employer-plans") ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}`}
                 onClick={() =>
                   handleNavigation("Employer Plans", "/employer-plans")
                 }
@@ -162,7 +162,7 @@ const Sidebar = () => {
                 Employer Plans
               </div>
               <div
-                className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/custom-plans") ? "bg-yellow-400 text-white" : "text-white hover:bg-white/10"}`}
+                className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/custom-plans") ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}`}
                 onClick={() =>
                   handleNavigation("Custom Plans", "/custom-plans")
                 }
@@ -194,8 +194,8 @@ const Sidebar = () => {
           <div>
             <div
               onClick={() => setIsTermsOpen(!isTermsOpen)}
-              className={`flex items-center justify-between px-4 py-2 rounded-md cursor-pointer
-                ${isTermsOpen ? "bg-[#e9d5ff] text-[#7e22ce]" : "text-white hover:bg-white/10"}
+              className={`flex font-semibold items-center justify-between px-4 py-2 rounded-xl cursor-pointer
+                ${isTermsOpen ? "bg-[#ffffff] text-[#7e22ce] font-semibold border-l-6 px-2 py-3" : "text-white hover:bg-white/10"}
               `}
             >
               <div className="flex items-center gap-3">
@@ -213,13 +213,13 @@ const Sidebar = () => {
             {isTermsOpen && (
               <div className="ml-10 flex flex-col gap-2 mt-2">
                 <div
-                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/jobseeker") ? "bg-yellow-400 text-white" : "text-white hover:bg-white/10"}`}
+                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/jobseeker") ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}`}
                   onClick={() => handleNavigation("JobSeeker", "/jobseeker")}
                 >
                   Job Seeker
                 </div>
                 <div
-                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/employer") ? "bg-yellow-400 text-white" : "text-white hover:bg-white/10"}`}
+                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/employer") ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}`}
                   onClick={() => handleNavigation("Employer", "/employer")}
                 >
                   Employer
@@ -232,8 +232,8 @@ const Sidebar = () => {
           <div>
             <div
               onClick={() => setIsHelpOpen(!isHelpOpen)}
-              className={`flex items-center justify-between px-4 py-2 rounded-md cursor-pointer
-                ${isHelpOpen ? "bg-[#e9d5ff] text-[#7e22ce]" : "text-white hover:bg-white/10"}
+              className={`flex font font-semibold items-center justify-between px-4 py-2 rounded-xl cursor-pointer
+                ${isHelpOpen ? "bg-[#ffffff] text-[#7e22ce] font-semibold border-l-6 px-2 py-3" : "text-white hover:bg-white/10"}
               `}
             >
               <div className="flex items-center gap-3">
@@ -247,13 +247,13 @@ const Sidebar = () => {
             {isHelpOpen && (
               <div className="ml-10 flex flex-col gap-2 mt-2">
                 <div
-                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/faqs") ? "bg-yellow-400 text-white" : "text-white hover:bg-white/10"}`}
+                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/faqs") ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}`}
                   onClick={() => handleNavigation("FAQs", "/faqs")}
                 >
                   FAQs
                 </div>
                 <div
-                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/chat-support") ? "bg-yellow-400 text-white" : "text-white hover:bg-white/10"}`}
+                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/chat-support") ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}`}
                   onClick={() =>
                     handleNavigation("Chat Support", "/chat-support")
                   }
@@ -261,7 +261,7 @@ const Sidebar = () => {
                   Chat Support
                 </div>
                 <div
-                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/social-links") ? "bg-yellow-400 text-white" : "text-white hover:bg-white/10"}`}
+                  className={`px-3 py-2 rounded-md cursor-pointer ${isActive("/social-links") ? "bg-white text-purple-700 font-semibold rounded-xl border-l-6 px-2 py-2" : "text-white hover:bg-white/10"}`}
                   onClick={() =>
                     handleNavigation("Social Links", "/social-links")
                   }
@@ -324,11 +324,11 @@ const Sidebar = () => {
 const NavItem = ({ icon, text, active, onClick, className }) => {
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-1 rounded-md cursor-pointer transition-all 
+      className={`flex items-center font-semibold gap-2 px-4 py-3 rounded-xl cursor-pointer transition-all 
         ${
           active
-            ? "bg-[#e9d5ff] text-[#7e22ce] font-semibold px-2 py-2"
-            : "text-white hover:bg-white/10 px-3 py-2"
+            ? "bg-[#ffffff] text-[#7e22ce] font-semibold border-l-6 px-2 py-2"
+            : "text-white  hover:bg-white/10 px-3 py-2"
         }
         ${className}
       `}
