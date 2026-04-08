@@ -42,7 +42,7 @@ function CreateHR() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#EDEDED] p-4">
+    <div className="w-full min-h-screen p-4">
       <div className="w-full bg-white rounded-xl p-6">
         {/* Header */}
         <div className="flex items-center gap-3">

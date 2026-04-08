@@ -35,12 +35,10 @@ function CompanyDetails() {
     return <div className="p-10 text-center text-gray-500">Company information not found.</div>;
   }
 
-  // --- API MAPPING ---
   const companyInfo = employer.companyDetail || {};
   const businessInfo = employer.businessDetail || {};
   const hiringPref = employer.hiringPreference || {};
 
-  // Image Safe Handling (Supports both Array of Objects and Array of Strings)
   const getSafeImage = (imgArray, placeholder) => {
     if (!imgArray || imgArray.length === 0) return placeholder;
     const item = imgArray[0];
@@ -50,7 +48,6 @@ function CompanyDetails() {
   const logo = getSafeImage(companyInfo.companyLogo);
   const banner = getSafeImage(companyInfo.companyBanner);
 
-  // Location string construction
   const locationStr = [
     companyInfo.location?.area,
     companyInfo.location?.cityName || companyInfo.location?.city,
@@ -199,7 +196,7 @@ function CompanyDetails() {
 
 
       {/* JOBS TABLE SECTION */}
-<div className="mt-12 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+<div className="mt-5 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
   <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
     <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
       Available Job Openings
@@ -212,7 +209,7 @@ function CompanyDetails() {
   <div className="overflow-x-auto">
     <table className="w-full text-left border-collapse">
       <thead>
-        <tr className="bg-gray-50 text-gray-400 uppercase text-xs tracking-widest font-bold">
+        <tr className="bg-gray-50 text-gray-500 text-sm tracking-widest font-bold">
           <th className="px-6 py-4">Job Title</th>
           <th className="px-6 py-4">Category</th>
           <th className="px-6 py-4">Sub-Category</th>

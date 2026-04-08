@@ -56,6 +56,7 @@ import DatabaseCandidate from "../components/DatabaseManagement/DatabaseCandidat
 import AcceptReject from "../components/DatabaseManagement/AcceptReject";
 import CandidateDetails from "../components/DatabaseManagement/CandidateDetails";
 import CandidateDetail from "../components/JobSeekerManagement/CandidateDetail";
+import EditEmployee from "../components/EmployeeManagement/EditEmployee";
 
 function DashboardLayout() {
   return (
@@ -132,6 +133,7 @@ function DashboardLayout() {
               path="/employee/company-details/:id"
               element={<CompanyDetails />}
             />
+            <Route path="/employee/edit-employee/:id" element={<EditEmployee/>} />
             <Route path="/employee/add-employee" element={<AddEmployee />} />
             <Route path="credit-management" element={<CreditModel />} />
             {/* <Route path="database" element={<DatabaseManagement />} /> */}

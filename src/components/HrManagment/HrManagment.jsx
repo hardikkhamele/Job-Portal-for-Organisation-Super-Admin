@@ -91,20 +91,20 @@ function HRManagement() {
     },
     {
       accessorKey: "email",
-      header: "Email ID",
+      header: "Email",
     },
     {
       header: "Status",
       accessorKey: "isActive",
       cell: ({ row }) => {
         const hr = row.original;
-        const isCurrentLoading = loadingId === hr._id; // Is specific row ka toggle load ho raha hai?
+        const isCurrentLoading = loadingId === hr._id; 
 
         return (
           <div className="flex justify-center">
             <button
               onClick={() => handleStatusToggle(hr._id)}
-              disabled={isCurrentLoading} // Click hone par disable ho jayega
+              disabled={isCurrentLoading} 
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                 isCurrentLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
               } ${hr.isActive ? "bg-green-500" : "bg-gray-300"}`}
@@ -237,7 +237,6 @@ function HRManagement() {
               </table>
             </div>
 
-            {/* Pagination UI remain same */}
             <div className="flex justify-between items-center mt-3">
               <p className="text-sm text-purple-600 font-medium">
                 Showing {(hrList?.length > 0) ? pagination.pageIndex * pagination.pageSize + 1 : 0} to{" "}

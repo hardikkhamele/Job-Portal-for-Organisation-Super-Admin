@@ -12,7 +12,6 @@ function EditHR() {
   const dispatch = useDispatch();
   const { id } = useParams();
 
-  // Redux States
   const { hrData, loading, updateLoading, success } = useSelector((state) => state.updateHr);
 
   const [formData, setFormData] = useState({
@@ -23,17 +22,14 @@ function EditHR() {
     image: null,
   });
 
-  // Password visibility state
   const [showPassword, setShowPassword] = useState(false);
 
-  // 1. Fetch data if not passed through state (Direct URL access)
   useEffect(() => {
     if (id) {
       dispatch(getHrForEdit(id));
     }
   }, [dispatch, id]);
 
-  // 2. Auto-fill logic
   useEffect(() => {
     const hr = location.state?.hr || hrData;
     if (hr) {
@@ -47,7 +43,6 @@ function EditHR() {
     }
   }, [location.state, hrData]);
 
-  // 3. Handle Success
   useEffect(() => {
     if (success) {
       toast.success("HR Updated Successfully");
@@ -82,7 +77,7 @@ function EditHR() {
   if (loading) return <div className="p-10 text-center font-bold text-purple-600">Loading HR Details...</div>;
 
   return (
-    <div className="w-full min-h-screen bg-[#EDEDED] p-4">
+    <div className="w-full min-h-screen p-4">
       <div className="w-full bg-white rounded-xl p-6">
         <div className="flex items-center gap-3">
           <button
@@ -170,7 +165,7 @@ function EditHR() {
               {formData.image ? (
                 <p className="text-xs text-green-500 mt-1">New image selected: {formData.image.name}</p>
               ) : (
-                <p className="text-xs text-gray-400 mt-1">Current image will be kept if no new file is chosen</p>
+                <p className="text-xs text-gray-400 mt-1">Current Image Will Be Kept If No New File Is Chosen</p>
               )}
             </div>
           </form>
