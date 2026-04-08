@@ -230,11 +230,10 @@ function CompanyDetails() {
                 <p className="text-xs text-gray-400">{job.workMode}</p>
               </td>
               <td className="px-6 py-4 text-gray-600 font-medium">
-                {/* ID show ho rahi hai kyunki response mein name nahi hai */}
-                {job.jobSeekerCategoryId} 
+                {job.category} 
               </td>
               <td className="px-6 py-4 text-gray-600 font-medium">
-                {job.jobSeekerSubCategoryId}
+                {job.subCategory}
               </td>
               <td className="px-6 py-4">
                 <span className="text-gray-700 font-semibold">{employer.name}</span>
