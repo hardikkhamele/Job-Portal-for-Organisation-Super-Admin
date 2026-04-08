@@ -14,6 +14,7 @@ import {
   CheckCircle,
   XCircle,
   Search,
+  Edit,
 } from "lucide-react";
 
 import DeleteModal from "../common/DeleteModal";
@@ -148,6 +149,12 @@ function EmployeeTable() {
             size={20}
             className="text-purple-500 cursor-pointer"
             onClick={() => navigate(`/employee/company-details/${row.original._id}`)}
+          />
+           <Edit
+            size={20}
+            className="text-purple-500 cursor-pointer"
+            onClick={() => navigate(`/employee/edit-employee//${row.original._id}`)}
+            // onClick={()=>navigate("/employee/edit-employee")}
           />
           <div 
             className="cursor-pointer"

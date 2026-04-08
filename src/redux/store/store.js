@@ -20,6 +20,7 @@ import hrReportsReducer from "../slice/hrManagement/getReportofHr";
 
 // ─── Employer ────────────────────────────────────────────────
 import getAllEmployerReducer from "../slice/employer/getAllEmployer";
+import updateEmployeeReducer from "../slice/employer/updateEmployeeSlice"
 import addEmployeeReducer from "../slice/employer/addEmployeeSlice"
 import getEmployeeByIdReducer from "../slice/employer/getEmployeeById";
 
@@ -39,8 +40,8 @@ import categoryReducer from "../slice/category/categorySlice";
 import getAllCandidateReducer from "../slice/databaseManagement/getAllCandidate"
 import candidateByIdReducer from "../slice/databaseManagement/getCandidateByIdSlice"
 import acceptRejectReducer from "../slice/databaseManagement/getAcceptRejectSlice"
-
-
+import acceptCandidateReducer from "../slice/databaseManagement/acceptCandidate"
+import rejectCandidateReducer from "../slice/databaseManagement/rejectCandidate"
 export const store = configureStore({
   reducer: {
     // Auth
@@ -65,6 +66,7 @@ export const store = configureStore({
     addEmployee: addEmployeeReducer,
     updateEmpStatus: updateempStatusReducer,
     deleteEmployee: deleteEmployeeReducer,
+    updateEmployee: updateEmployeeReducer,
 
 
     // Job Management
@@ -84,5 +86,7 @@ export const store = configureStore({
     allCandidate: getAllCandidateReducer,
     candidateDetail: candidateByIdReducer,
     acceptReject: acceptRejectReducer,
+    acceptCandidate: acceptCandidateReducer, 
+    rejectCandidate: rejectCandidateReducer,
   },
 });
