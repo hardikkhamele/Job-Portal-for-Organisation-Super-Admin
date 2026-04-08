@@ -36,17 +36,44 @@ const DatabaseCandidate = () => {
           <hr className="border-gray-300 mt-3 mb-5" />
 
           {/* Search */}
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border border-gray-300 bg-gray-100 px-3 py-2 rounded mb-4 w-64 outline-none"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1); // Reset to page 1 on search
-            }}
-          />
+         <div className="flex justify-between items-center mb-4">
+  {/* Left Side: Search Bar */}
+  <input
+    type="text"
+    placeholder="Search..."
+    className="border border-gray-300 bg-gray-100 px-3 py-2 rounded w-64 outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+    value={search}
+    onChange={(e) => {
+      setSearch(e.target.value);
+      setCurrentPage(1); // Reset to page 1 on search
+    }}
+  />
 
+  {/* Right Side: Dropdowns Container */}
+  <div className="flex gap-3">
+    <select 
+      name="category" 
+      className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-blue-400"
+      // Add your value and onChange here as needed
+    >
+      <option value="">Select category</option>
+      <option value="it">IT</option>
+      <option value="hr">HR</option>
+      <option value="sales">Sales</option>
+    </select>
+
+    <select 
+      name="designation" 
+      className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-blue-400"
+      // Add your value and onChange here as needed
+    >
+      <option value="">Select Designation</option>
+      <option value="developer">Tele Caller Excutive</option>
+      <option value="manager">Business Development</option>
+      <option value="designer">Sales Telecaller</option>
+    </select>
+  </div>
+</div>
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">

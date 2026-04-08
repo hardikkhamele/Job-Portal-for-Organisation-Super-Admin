@@ -131,11 +131,16 @@ function HRViewDetails() {
         ) : (
           <div className="bg-[#F4F6FA] rounded-xl p-4 flex justify-between items-center mt-4 mb-6">
             <div className="flex items-center gap-4">
-              <img
+              {/* <img
                 src={hrInfo?.image?.url || "https://i.pravatar.cc/60"}
                 className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
                 alt="HR Profile"
-              />
+              /> */}
+              <div className="flex justify-center items-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-300 to-purple-500 text-white shadow-lg shadow-purple-200 border-2 border-gray-300">
+                  <h2 className="text-xl font-bold tracking-wider">
+                    {hrInfo?.hrName[0]}
+                  </h2>
+                </div>
               <div>
                 <h2 className="text-lg font-semibold">{hrInfo?.hrName || "Loading..."}</h2>
                 <p className="text-sm text-gray-500">{hrInfo?.designation || "N/A"}</p>
