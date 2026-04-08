@@ -8,23 +8,20 @@ const DatabaseCandidate = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Redux States
   const { candidates, total, totalPages, loading } = useSelector(
     (state) => state.allCandidate,
   );
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // As requested: 10 entries per page
+  const itemsPerPage = 10;
 
-  // API Call on page or search change
   useEffect(() => {
     dispatch(
       fetchCandidates({ page: currentPage, limit: itemsPerPage, search }),
     );
   }, [dispatch, currentPage, search]);
 
-  // UI calculations
   const startIndex = (currentPage - 1) * itemsPerPage;
 
   return (
