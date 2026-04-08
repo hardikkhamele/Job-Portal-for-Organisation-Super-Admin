@@ -1,14 +1,21 @@
 import React, { useEffect } from "react";
-import { Check, X, Download, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  Check,
+  X,
+  Download,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAcceptRejectData } from "../../redux/slice/databaseManagement/getAcceptRejectSlice";
 
 const AcceptReject = () => {
   const dispatch = useDispatch();
-  const { list, loading, error, pagination } = useSelector((state) => state.acceptReject);
+  const { list, loading, error, pagination } = useSelector(
+    (state) => state.acceptReject,
+  );
 
   useEffect(() => {
-    // Initial fetch for page 1
     dispatch(fetchAcceptRejectData(1));
   }, [dispatch]);
 
@@ -53,27 +60,41 @@ const AcceptReject = () => {
                     <td colSpan="6" className="p-10 text-center">
                       <div className="flex flex-col justify-center items-center gap-3">
                         <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-purple-600 font-medium text-sm">Loading Data...</span>
+                        <span className="text-purple-600 font-medium text-sm">
+                          Loading Data...
+                        </span>
                       </div>
                     </td>
                   </tr>
                 ) : error ? (
                   // Error Message in Table
                   <tr>
-                    <td colSpan="6" className="p-10 text-center text-red-500 font-medium">
+                    <td
+                      colSpan="6"
+                      className="p-10 text-center text-red-500 font-medium"
+                    >
                       {error}
                     </td>
                   </tr>
                 ) : list && list.length > 0 ? (
                   // Data Rows
                   list.map((item, index) => (
-                    <tr key={item._id} className="border-t border-gray-200 text-center hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={item._id}
+                      className="border-t border-gray-200 text-center hover:bg-gray-50 transition-colors"
+                    >
                       <td className="p-3 text-sm text-gray-600">
                         {(pagination.current - 1) * 10 + index + 1}
                       </td>
-                      <td className="p-3 text-sm font-medium text-gray-800">{item.CategoryName}</td>
-                      <td className="p-3 text-sm text-gray-600">{item.SubcategoryName}</td>
-                      <td className="p-3 text-sm text-gray-600">{item.DesginationName}</td>
+                      <td className="p-3 text-sm font-medium text-gray-800">
+                        {item.CategoryName}
+                      </td>
+                      <td className="p-3 text-sm text-gray-600">
+                        {item.SubcategoryName}
+                      </td>
+                      <td className="p-3 text-sm text-gray-600">
+                        {item.DesginationName}
+                      </td>
                       <td className="p-3">
                         <div className="flex justify-center">
                           <button
@@ -87,16 +108,20 @@ const AcceptReject = () => {
                       </td>
                       <td className="p-3">
                         <div className="flex justify-center items-center gap-4">
-                          <Check 
-                            size={22} 
-                            className="text-green-600 cursor-pointer hover:scale-125 transition-transform" 
-                            title="Accept"
-                          />
-                          <X 
-                            size={22} 
-                            className="text-red-600 cursor-pointer hover:scale-125 transition-transform" 
-                            title="Reject"
-                          />
+                          <span className="border border-2 border-purple-200 rounded-full h-7 w-7 flex justify-center items-center">
+                            <Check
+                              size={18}
+                              className="text-green-600  cursor-pointer hover:scale-125 transition-transform"
+                              title="Accept"
+                            />
+                          </span>
+                          <span className="border border-2 border-purple-300 rounded-full h-7 w-7 flex justify-center items-center">
+                            <X
+                              size={18}
+                              className="text-red-600 cursor-pointer hover:scale-125 transition-transform"
+                              title="Reject"
+                            />
+                          </span>
                         </div>
                       </td>
                     </tr>
@@ -104,7 +129,10 @@ const AcceptReject = () => {
                 ) : (
                   // No Data Found
                   <tr>
-                    <td colSpan="6" className="p-10 text-gray-400 italic text-center">
+                    <td
+                      colSpan="6"
+                      className="p-10 text-gray-400 italic text-center"
+                    >
                       No records available for this page.
                     </td>
                   </tr>
@@ -117,7 +145,12 @@ const AcceptReject = () => {
           {!loading && !error && list.length > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
               <p className="text-sm text-gray-500">
-                Showing Page <span className="font-semibold text-purple-600">{pagination.current}</span> of <span className="font-semibold">{pagination.pages}</span> ({pagination.total} total records)
+                Showing Page{" "}
+                <span className="font-semibold text-purple-600">
+                  {pagination.current}
+                </span>{" "}
+                of <span className="font-semibold">{pagination.pages}</span> (
+                {pagination.total} total records)
               </p>
 
               <div className="flex items-center gap-2">
@@ -126,7 +159,7 @@ const AcceptReject = () => {
                   disabled={pagination.current === 1}
                   onClick={() => handlePageChange(pagination.current - 1)}
                 >
-                  <ChevronLeftIcon size={20}/>
+                  <ChevronLeftIcon size={20} />
                 </button>
 
                 <div className="flex gap-1">
@@ -134,9 +167,9 @@ const AcceptReject = () => {
                     <button
                       key={i}
                       className={`w-8 h-8 flex items-center justify-center border rounded-full text-sm transition-all ${
-                        pagination.current === i + 1 
-                        ? "bg-purple-600 text-white border-purple-600 shadow-md" 
-                        : "border-gray-200 text-gray-600 hover:border-purple-400 hover:text-purple-600"
+                        pagination.current === i + 1
+                          ? "bg-purple-600 text-white border-purple-600 shadow-md"
+                          : "border-gray-200 text-gray-600 hover:border-purple-400 hover:text-purple-600"
                       }`}
                       onClick={() => handlePageChange(i + 1)}
                     >
@@ -150,7 +183,7 @@ const AcceptReject = () => {
                   disabled={pagination.current === pagination.pages}
                   onClick={() => handlePageChange(pagination.current + 1)}
                 >
-                  <ChevronRightIcon size={20}/>
+                  <ChevronRightIcon size={20} />
                 </button>
               </div>
             </div>
