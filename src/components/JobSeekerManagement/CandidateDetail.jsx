@@ -2,8 +2,17 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft, Loader2, Mail, Phone, MapPin, User,
-  Briefcase, GraduationCap, Award, FileText, Star,
+  ArrowLeft,
+  Loader2,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Briefcase,
+  GraduationCap,
+  Award,
+  FileText,
+  Star,
 } from "lucide-react";
 import {
   getJobSeekerById,
@@ -15,9 +24,11 @@ function CandidateDetail() {
   const navigate = useNavigate();
   const { userId } = useParams();
 
-  const { selectedJobSeeker: user, detailLoading, error } = useSelector(
-    (state) => state.jobseeker
-  );
+  const {
+    selectedJobSeeker: user,
+    detailLoading,
+    error,
+  } = useSelector((state) => state.jobseeker);
 
   useEffect(() => {
     if (userId) dispatch(getJobSeekerById(userId));
@@ -82,7 +93,6 @@ function CandidateDetail() {
   return (
     <div className="bg-[#F4F6FA] min-h-screen p-4">
       <div className="max-w-9xl mx-auto">
-
         {/* ── Header Card ─────────────────────────────────── */}
         <div className="bg-white rounded-xl shadow-sm p-5 mb-4">
           <div className="flex items-center gap-3 mb-4">
@@ -144,10 +154,18 @@ function CandidateDetail() {
                     {user.mobileNumber}
                   </span>
                 )}
-                {basic.location && (
+                {/* {basic.location && (
                   <span className="flex items-center gap-1 text-sm text-gray-600">
                     <MapPin size={14} className="text-purple-500" />
                     {basic.location}
+                  </span>
+                )} */}
+                {basic.location && (
+                  <span className="flex items-center gap-1 text-sm text-gray-600">
+                    <MapPin size={14} className="text-purple-500" />
+                    {typeof basic.location === "object"
+                      ? `${basic.location.city}, ${basic.location.state}`
+                      : basic.location}
                   </span>
                 )}
               </div>
@@ -168,7 +186,6 @@ function CandidateDetail() {
 
         {/* ── Grid Sections ────────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
           {/* Basic Details */}
           <Section icon={User} title="Basic Details">
             <InfoRow
@@ -180,7 +197,15 @@ function CandidateDetail() {
               }
             />
             <InfoRow label="Gender" value={basic.gender} />
-            <InfoRow label="Location" value={basic.location} />
+            {/* <InfoRow label="Location" value={basic.location} /> */}
+            <InfoRow
+              label="Location"
+              value={
+                typeof basic.location === "object"
+                  ? `${basic.location.city}, ${basic.location.state}`
+                  : basic.location
+              }
+            />
             <InfoRow
               label="Profile Completed"
               value={user.profileCompleted ? "Yes" : "No"}
@@ -246,9 +271,17 @@ function CandidateDetail() {
               label="Preferred Designation"
               value={skills.preferredDesignation}
             />
-            <InfoRow
+            {/* <InfoRow
               label="Preferred Location"
               value={skills.preferredLocation}
+            /> */}
+            <InfoRow
+              label="Preferred Location"
+              value={
+                typeof skills.preferredLocation === "object"
+                  ? `${skills.preferredLocation.city}, ${skills.preferredLocation.state}`
+                  : skills.preferredLocation
+              }
             />
           </Section>
 
@@ -285,8 +318,8 @@ function CandidateDetail() {
                       {exp.currentlyWorking
                         ? "Present"
                         : exp.endDate
-                        ? new Date(exp.endDate).toLocaleDateString("en-IN")
-                        : "—"}
+                          ? new Date(exp.endDate).toLocaleDateString("en-IN")
+                          : "—"}
                     </p>
                     {exp.responsibilities && (
                       <p className="text-xs text-gray-500 mt-2 line-clamp-3">
@@ -358,7 +391,7 @@ function CandidateDetail() {
                       <span className="text-xs text-gray-400">
                         Completed:{" "}
                         {new Date(cert.dateOfCompletion).toLocaleDateString(
-                          "en-IN"
+                          "en-IN",
                         )}
                       </span>
                     </div>

@@ -209,7 +209,7 @@ function CompanyDetails() {
   <div className="overflow-x-auto">
     <table className="w-full text-left border-collapse">
       <thead>
-        <tr className="bg-gray-50 text-gray-500 text-sm tracking-widest font-bold">
+        <tr className="bg-gray-50 text-gray-500 text-sm">
           <th className="px-6 py-4">Job Title</th>
           <th className="px-6 py-4">Category</th>
           <th className="px-6 py-4">Sub-Category</th>

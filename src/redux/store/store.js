@@ -42,6 +42,7 @@ import candidateByIdReducer from "../slice/databaseManagement/getCandidateByIdSl
 import acceptRejectReducer from "../slice/databaseManagement/getAcceptRejectSlice"
 import acceptCandidateReducer from "../slice/databaseManagement/acceptCandidate"
 import rejectCandidateReducer from "../slice/databaseManagement/rejectCandidate"
+import dropdownReducer from "../slice/databaseManagement/dropdownSlice"
 export const store = configureStore({
   reducer: {
     // Auth
@@ -88,5 +89,6 @@ export const store = configureStore({
     acceptReject: acceptRejectReducer,
     acceptCandidate: acceptCandidateReducer, 
     rejectCandidate: rejectCandidateReducer,
+    dropdown: dropdownReducer,
   },
 });

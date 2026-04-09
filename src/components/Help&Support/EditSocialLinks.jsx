@@ -8,23 +8,20 @@ const EditSocialLinks = () => {
 
   return (
     
-     <div className="p-10 bg-gray-100 min-h-screen pb-20">
+     <div className="p-5 bg-gray-100 min-h-screen pb-20">
       <div className="bg-white rounded-xl p-6 shadow">
-      
-     
-          
           {/* Header */}
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-2">
             <button
               onClick={() => navigate(-1)}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-700 hover:bg-gray-100 cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-700 hover:bg-gray-100 cursor-pointer"
             >
               <ArrowLeft className="w-6 h-6 text-black cursor-pointer"  />
             </button>
             <h2 className="text-2xl font-bold">Edit Social Links</h2>
           </div>
 
-          <hr className="mb-6" />
+          <hr className="mb-6 border-gray-300" />
 
           {/* Form */}
           <div className="border border-gray-200 rounded-lg p-6 space-y-6">

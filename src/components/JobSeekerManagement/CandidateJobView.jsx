@@ -57,7 +57,10 @@ function CandidateJobView() {
       "Sr. No.": (pagination.currentPage - 1) * pagination.limit + index + 1,
       "Full Name": user.fullName,
       "Email": user.email,
-      "Location": user.location || "N/A",
+      // "Location": user.location || "N/A",
+      "Location": typeof user.location === 'object' 
+    ? `${user.location.city}, ${user.location.state}` 
+    : (user.location || "N/A"),
       "Experience": user.experiences?.length > 0 ? `${user.experiences.length} Years` : "Fresher",
       "Specialization": user.specialization?.name || "N/A",
       "Category": user.jobCategory?.name || "N/A",
@@ -87,7 +90,11 @@ function CandidateJobView() {
     (s) =>
       s.fullName?.toLowerCase().includes(search.toLowerCase()) ||
       s.email?.toLowerCase().includes(search.toLowerCase()) ||
-      s.location?.toLowerCase().includes(search.toLowerCase())
+      // s.location?.toLowerCase().includes(search.toLowerCase())
+      (typeof s.location === 'object' 
+  ? `${s.location.city} ${s.location.state}` 
+  : (s.location || "")
+).toLowerCase().includes(search.toLowerCase())
   );
 
   const columns = [
@@ -116,10 +123,19 @@ function CandidateJobView() {
       header: "Experience",
       cell: ({ row }) => row.original.experiences?.length > 0 ? `${row.original.experiences.length} exp.` : "Fresher",
     },
+    // {
+    //   header: "Location",
+    //   cell: ({ row }) => row.original.location || "—",
+    // },
+
     {
-      header: "Location",
-      cell: ({ row }) => row.original.location || "—",
-    },
+  header: "Location",
+  cell: ({ row }) => {
+    const loc = row.original.location;
+    // Agar location object hai toh city aur state dikhao, warna string
+    return typeof loc === 'object' ? `${loc.city}, ${loc.state}` : (loc || "—");
+  },
+},
     {
       header: "Status",
       cell: ({ row }) => (

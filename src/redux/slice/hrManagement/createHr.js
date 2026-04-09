@@ -12,9 +12,9 @@ export const createHRAction = createAsyncThunk(
       data.append("designation", formData.designation);
       data.append("email", formData.email);
       data.append("password", formData.password);
-      if (formData.image) {
-        data.append("image", formData.image);
-      }
+      // if (formData.image) {
+      //   data.append("image", formData.image);
+      // }
 
       const response = await axios.post(
         `${BASE_URL}/api/admin/hr/createhr`,

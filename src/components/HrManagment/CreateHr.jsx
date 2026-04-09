@@ -16,7 +16,7 @@ function CreateHR() {
     designation: "",
     email: "",
     password: "",
-    image: null,
+    // image: null,
   });
 
   // Handle navigation on success
@@ -129,7 +129,7 @@ function CreateHR() {
             </div>
 
             {/* Upload Image */}
-            <div className="col-span-2">
+            {/* <div className="col-span-2">
               <label className="text-sm text-gray-700">Upload Image</label>
               <div className="relative mt-2 w-[320px]">
                 <input
@@ -149,7 +149,8 @@ function CreateHR() {
                   Selected: {formData.image.name}
                 </p>
               )}
-            </div>
+            </div> */}
+            
           </form>
 
           {/* Action Buttons */}

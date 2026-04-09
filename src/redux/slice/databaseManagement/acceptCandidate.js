@@ -20,7 +20,7 @@ export const approveCandidate = createAsyncThunk(
 
       toast.success(response.data?.message || "Candidate Approved Successfully!", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 2500,
       });
 
       return response.data;

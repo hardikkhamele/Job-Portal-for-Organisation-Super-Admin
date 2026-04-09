@@ -47,6 +47,7 @@ const RevenuePage = () => {
         header: "Action",
         cell: () => (
           <Eye
+          size={18}
             onClick={() => navigate("/revenue/view")}
             className="text-purple-600 cursor-pointer w-6 h-6 mx-auto"
           />
@@ -72,12 +73,12 @@ const RevenuePage = () => {
   });
 
   return (
-    <div className="p-10 bg-gray-100 min-h-screen pb-20">
+    <div className="p-5 bg-gray-100 min-h-screen pb-20">
       <div className="bg-white p-6 mb-3 rounded-xl shadow-md">
         
         {/* Header */}
-        <h1 className="text-2xl font-bold mb-4">Revenue Management</h1>
-        <hr className="mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Revenue Management</h1>
+        <hr className="mb-6 border-gray-300" />
 
         {/* Search */}
         <div className="relative w-64 mb-4 border border-[#D3D3D3] rounded-lg ">
@@ -90,12 +91,12 @@ const RevenuePage = () => {
         </div>
 
         {/* Table */}
-        <table className="w-full text text-center  ">
+        <table className="w-full text-sm text-center border-collapse">
           <thead className="bg-[#D3D3D3] ">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="p-6 font-bold">
+                  <th key={header.id} className="py-3 px-4 font-semibold">
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext()
@@ -108,9 +109,9 @@ const RevenuePage = () => {
 
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b text-center border-gray-200">
+              <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition0">
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="p-7">
+                  <td key={cell.id} className=" py-4 px-4 text-gray-700">
                     {flexRender(
                       cell.column.columnDef.cell ?? cell.column.columnDef.accessorKey,
                       cell.getContext()

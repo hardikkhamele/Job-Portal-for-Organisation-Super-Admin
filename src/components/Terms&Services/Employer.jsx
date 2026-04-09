@@ -6,16 +6,16 @@ const Employer = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-10 bg-gray-100 min-h-screen pb-20">
+    <div className="p-5 bg-gray-100 min-h-screen pb-20">
       
       <div className="bg-white rounded-xl shadow-md p-6">
 
         {/* Heading */}
-        <h1 className="text-2xl font-bold mb-4">
+        <h1 className="text-2xl font-bold mb-2">
           Terms & Service For Employer
         </h1>
 
-        <hr className="mb-4" />
+        <hr className="mb-6 border-gray-300" />
 
         {/* Content Box */}
        <div className="border border-gray-200 rounded-lg p-6 text-gray-800 leading-8 min-h-[450px] bg-white text-lg">

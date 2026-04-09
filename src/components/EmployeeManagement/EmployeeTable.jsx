@@ -154,7 +154,6 @@ function EmployeeTable() {
             size={20}
             className="text-purple-500 cursor-pointer"
             onClick={() => navigate(`/employee/edit-employee//${row.original._id}`)}
-            // onClick={()=>navigate("/employee/edit-employee")}
           />
           <div 
             className="cursor-pointer"
@@ -229,11 +228,11 @@ function EmployeeTable() {
           </button>
         </div>
 
-        <div className="border border-gray-200 rounded-lg overflow-hidden min-h-[400px]">
-          <table className="w-full text-base border-collapse">
+        <div className=" rounded-lg overflow-hidden min-h-[400px]">
+          <table className="w-full text-sm text-center border-collapse">
             <thead className="bg-[#F1F1F1] text-gray-700">
               {table.getHeaderGroups().map((hg) => (
-                <tr key={hg.id}>
+                <tr key={hg.id} className="bg-gray-100 text-gray-600">
                   {hg.headers.map((header) => (
                     <th key={header.id} className="py-4 px-4 text-left font-semibold text-[15px]">
                       {flexRender(header.column.columnDef.header, header.getContext())}

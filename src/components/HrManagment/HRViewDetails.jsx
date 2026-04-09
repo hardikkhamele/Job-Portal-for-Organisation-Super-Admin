@@ -124,18 +124,14 @@ function HRViewDetails() {
         <hr className="border-gray-300 mt-4 mb-5" />
 
         {/* Profile Section */}
-        {loading && !hrInfo ? ( // Sirf tabhi loader dikhaye jab data bilkul na ho
+        {loading && !hrInfo ? ( 
           <div className="flex flex-col justify-center items-center gap-3 h-[150px]">
                           <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
                         </div>
         ) : (
           <div className="bg-[#F4F6FA] rounded-xl p-4 flex justify-between items-center mt-4 mb-6">
             <div className="flex items-center gap-4">
-              {/* <img
-                src={hrInfo?.image?.url || "https://i.pravatar.cc/60"}
-                className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
-                alt="HR Profile"
-              /> */}
+             
               <div className="flex justify-center items-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-300 to-purple-500 text-white shadow-lg shadow-purple-200 border-2 border-gray-300">
                   <h2 className="text-xl font-bold tracking-wider">
                     {hrInfo?.hrName[0]}
@@ -158,21 +154,25 @@ function HRViewDetails() {
 
         {/* Report Section */}
         <div className="bg-white border border-[rgba(211,211,211,1)] rounded-lg p-5">
-          <h2 className="text-purple-600 font-medium mb-4 border-b pb-2">
+          <h2 className="text-purple-600 font-medium mb-4 mt-2 border-b border-gray-300 pb-2">
             Daily Work Report
           </h2>
 
           <div className="flex justify-between mb-4">
-            <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-64 h-11">
+            {/* <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-64 h-11">
               <Search size={18} className="text-[#D3D3D3] mr-2" />
               <input
                 type="text"
                 placeholder="Search"
                 className="bg-transparent outline-none text-sm w-full"
               />
-            </div>
+            </div> */}
 
-            <div ref={calendarRef} className="flex gap-3 relative">
+
+
+            {/*Date calendor  */}
+
+            {/* <div ref={calendarRef} className="flex gap-3 relative">
               <input
                 value={selected ? selected.toLocaleDateString() : ""}
                 placeholder="Start Date"
@@ -192,16 +192,19 @@ function HRViewDetails() {
                   />
                 </div>
               )}
-            </div>
+            </div> */}
+
+
+
           </div>
 
           <div className="w-full overflow-x-auto">
-            <table className="w-full table-fixed border-collapse text-sm">
-              <thead className="bg-gray-50 text-gray-600">
+            <table className="w-full text-sm text-center border-collapse">
+              <thead >
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
+                  <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
                     {headerGroup.headers.map((header) => (
-                      <th key={header.id} className="py-3 px-4 text-center font-semibold border-b">
+                      <th key={header.id} className="py-3 px-4 font-semibold">
                         {flexRender(header.column.columnDef.header, header.getContext())}
                       </th>
                     ))}
@@ -221,9 +224,9 @@ function HRViewDetails() {
                   </tr>
                 ) : summaryList.length > 0 ? (
                   table.getRowModel().rows.map((row) => (
-                    <tr key={row.id} className="text-center border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
+                    <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
                       {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="py-3 px-4 text-gray-700">
+                        <td key={cell.id} className="py-4 px-4 text-gray-700">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       ))}

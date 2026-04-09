@@ -3,12 +3,12 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const fetchCandidates = createAsyncThunk(
   "candidates/fetchCandidates",
-  async ({ page, limit, search }, { rejectWithValue }) => {
+  async ({ page, limit, search,category, designation }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token"); 
 
       const response = await axios.get(`${BASE_URL}/api/admin/candidate-database/getCandidates`, {
-        params: { page, limit, search },
+        params: { page, limit, search,category,designation },
         headers: {
           Authorization: `Bearer ${token}`,
         },
