@@ -5,21 +5,16 @@ import { useNavigate } from "react-router-dom";
 const SocialLinks = () => {
   const navigate = useNavigate();
   return (
-     <div className="p-10 bg-gray-100 min-h-screen pb-20">
+     <div className="p-5 bg-gray-100 min-h-screen pb-20">
       <div className="bg-white rounded-xl p-6 shadow">
-
-
         {/* Title */}
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl font-bold mb-2">
           Social Links
         </h2>
-
         {/* Divider */}
         <hr className="mb-6 border-gray-300" />
-
         {/* Inner Card */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-
           {/* Row */}
           {[
             { name: "Official Website", link: "https://www.officialwebsite.com/" },

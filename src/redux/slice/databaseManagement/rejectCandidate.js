@@ -18,9 +18,9 @@ export const rejectCandidate = createAsyncThunk(
         }
       );
 
-      toast.error(response.data?.message || "Candidate Rejected!", {
+      toast.success(response.data?.message || "Candidate Rejected!", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 2500,
       });
 
       return response.data;

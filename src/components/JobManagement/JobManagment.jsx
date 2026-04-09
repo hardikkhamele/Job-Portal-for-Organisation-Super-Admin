@@ -35,12 +35,10 @@ const JobManagement = () => {
     pageSize: 10,
   });
 
-  // Search ya Category change hone par page 1 par reset karein
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [globalFilter, category]);
 
-  // API Trigger with Search Params
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       dispatch(fetchAllJobs({ 
@@ -49,7 +47,7 @@ const JobManagement = () => {
         search: globalFilter,
         category: category
       }));
-    }, 500); // Debounce taaki typing ke waqt lagatar API call na ho
+    }, 500); 
 
     return () => clearTimeout(delayDebounceFn);
   }, [dispatch, pagination.pageIndex, pagination.pageSize, globalFilter, category]);
@@ -168,12 +166,12 @@ const JobManagement = () => {
           </div>
 
           <div className="overflow-x-auto min-h-[400px]">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm text-center border-collapse">
               <thead className="bg-gray-50 text-gray-600 text-sm">
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
+                  <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
                     {headerGroup.headers.map((header) => (
-                      <th key={header.id} className="p-4 font-semibold text-center border-b">
+                      <th key={header.id} className="py-3 px-4 font-semibold">
                         {flexRender(header.column.columnDef.header, header.getContext())}
                       </th>
                     ))}
@@ -194,9 +192,9 @@ const JobManagement = () => {
                   </tr>
                 ) : table.getRowModel().rows.length > 0 ? (
                   table.getRowModel().rows.map((row) => (
-                    <tr key={row.id} className="border-b border-gray-200 hover:bg-purple-50/30 transition text-center">
+                    <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
                       {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="p-4">
+                        <td key={cell.id} className="p-3 text-gray-700">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       ))}

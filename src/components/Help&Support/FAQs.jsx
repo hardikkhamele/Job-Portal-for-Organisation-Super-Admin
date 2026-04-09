@@ -112,11 +112,11 @@ const [viewData, setViewData] = useState(null);
   };
 
   return (
-    <div className="p-10 bg-gray-100 min-h-screen pb-20">
+    <div className="p-5 bg-gray-100 min-h-screen pb-20">
       {/* OUTER CARD */}
       <div className="bg-white rounded-xl shadow-sm p-6 mx-auto">
-        <h1 className="text-2xl font-bold mb-4">FAQs</h1>
-        <hr className="mb-6" />
+        <h1 className="text-2xl font-bold mb-2">FAQs</h1>
+        <hr className="mb-6 border-gray-300" />
 
         {/* Top bar */}
         <div className="flex justify-between mb-4">
@@ -172,12 +172,12 @@ const [viewData, setViewData] = useState(null);
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow">
-          <table className="w-full">
+          <table className="w-full text-sm text-center border-collapse">
             <thead className="bg-[#E4E5E8]">
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
+                <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
                   {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="p-5 text-center">
+                    <th key={header.id} className="py-3 px-4 font-semibold">
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
@@ -190,9 +190,9 @@ const [viewData, setViewData] = useState(null);
 
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-t border-gray-200">
+                <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="p-5 text-center">
+                    <td key={cell.id} className="py-4 px-4 text-gray-700">
                       {flexRender(
                         cell.column.columnDef.cell ??
                           cell.column.columnDef.accessorKey,

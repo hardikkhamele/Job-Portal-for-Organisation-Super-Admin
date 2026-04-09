@@ -118,12 +118,12 @@ function DailyWorkUpdate() {
 
           {/* Table */}
           <div className="w-full overflow-x-auto">
-            <table className="w-full table-fixed border-collapse text-sm">
+            <table className="w-full text-sm text-center border-collapse">
               <thead className="bg-gray-50 text-gray-600 border-b">
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
+                  <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
                     {headerGroup.headers.map((header) => (
-                      <th key={header.id} className="py-3 px-4 text-center font-semibold">
+                      <th key={header.id} className="py-3 px-4 font-semibold border-b border-gray-50">
                         {flexRender(header.column.columnDef.header, header.getContext())}
                       </th>
                     ))}
@@ -141,9 +141,9 @@ function DailyWorkUpdate() {
                   </tr>
                 ) : reports?.length > 0 ? (
                   table.getRowModel().rows.map((row) => (
-                    <tr key={row.id} className="text-center border-b border-gray-100 hover:bg-gray-50 transition">
+                    <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
                       {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="py-3 px-4 text-gray-700">
+                        <td key={cell.id} className="py-4 px-4 text-gray-700">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       ))}
