@@ -43,6 +43,11 @@ import acceptRejectReducer from "../slice/databaseManagement/getAcceptRejectSlic
 import acceptCandidateReducer from "../slice/databaseManagement/acceptCandidate"
 import rejectCandidateReducer from "../slice/databaseManagement/rejectCandidate"
 import dropdownReducer from "../slice/databaseManagement/dropdownSlice"
+
+// subscriptions management
+import employerPlansReducer from "../slice/subscriptions/employerPlans/getEmployerPlans"
+import planTypeDropdownReducer from "../slice/subscriptions/employerPlans/plantypeDropdown"
+import durationDropdownReducer from "../slice/subscriptions/employerPlans/durationDropdown"
 export const store = configureStore({
   reducer: {
     // Auth
@@ -90,5 +95,10 @@ export const store = configureStore({
     acceptCandidate: acceptCandidateReducer, 
     rejectCandidate: rejectCandidateReducer,
     dropdown: dropdownReducer,
+
+    // subscriptions management
+    employerPlans: employerPlansReducer,
+    planTypeDropdown: planTypeDropdownReducer,
+    durationDropdown:durationDropdownReducer,
   },
 });

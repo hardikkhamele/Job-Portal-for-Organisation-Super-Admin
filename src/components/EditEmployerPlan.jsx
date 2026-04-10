@@ -1,54 +1,83 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { CircleChevronLeft } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useDispatch, useSelector } from "react-redux";
 
+import { updateEmployerPlans, fetchEmployerPlanById, clearSinglePlan } from "../redux/slice/subscriptions/employerPlans/getEmployerPlans";
 const EditEmployerPlan = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { id } = useParams(); 
 
-  // ✅ Validation Schema
+  const { singlePlan, loading, isUpdating } = useSelector((state) => state.employerPlans);
+
+  // 1. Fetch Plan Details on Load
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchEmployerPlanById(id));
+    }
+    return () => dispatch(clearSinglePlan());
+  }, [dispatch, id]);
+
+  // 2. Validation Schema
   const validationSchema = Yup.object({
-    category: Yup.string().required("Category is required"),
-    name: Yup.string().required("Plan name is required"),
-    tag: Yup.string().required("Plan tag is required"),
-    validity: Yup.string().required("Validity is required"),
-    price: Yup.number()
-      .typeError("Must be a number")
-      .required("Price is required"),
-    discount: Yup.number()
-      .typeError("Must be a number")
-      .required("Discount is required"),
-    applyLimit: Yup.number()
-      .typeError("Must be a number")
-      .required("Apply limit is required"),
+    category: Yup.string(),
+    name: Yup.string(),
+    tag: Yup.string(),
+    validity: Yup.string(),
+    price: Yup.number(),
+    discount: Yup.number().typeError("Must be a number"),
+    jobCredits: Yup.number().typeError("Must be a number"),
   });
 
+  // 3. Formik Setup
   const formik = useFormik({
     initialValues: {
-      category: "",
-      name: "",
-      tag: "",
-      validity: "1 Month",
-      price: "",
-      discount: "",
-      applyLimit: "",
-      profileBoost: "Yes",
-      jobAlert: "Yes",
-      support: "Yes",
+      category: singlePlan?.planType || "",
+      name: singlePlan?.title || "",
+      tag: singlePlan?.planTag || "",
+      validity: String(singlePlan?.duration) || "30",
+      price: singlePlan?.price || "",
+      discount: singlePlan?.discount || "",
+      jobCredits: singlePlan?.jobCredits || "",
+      databaseCredit: singlePlan?.databaseCredits || "",
+      creditValidity: String(singlePlan?.useCreditsIn) || "30",
+      jobActive: "30",
       accountManager: false,
       branding: false,
     },
     validationSchema,
+    enableReinitialize: true, // Data aane par form fields fill karne ke liye
     onSubmit: (values) => {
-      console.log("Form Data:", values);
+      const updateData = {
+        title: values.name,
+        price: Number(values.price),
+        discount: Number(values.discount),
+        planType: values.category,
+        duration: Number(values.validity),
+        planTag: values.tag,
+        jobCredits: Number(values.jobCredits),
+        databaseCredits: Number(values.databaseCredit),
+        useCreditsIn: Number(values.creditValidity),
+      };
+
+      dispatch(updateEmployerPlans({ id, updateData }))
+        .unwrap()
+        .then(() => {
+         
+          navigate(-1);
+        })
+        .catch((err) => toast.error(err || "Update failed"));
     },
   });
+
+  if (loading) return <div className="p-10 text-center">Loading Data...</div>;
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="bg-white p-6 rounded-xl shadow">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate(-1)}>
             <CircleChevronLeft size={30} />
@@ -58,218 +87,83 @@ const EditEmployerPlan = () => {
 
         <hr className="border-gray-300 mb-5" />
 
-        <form
-          onSubmit={formik.handleSubmit}
-          className="max-h-[80vh] overflow-y-auto pr-2 no-scrollbar"
-        >
-          {/* Plan Info */}
+        <form onSubmit={formik.handleSubmit} className="max-h-[80vh] overflow-y-auto pr-2 no-scrollbar">
+          {/* Plan Info Section */}
           <div className="border border-gray-300 rounded-lg p-5 mb-6">
             <h3 className="font-semibold mb-4">Plan Info</h3>
-
             <div className="grid grid-cols-2 gap-4">
-              {/* Category */}
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Plan Category
-                </label>
+                <label className="text-sm text-gray-600 mb-1 block">Plan Category</label>
                 <input
                   name="category"
-                  placeholder="Plan Category"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.category}
+                  {...formik.getFieldProps("category")}
                 />
+                {formik.touched.category && formik.errors.category && <p className="text-red-500 text-xs">{formik.errors.category}</p>}
               </div>
 
-              {/* Plan Name */}
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Plan Name
-                </label>
+                <label className="text-sm text-gray-600 mb-1 block">Plan Name</label>
                 <input
                   name="name"
-                  placeholder="Plan Name"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.name}
+                  {...formik.getFieldProps("name")}
                 />
+                {formik.touched.name && formik.errors.name && <p className="text-red-500 text-xs">{formik.errors.name}</p>}
               </div>
 
-              {/* Plan Tag */}
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Plan Tag
-                </label>
+                <label className="text-sm text-gray-600 mb-1 block">Plan Tag</label>
                 <input
                   name="tag"
-                  placeholder="Plan Tag"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.tag}
+                  {...formik.getFieldProps("tag")}
                 />
               </div>
 
-              {/* Validity */}
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Validity
-                </label>
-                <select
-                  name="validity"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.validity}
-                >
-                  <option>1 Month</option>
-                  <option>3 Months</option>
-                  <option>6 Months</option>
+                <label className="text-sm text-gray-600 mb-1 block">Validity</label>
+                <select name="validity" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("validity")}>
+                  <option value="30">1 Month</option>
+                  <option value="90">3 Months</option>
+                  <option value="180">6 Months</option>
                 </select>
               </div>
 
-              {/* Price */}
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Plan Price
-                </label>
-                <input
-                  name="price"
-                  placeholder="Plan Price"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.price}
-                />
+                <label className="text-sm text-gray-600 mb-1 block">Price</label>
+                <input name="price" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("price")} />
               </div>
 
-              {/* Discount */}
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Discount
-                </label>
-                <input
-                  name="discount"
-                  placeholder="Discount"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.discount}
-                />
+                <label className="text-sm text-gray-600 mb-1 block">Discount (%)</label>
+                <input name="discount" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("discount")} />
               </div>
             </div>
           </div>
 
-          {/* Plan Features */}
+          {/* Plan Features Section */}
           <div className="border border-gray-300 rounded-lg p-5 mb-6">
             <h3 className="font-semibold mb-4">Plan Features</h3>
-
             <div className="grid grid-cols-2 gap-4">
-              {/* Job Credit */}
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Job Credit
-                </label>
-                <input
-                  name="applyLimit"
-                  placeholder="Can Apply Jobs/Month"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.applyLimit}
-                />
-                {formik.errors.applyLimit && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {formik.errors.applyLimit}
-                  </p>
-                )}
+                <label className="text-sm text-gray-600 mb-1 block">Job Credit</label>
+                <input name="jobCredits" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("jobCredits")} />
               </div>
-
-              {/* Database Credit */}
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Database Credit
-                </label>
-                <input
-                  name="databaseCredit"
-                  placeholder="Database Credit"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                />
-              </div>
-
-              {/* Credit Validity */}
-              <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Credit Validity
-                </label>
-                <select
-                  name="creditValidity"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                >
-                  <option>30 Days</option>
-                  <option>60 Days</option>
-                  <option>90 Days</option>
-                </select>
-              </div>
-
-              {/* Job Active For */}
-              <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Job Active For
-                </label>
-                <select
-                  name="jobActive"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                >
-                  <option>15 Days</option>
-                  <option>30 Days</option>
-                  <option>60 Days</option>
-                </select>
+                <label className="text-sm text-gray-600 mb-1 block">Database Credit</label>
+                <input name="databaseCredit" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("databaseCredit")} />
               </div>
             </div>
           </div>
-          {/* Extra Features */}
-          <div className="border border-gray-300 rounded-lg p-5 mb-6">
-            <div className="flex flex-col gap-4">
-              {/* Dedicated Account Manager */}
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="accountManager"
-                  className="w-5 h-5 accent-purple-600"
-                  onChange={formik.handleChange}
-                  checked={formik.values.accountManager || false}
-                />
-                <span className="text-gray-700 text-sm">
-                  Dedicated Account Manager
-                </span>
-              </label>
 
-              {/* Branding & Boosting */}
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="branding"
-                  className="w-5 h-5 accent-purple-600"
-                  onChange={formik.handleChange}
-                  checked={formik.values.branding || false}
-                />
-                <span className="text-gray-700 text-sm">
-                  Branding & Boosting
-                </span>
-              </label>
-            </div>
-          </div>
           {/* Buttons */}
           <div className="flex justify-center gap-4">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className=" bg-[#DCBDED] px-10 py-2 rounded-md bg-purple-200 text-purple-700 font-medium"
-            >
+            <button type="button" onClick={() => navigate(-1)} className="bg-[#DCBDED] px-10 py-2 rounded-md text-purple-700 font-medium">
               Cancel
             </button>
-
-            <button
-              type="submit"
-              className="px-10 py-2 rounded-md bg-purple-600 text-white font-medium"
-            >
-              Create
+            <button type="submit" disabled={isUpdating} className="px-10 py-2 cursor-pointer rounded-md bg-purple-600 text-white font-medium">
+              {isUpdating ? "Updating..." : "Update Plan"}
             </button>
           </div>
         </form>
@@ -279,5 +173,3 @@ const EditEmployerPlan = () => {
 };
 
 export default EditEmployerPlan;
-
-

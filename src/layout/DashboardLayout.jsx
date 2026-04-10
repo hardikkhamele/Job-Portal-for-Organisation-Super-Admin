@@ -95,7 +95,7 @@ function DashboardLayout() {
               path="edit-job-seeker-plan"
               element={<EditJobSeekerPlan />}
             />
-            <Route path="/edit-employer-plan" element={<EditEmployerPlan />} />
+            <Route path="/edit-employer-plan/:id" element={<EditEmployerPlan />} />
             <Route
               path="create-employer-plan"
               element={<CreateEmployerplan />}
