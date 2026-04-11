@@ -9,35 +9,34 @@ const CreateCustomPlan = () => {
 
   // ✅ Validation Schema
   const validationSchema = Yup.object({
-    category: Yup.string().required("Category is required"),
-    name: Yup.string().required("Plan name is required"),
-    tag: Yup.string().required("Plan tag is required"),
-    validity: Yup.string().required("Validity is required"),
+    employerPlanId: Yup.string().required("employerPlanId is required"),
+    employerId: Yup.string().required("Plan employerId is required"),
+    duration: Yup.string().required("duration is required"),
     price: Yup.number()
       .typeError("Must be a number")
       .required("Price is required"),
     discount: Yup.number()
       .typeError("Must be a number")
       .required("Discount is required"),
-    applyLimit: Yup.number()
+    jobCredits: Yup.number()
       .typeError("Must be a number")
-      .required("Apply limit is required"),
+      .required("job credit is required"),
+      useCreditsIn:Yup.number().required("Use credits in is Required"),
+      jobActiveFor:Yup.number().required("Job Active is required"),
+      databaseCredits:Yup.number().required("Database Credits is required")
   });
 
   const formik = useFormik({
     initialValues: {
-      category: "",
-      name: "",
-      tag: "",
-      validity: "1 Month",
+      employerPlanId: "",
+      employerId: "",
+      duration: "",
       price: "",
       discount: "",
-      applyLimit: "",
-      profileBoost: "Yes",
-      jobAlert: "Yes",
-      support: "Yes",
-      accountManager: false,
-      branding: false,
+      useCreditsIn:"",
+      jobCredits: "",
+      databaseCredits:"",
+      jobActiveFor:""
     },
     validationSchema,
     onSubmit: (values) => {
@@ -67,63 +66,61 @@ const CreateCustomPlan = () => {
             <h3 className="font-semibold mb-4">Plan Info</h3>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Category */}
+              {/* employerPlanId */}
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
-                  Plan Category
+                  Employer plan name
                 </label>
                 <input
-                  name="category"
-                  placeholder="Plan Category"
+                  name="employerPlanId"
+                  placeholder="Plan employerPlanId"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
                   onChange={formik.handleChange}
-                  value={formik.values.category}
+                  value={formik.values.employerPlanId}
                 />
+                {formik.errors.employerPlanId && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.employerPlanId}
+                  </p>)}
               </div>
 
               {/* Plan Name */}
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
-                  Plan Name
+                   Employer name
                 </label>
                 <input
                   name="name"
                   placeholder="Plan Name"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
                   onChange={formik.handleChange}
-                  value={formik.values.name}
+                  value={formik.values.employerId}
                 />
+                  {formik.errors.employerId && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.employerId}
+                  </p>)}
               </div>
 
-              {/* Plan Tag */}
+              {/* duration */}
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
-                  Plan Tag
-                </label>
-                <input
-                  name="tag"
-                  placeholder="Plan Tag"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.tag}
-                />
-              </div>
-
-              {/* Validity */}
-              <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Validity
+                  duration
                 </label>
                 <select
-                  name="validity"
+                  name="duration"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
                   onChange={formik.handleChange}
-                  value={formik.values.validity}
+                  value={formik.values.duration}
                 >
                   <option>1 Month</option>
                   <option>3 Months</option>
                   <option>6 Months</option>
                 </select>
+                  {formik.errors.duration && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.duration}
+                  </p>)}
               </div>
 
               {/* Price */}
@@ -138,6 +135,10 @@ const CreateCustomPlan = () => {
                   onChange={formik.handleChange}
                   value={formik.values.price}
                 />
+                  {formik.errors.jobCredits && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.price}
+                  </p>)}
               </div>
 
               {/* Discount */}
@@ -152,6 +153,11 @@ const CreateCustomPlan = () => {
                   onChange={formik.handleChange}
                   value={formik.values.discount}
                 />
+                 {formik.errors.jobCredits && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.discount}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -167,15 +173,16 @@ const CreateCustomPlan = () => {
                   Job Credit
                 </label>
                 <input
-                  name="applyLimit"
+                  name="jobCredits"
+                  type="number"
                   placeholder="Can Apply Jobs/Month"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
                   onChange={formik.handleChange}
-                  value={formik.values.applyLimit}
+                  value={formik.values.jobCredits}
                 />
-                {formik.errors.applyLimit && (
+                {formik.errors.jobCredits && (
                   <p className="text-red-500 text-xs mt-1">
-                    {formik.errors.applyLimit}
+                    {formik.errors.jobCredits}
                   </p>
                 )}
               </div>
@@ -187,25 +194,53 @@ const CreateCustomPlan = () => {
                 </label>
                 <input
                   name="databaseCredit"
+                  type="number"
                   placeholder="Database Credit"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
+                  onChange={formik.handleChange}
+                  value={formik.values.databaseCredits}
                 />
+                {formik.errors.jobCredits && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.databaseCredits}
+                  </p>
+                )}
               </div>
 
-              {/* Credit Validity */}
-              <div>
+              {/* Use credit in */}
+               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
-                  Credit Validity
+                  Use CreditIn
+                </label>
+                <input
+                  name="useCreditsIn"
+                  type="number"
+                  placeholder="Enter UseCreditIn"
+                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
+                  onChange={formik.handleChange}
+                  value={formik.values.useCreditsIn}
+                />
+                 {formik.errors.jobCredits && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.useCreditsIn}
+                  </p>
+                )}
+              </div>
+
+              {/* Credit duration */}
+              {/* <div>
+                <label className="text-sm text-gray-600 mb-1 block">
+                  Credit duration
                 </label>
                 <select
-                  name="creditValidity"
+                  name="creditduration"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
                 >
                   <option>30 Days</option>
                   <option>60 Days</option>
                   <option>90 Days</option>
                 </select>
-              </div>
+              </div> */}
 
               {/* Job Active For */}
               <div>
@@ -213,46 +248,21 @@ const CreateCustomPlan = () => {
                   Job Active For
                 </label>
                 <select
-                  name="jobActive"
+                  name="jobActiveFor"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
+                  onChange={formik.handleChange}
+                  value={formik.values.jobActiveFor}
                 >
                   <option>15 Days</option>
                   <option>30 Days</option>
                   <option>60 Days</option>
                 </select>
+                 {formik.errors.jobActiveFor && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.jobActiveFor}
+                  </p>
+                )}
               </div>
-            </div>
-          </div>
-          {/* Extra Features */}
-          <div className="border border-gray-300 rounded-lg p-5 mb-6">
-            <div className="flex flex-col gap-4">
-              {/* Dedicated Account Manager */}
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="accountManager"
-                  className="w-5 h-5 accent-purple-600"
-                  onChange={formik.handleChange}
-                  checked={formik.values.accountManager || false}
-                />
-                <span className="text-gray-700 text-sm">
-                  Dedicated Account Manager
-                </span>
-              </label>
-
-              {/* Branding & Boosting */}
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="branding"
-                  className="w-5 h-5 accent-purple-600"
-                  onChange={formik.handleChange}
-                  checked={formik.values.branding || false}
-                />
-                <span className="text-gray-700 text-sm">
-                  Branding & Boosting
-                </span>
-              </label>
             </div>
           </div>
           {/* Buttons */}

@@ -235,7 +235,7 @@ const CustomPlan = () => {
 
                 {openStatus && (
                   <div className="absolute top-10 left-0 w-28 bg-white border border-gray-300 rounded-md shadow-md z-50">
-                    {["All", "Active", "Expired"].map((item) => (
+                    {["All", "Active", "Inactive","Expired"].map((item) => (
                       <p
                         key={item}
                         onClick={() => {

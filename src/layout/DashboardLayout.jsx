@@ -130,17 +130,17 @@ function DashboardLayout() {
             />
             <Route path="employee" element={<Employee />} />
             <Route
-              path="/employee/company-details/:id"
+              path="employee/company-details/:id"
               element={<CompanyDetails />}
             />
-            <Route path="/employee/edit-employee/:id" element={<EditEmployee/>} />
-            <Route path="/employee/add-employee" element={<AddEmployee />} />
+            <Route path="employee/edit-employee/:id" element={<EditEmployee/>} />
+            <Route path="employee/add-employee" element={<AddEmployee />} />
             <Route path="credit-management" element={<CreditModel />} />
             {/* <Route path="database" element={<DatabaseManagement />} /> */}
             <Route path="/candidates/candidate-details/:id" element={<CandidateDetails />} />
             <Route path="job-seeker-plans" element={<JobSeekerPlans />} />
             <Route path="employer-plans" element={<EmployerPlans />} />
-            <Route path="custom-plans" element={<CustomPlans />} />
+            {/* <Route path="custom-plans" element={<CustomPlans />} /> */}
             <Route path="custom-plans" element={<CustomPlans />} />
             <Route path="employer" element={<Employer />} />
             <Route path="faqs" element={<FAQs />} />
