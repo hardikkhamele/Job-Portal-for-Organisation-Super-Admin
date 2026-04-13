@@ -48,6 +48,10 @@ import dropdownReducer from "../slice/databaseManagement/dropdownSlice"
 import employerPlansReducer from "../slice/subscriptions/employerPlans/getEmployerPlans"
 import planTypeDropdownReducer from "../slice/subscriptions/employerPlans/plantypeDropdown"
 import durationDropdownReducer from "../slice/subscriptions/employerPlans/durationDropdown"
+// customPlan
+import customPlanReducer from "../slice/subscriptions/customPlan/customPlanSlice"
+import employerReducer from "../slice/subscriptions/employerPlans/getAllEmployerDropdown"
+
 export const store = configureStore({
   reducer: {
     // Auth
@@ -100,5 +104,8 @@ export const store = configureStore({
     employerPlans: employerPlansReducer,
     planTypeDropdown: planTypeDropdownReducer,
     durationDropdown:durationDropdownReducer,
+    //customPlan
+    customPlan: customPlanReducer,
+    employer: employerReducer,
   },
 });

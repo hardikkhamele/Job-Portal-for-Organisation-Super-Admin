@@ -26,7 +26,7 @@ import RevenueModel from "../components/RevenueManagement/RevenueModel";
 // import DatabaseManagement from "../components/DatabaseManagement/DatabaseManagement";
 import JobSeekerPlans from "../components/SubscriptionManagement/JobSeekerPlans";
 import EmployerPlans from "../components/SubscriptionManagement/EmployerPlans";
-import CustomPlans from "../components/SubscriptionManagement/CustomPlans";
+
 import JobSeeker from "../components/Terms&Services/JobSeeker";
 import Employer from "../components/Terms&Services/Employer";
 import FAQs from "../components/Help&Support/FAQs";
@@ -44,8 +44,8 @@ import CreateJobSeekerPlan from "../components/SubscriptionManagement/CreateJobS
 import EditJobSeekerPlan from "../components/SubscriptionManagement/EditJobSeekerPlan";
 import CreateEmployerplan from "../components/SubscriptionManagement/CreateEmployerplan";
 import EditEmployerPlan from "../components/EditEmployerPlan";
-import EditCustomPlan from "../components/EditCustomPlan";
-import CreateCustomPlan from "../components/CreateCustomPlan";
+import EditCustomPlan from "../components/SubscriptionManagement/customPlan/EditCustomPlan";
+import CreateCustomPlan from "../components/SubscriptionManagement/customPlan/CreateCustomPlan";
 import JobSeekerManagement from "../components/JobSeekerManagement/JobSeekerManagement";
 import ViewJobSeekerManagement from "../components/JobSeekerManagement/ViewJobSeekerManagement";
 import ViewRoles from "../components/JobSeekerManagement/ViewRoles";
@@ -57,6 +57,10 @@ import AcceptReject from "../components/DatabaseManagement/AcceptReject";
 import CandidateDetails from "../components/DatabaseManagement/CandidateDetails";
 import CandidateDetail from "../components/JobSeekerManagement/CandidateDetail";
 import EditEmployee from "../components/EmployeeManagement/EditEmployee";
+
+// customPlan
+import CustomPlans from "../components/SubscriptionManagement/customPlan/CustomPlans"
+import CustomPlanDetail from "../components/SubscriptionManagement/customPlan/CustomPlanDetail";
 
 function DashboardLayout() {
   return (
@@ -100,8 +104,7 @@ function DashboardLayout() {
               path="create-employer-plan"
               element={<CreateEmployerplan />}
             />
-            <Route path="create-custom-plan" element={<CreateCustomPlan />} />
-            <Route path="edit-custom-plan" element={<EditCustomPlan />} />
+            
             <Route
               path="subscription-management/subscription-management-edit"
               element={<SubscriptionManagementEdit />}
@@ -141,7 +144,12 @@ function DashboardLayout() {
             <Route path="job-seeker-plans" element={<JobSeekerPlans />} />
             <Route path="employer-plans" element={<EmployerPlans />} />
             {/* <Route path="custom-plans" element={<CustomPlans />} /> */}
+            {/* customPlan */}
             <Route path="custom-plans" element={<CustomPlans />} />
+            <Route path="custom-plans/view/:id" element={<CustomPlanDetail />} />
+            <Route path="create-custom-plan" element={<CreateCustomPlan />} />
+            <Route path="edit-custom-plan/:id" element={<EditCustomPlan />} />
+
             <Route path="employer" element={<Employer />} />
             <Route path="faqs" element={<FAQs />} />
             <Route path="chat-support" element={<ChatSupport />} />
