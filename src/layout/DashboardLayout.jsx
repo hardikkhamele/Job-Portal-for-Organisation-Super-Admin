@@ -57,9 +57,12 @@ import AcceptReject from "../components/DatabaseManagement/AcceptReject";
 import CandidateDetails from "../components/DatabaseManagement/CandidateDetails";
 import CandidateDetail from "../components/JobSeekerManagement/CandidateDetail";
 import EditEmployee from "../components/EmployeeManagement/EditEmployee";
-
+import BlogManagement from "../components/blogManagement/BlogManagement";
+import AddBlog from "../components/blogManagement/AddBlog"
+import ViewBlog from "../components/blogManagement/ViewBlog"
+import EditBlog from "../components/blogManagement/UpdateBlog"
 // customPlan
-import CustomPlans from "../components/SubscriptionManagement/customPlan/CustomPlans"
+import CustomPlans from "../components/SubscriptionManagement/customPlan/CustomPlans";
 import CustomPlanDetail from "../components/SubscriptionManagement/customPlan/CustomPlanDetail";
 
 function DashboardLayout() {
@@ -99,12 +102,15 @@ function DashboardLayout() {
               path="edit-job-seeker-plan"
               element={<EditJobSeekerPlan />}
             />
-            <Route path="/edit-employer-plan/:id" element={<EditEmployerPlan />} />
+            <Route
+              path="/edit-employer-plan/:id"
+              element={<EditEmployerPlan />}
+            />
             <Route
               path="create-employer-plan"
               element={<CreateEmployerplan />}
             />
-            
+
             <Route
               path="subscription-management/subscription-management-edit"
               element={<SubscriptionManagementEdit />}
@@ -136,17 +142,26 @@ function DashboardLayout() {
               path="employee/company-details/:id"
               element={<CompanyDetails />}
             />
-            <Route path="employee/edit-employee/:id" element={<EditEmployee/>} />
+            <Route
+              path="employee/edit-employee/:id"
+              element={<EditEmployee />}
+            />
             <Route path="employee/add-employee" element={<AddEmployee />} />
             <Route path="credit-management" element={<CreditModel />} />
             {/* <Route path="database" element={<DatabaseManagement />} /> */}
-            <Route path="/candidates/candidate-details/:id" element={<CandidateDetails />} />
+            <Route
+              path="/candidates/candidate-details/:id"
+              element={<CandidateDetails />}
+            />
             <Route path="job-seeker-plans" element={<JobSeekerPlans />} />
             <Route path="employer-plans" element={<EmployerPlans />} />
             {/* <Route path="custom-plans" element={<CustomPlans />} /> */}
             {/* customPlan */}
             <Route path="custom-plans" element={<CustomPlans />} />
-            <Route path="custom-plans/view/:id" element={<CustomPlanDetail />} />
+            <Route
+              path="custom-plans/view/:id"
+              element={<CustomPlanDetail />}
+            />
             <Route path="create-custom-plan" element={<CreateCustomPlan />} />
             <Route path="edit-custom-plan/:id" element={<EditCustomPlan />} />
 
@@ -162,10 +177,14 @@ function DashboardLayout() {
             <Route path="/edit-social-links" element={<EditSocialLinks />} />
             <Route path="/candidates" element={<DatabaseCandidate />} />
             <Route path="/accept-reject" element={<AcceptReject />} />
-            
-            
 
-            // Job Seeker Management
+          
+  <Route path="/blog-management" element={<BlogManagement />} />
+  <Route path="/add-blog" element={<AddBlog />} />
+<Route path="/view-blog/:id" element={<ViewBlog />} />
+<Route path="/edit-blog/:id" element={<EditBlog />} />
+
+            {/* // Job Seeker Management */}
             <Route path="job-seeker" element={<JobSeekerManagement />} />
             {/* Changed categoryId to match the param name for consistency */}
             <Route

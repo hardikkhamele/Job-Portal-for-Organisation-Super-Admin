@@ -22,17 +22,17 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
 
-export default function App() {
-  
-function PublicRoute({ children }) {
-  const token = localStorage.getItem("token");
-  return token ? <Navigate to="/dashboard" replace /> : children;
-}
 
-function PrivateRoute({ children }) {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/" replace />;
-}
+export default function App() {
+  function PublicRoute({ children }) {
+    const token = localStorage.getItem("token");
+    return token ? <Navigate to="/dashboard" replace /> : children;
+  }
+
+  function PrivateRoute({ children }) {
+    const token = localStorage.getItem("token");
+    return token ? children : <Navigate to="/" replace />;
+  }
 
   return (
     <Router>
@@ -45,30 +45,66 @@ function PrivateRoute({ children }) {
         draggable
         theme="colored"
       />
-      
+
       <Routes>
-         <Route
+        <Route
           path="/"
           element={
-            localStorage.getItem("token")
-              ? <Navigate to="/dashboard" replace />
-              : <Navigate to="/login" replace />
+            localStorage.getItem("token") ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
           }
         />
         {/* <Route path="/" element={<LoginPage />} /> */}
-        
-          {/* <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+
+        {/* <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/forgot-password" element={<ForgotPage />} />
         <Route path="/verify-otp" element={<OtpVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-success" element={<ResetSuccess />} /> */}
 
-
-        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-<Route path="/forgot-password" element={<PublicRoute><ForgotPage /></PublicRoute>} />
-<Route path="/verify-otp" element={<PublicRoute><OtpVerification /></PublicRoute>} />
-<Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
-<Route path="/reset-success" element={<PublicRoute><ResetSuccess /></PublicRoute>} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/verify-otp"
+          element={
+            <PublicRoute>
+              <OtpVerification />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/reset-success"
+          element={
+            <PublicRoute>
+              <ResetSuccess />
+            </PublicRoute>
+          }
+        />
 
         <Route path="/Signup1" element={<Signup1 />} />
         <Route path="/VerifyAccount" element={<VerifyAccount />} />
@@ -85,13 +121,18 @@ function PrivateRoute({ children }) {
           path="/PhoneVerifiedSuccess"
           element={<PhoneVerifiedSuccess />}
         />
-     
-       
+
+
         {/* <Route path="/*" element={<DashboardLayout />} /> */}
-         <Route path="/*" element={<PrivateRoute><DashboardLayout /></PrivateRoute>} />
+        <Route
+          path="/*"
+          element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </Router>
   );
 }
-
-
