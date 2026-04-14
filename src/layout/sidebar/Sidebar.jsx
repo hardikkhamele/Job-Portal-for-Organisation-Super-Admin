@@ -367,7 +367,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdDashboard, MdPostAdd, MdSubscriptions, MdHelpOutline } from "react-icons/md";
 import { RiMoneyDollarCircleLine, RiShieldLine } from "react-icons/ri";
-import { Banknote, Briefcase, ChevronDown, ChevronUp, Database, FolderKanban, ShieldCheck, Users, UserSearch } from "lucide-react";
+import { Banknote, Briefcase, ChevronDown, ChevronUp, Database, FolderKanban, ShieldCheck, Users, UserSearch,NotebookPen } from "lucide-react";
 import logo from "../../assets/Logo.svg";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slice/auth/loginSlice";
@@ -484,6 +484,13 @@ const Sidebar = () => {
           {/* 9. Revenue Management */}
           <NavItem icon={<Banknote />} text="Revenue Management" active={isActive("/revenue-management")} onClick={() => handleNavigation("/revenue-management")} />
 
+            <NavItem
+            icon={<NotebookPen />}
+            text="Blog Management"
+            active={isActive("/blog-management")}
+            onClick={() => handleNavigation("/blog-management")}
+          />
+
           {/* 10. Terms Dropdown */}
           <div>
             <DropdownHeader 
@@ -552,7 +559,6 @@ const Sidebar = () => {
   );
 };
 
-// --- Reusable Components ---
 
 const NavItem = ({ icon, text, active, onClick, className }) => (
   <div

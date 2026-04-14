@@ -48,9 +48,15 @@ import dropdownReducer from "../slice/databaseManagement/dropdownSlice"
 import employerPlansReducer from "../slice/subscriptions/employerPlans/getEmployerPlans"
 import planTypeDropdownReducer from "../slice/subscriptions/employerPlans/plantypeDropdown"
 import durationDropdownReducer from "../slice/subscriptions/employerPlans/durationDropdown"
+
 // customPlan
 import customPlanReducer from "../slice/subscriptions/customPlan/customPlanSlice"
 import employerReducer from "../slice/subscriptions/employerPlans/getAllEmployerDropdown"
+
+//blogmanagement
+import blogReducer from '../slice/blogManagement/addBlog';
+import { getreducer } from "../slice/blogManagement/getBlog";
+
 
 export const store = configureStore({
   reducer: {
@@ -104,8 +110,13 @@ export const store = configureStore({
     employerPlans: employerPlansReducer,
     planTypeDropdown: planTypeDropdownReducer,
     durationDropdown:durationDropdownReducer,
+
     //customPlan
     customPlan: customPlanReducer,
     employer: employerReducer,
+
+    //blogmanagement
+    blog: blogReducer,
+    getblog: getreducer,
   },
 });
