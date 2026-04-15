@@ -14,8 +14,14 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Footer from "../Footer";
+import ConfirmationModel from "../../components/common/ConfirmationModel"; // Ensure path is correct
 
 const PAGE_SIZE = 10;
+
+const stripHtml = (html) => {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
+};
 
 const BlogManagement = () => {
   const navigate = useNavigate();
@@ -24,6 +30,11 @@ const BlogManagement = () => {
   // Redux State
   const { blogs, loading } = useSelector((state) => state.getblog);
 
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBlogId, setSelectedBlogId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
 
@@ -31,16 +42,16 @@ const BlogManagement = () => {
     dispatch(fetchBlogs());
   }, [dispatch]);
 
-  // Filtering based on API response structure
+  // Filtering
   const filtered = blogs.filter((b) =>
-    b.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    b.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const total = filtered.length;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const paginated = filtered.slice(
     pageIndex * PAGE_SIZE,
-    (pageIndex + 1) * PAGE_SIZE,
+    (pageIndex + 1) * PAGE_SIZE
   );
 
   const startRange = pageIndex * PAGE_SIZE + 1;
@@ -49,10 +60,19 @@ const BlogManagement = () => {
   const handleView = (id) => navigate(`/view-blog/${id}`);
   const handleEdit = (id) => navigate(`/edit-blog/${id}`);
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this blog?")) {
-      dispatch(deleteBlog(id));
-    }
+  // Open Modal logic
+  const openDeleteModal = (id) => {
+    setSelectedBlogId(id);
+    setIsModalOpen(true);
+  };
+
+  // Actual Delete logic
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    await dispatch(deleteBlog(selectedBlogId));
+    setIsDeleting(false);
+    setIsModalOpen(false);
+    setSelectedBlogId(null);
   };
 
   return (
@@ -91,57 +111,36 @@ const BlogManagement = () => {
                 <thead>
                   <tr className="bg-gray-100 text-gray-600">
                     <th className="py-3 px-4 font-semibold text-sm">Sr.No.</th>
-                    <th className="py-3 px-4 font-semibold text-sm text-left">
-                      Title
-                    </th>
-                    <th className="py-3 px-4 font-semibold text-sm text-left">
-                      Description
-                    </th>
+                    <th className="py-3 px-4 font-semibold text-sm text-left">Title</th>
+                    <th className="py-3 px-4 font-semibold text-sm text-left">Description</th>
                     <th className="py-3 px-4 font-semibold text-sm">Date</th>
                     <th className="py-3 px-4 font-semibold text-sm">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
+                  {loading && blogs.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-purple-600">
-                        Loading...
-                      </td>
+                      <td colSpan={5} className="py-10 text-purple-600">Loading...</td>
                     </tr>
                   ) : paginated.length > 0 ? (
                     paginated.map((blog, idx) => (
-                      <tr
-                        key={blog._id}
-                        className="border-b border-gray-100 hover:bg-gray-50 transition"
-                      >
-                        <td className="py-4 px-4 text-gray-700 font-medium">
-                          {pageIndex * PAGE_SIZE + idx + 1}
-                        </td>
-                        <td className="py-4 px-4 text-gray-800 text-left font-semibold">
-                          {blog.title}
-                        </td>
-                        <td className="py-4 px-4 text-gray-600 text-left font-semibold text-sm ">
-                          {blog.content}
+                      <tr key={blog._id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                        <td className="py-4 px-4 text-gray-700 font-medium">{pageIndex * PAGE_SIZE + idx + 1}</td>
+                        <td className="py-4 px-4 text-gray-800 text-left font-semibold">{blog.title}</td>
+                        <td className="py-4 px-4 text-gray-600 text-left font-medium text-sm max-w-[300px] truncate">
+                          {stripHtml(blog.content)}
                         </td>
                         <td className="py-4 px-4 text-gray-700 whitespace-nowrap">
                           {new Date(blog.createdAt).toLocaleDateString()}
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex justify-center gap-4 text-purple-600">
-                            <Eye
-                              size={18}
-                              className="cursor-pointer hover:opacity-70"
-                              onClick={() => handleView(blog._id)}
-                            />
-                            <Edit
-                              size={18}
-                              className="cursor-pointer hover:opacity-70"
-                              onClick={() => handleEdit(blog._id)}
-                            />
-                            <Trash2
-                              size={18}
-                              className="cursor-pointer text-red-500 hover:opacity-70"
-                              onClick={() => handleDelete(blog._id)}
+                            <Eye size={18} className="cursor-pointer hover:opacity-70" onClick={() => handleView(blog._id)} />
+                            <Edit size={18} className="cursor-pointer hover:opacity-70" onClick={() => handleEdit(blog._id)} />
+                            <Trash2 
+                              size={18} 
+                              className="cursor-pointer text-red-500 hover:opacity-70" 
+                              onClick={() => openDeleteModal(blog._id)} 
                             />
                           </div>
                         </td>
@@ -149,9 +148,7 @@ const BlogManagement = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="py-10 text-gray-400 italic">
-                        No blogs found.
-                      </td>
+                      <td colSpan={5} className="py-10 text-gray-400 italic">No blogs found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -161,8 +158,7 @@ const BlogManagement = () => {
             {/* Pagination UI */}
             <div className="flex justify-between items-center mt-6">
               <p className="text-[14px] text-[#A855F7] font-medium">
-                Showing {total > 0 ? `${startRange} to ${endRange}` : "0"} of{" "}
-                {total} Blogs
+                Showing {total > 0 ? `${startRange} to ${endRange}` : "0"} of {total} Blogs
               </p>
 
               <div className="flex items-center gap-3">
@@ -179,9 +175,7 @@ const BlogManagement = () => {
                     key={i}
                     onClick={() => setPageIndex(i)}
                     className={`w-9 h-9 rounded-full text-sm font-bold transition ${
-                      pageIndex === i
-                        ? "bg-[#A855F7] text-white"
-                        : "text-gray-400 hover:bg-gray-100"
+                      pageIndex === i ? "bg-[#A855F7] text-white" : "text-gray-400 hover:bg-gray-100"
                     }`}
                   >
                     {i + 1}
@@ -189,9 +183,7 @@ const BlogManagement = () => {
                 ))}
 
                 <button
-                  onClick={() =>
-                    setPageIndex((p) => Math.min(pageCount - 1, p + 1))
-                  }
+                  onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
                   disabled={pageIndex >= pageCount - 1}
                   className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center text-[#A855F7] disabled:opacity-30 hover:bg-gray-50"
                 >
@@ -203,6 +195,16 @@ const BlogManagement = () => {
         </div>
         <Footer />
       </div>
+
+      {/* Confirmation Modal Implementation */}
+      <ConfirmationModel
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Blog"
+        message="Are you sure you want to delete this blog? This action cannot be undone and the blog will be permanently removed."
+        loading={isDeleting}
+      />
     </div>
   );
 };
