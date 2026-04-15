@@ -35,7 +35,7 @@ const EditBlog = () => {
     if (singleBlog) {
       setForm({
         title: singleBlog.title,
-        description: singleBlog.content || "", // Fallback to empty string
+        description: singleBlog.content || "",
         image: null,
       });
       setPreview(singleBlog.image);
@@ -84,18 +84,22 @@ const EditBlog = () => {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Update Description</label>
-            <div className="bg-white mb-12 h-72">
+            {/* 
+              FIX: Use style={{ height }} on ReactQuill directly instead of a fixed-height wrapper.
+              The mb-10 provides space below for the Quill toolbar height so the next field doesn't overlap.
+            */}
+            <div className="border border-gray-300 rounded-lg overflow-hidden mb-10">
               <ReactQuill
                 theme="snow"
                 value={form.description}
                 onChange={(content) => setForm({ ...form, description: content })}
                 modules={modules}
-                className="h-full border border-gray-300 rounded-lg bg-[#F9FAFB] outline-none"
+                style={{ height: "300px" }}
               />
             </div>
           </div>
 
-          <div className="pt-6">
+          <div className="pt-2">
             <label className="block text-sm font-semibold text-gray-700 mb-2">Update Banner Image</label>
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 bg-[#F9FAFB] flex flex-col items-center justify-center min-h-[180px]">
               {preview ? (
@@ -130,7 +134,7 @@ const EditBlog = () => {
             </div>
           </div>
 
-          <div className="flex justify-center gap-4 mt-12 pt-8 border-t">
+          <div className="flex justify-center gap-4 pt-6 border-t">
             <button
               type="button"
               onClick={() => navigate("/blog-management")}
