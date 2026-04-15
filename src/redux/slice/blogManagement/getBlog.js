@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-// Environment variable se base URL access kar rahe hain
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/admin/blog`;
 
 const getHeaders = () => ({
@@ -60,11 +59,10 @@ export const updateBlog = createAsyncThunk(
 // 4. Delete Blog
 export const deleteBlog = createAsyncThunk(
   "blogs/delete",
-  async (id, { rejectWithValue, dispatch }) => {
+  async (id, { rejectWithValue }) => {
     try {
       await axios.delete(`${BASE_URL}/delete/${id}`, { headers: getHeaders() });
       toast.success("Blog deleted successfully!");
-      dispatch(fetchBlogs());
       return id;
     } catch (error) {
       toast.error(error.response?.data?.message || "Delete failed");
@@ -79,11 +77,20 @@ const blogSlice = createSlice({
     blogs: [],
     singleBlog: null,
     loading: false,
-    pagination: { current: 1, total: 0, pages: 1 },
+    error: null,
+    // Matches API response: { currentPage, pageSize, totalRecords, totalPages, hasNextPage, hasPrevPage }
+    pagination: {
+      currentPage: 1,
+      pageSize: 10,
+      totalRecords: 0,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
   },
   reducers: {
     setSingleBlogFromState: (state, action) => {
-      state.singleBlog = state.blogs.find((b) => b._id === action.payload);
+      state.singleBlog = state.blogs.find((b) => b._id === action.payload) || null;
     },
     clearSingleBlog: (state) => {
       state.singleBlog = null;
@@ -94,12 +101,19 @@ const blogSlice = createSlice({
       // Fetch All
       .addCase(fetchBlogs.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchBlogs.fulfilled, (state, action) => {
         state.loading = false;
         state.blogs = action.payload.data;
+        // API returns pagination nested object — store it directly
         state.pagination = action.payload.pagination;
       })
+      .addCase(fetchBlogs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       // Fetch Single
       .addCase(fetchBlogById.pending, (state) => {
         state.loading = true;
@@ -108,6 +122,11 @@ const blogSlice = createSlice({
         state.loading = false;
         state.singleBlog = action.payload.data;
       })
+      .addCase(fetchBlogById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       // Update
       .addCase(updateBlog.pending, (state) => {
         state.loading = true;
@@ -117,9 +136,18 @@ const blogSlice = createSlice({
       })
       .addCase(updateBlog.rejected, (state) => {
         state.loading = false;
+      })
+
+      // Delete — optimistically remove from local list
+      .addCase(deleteBlog.fulfilled, (state, action) => {
+        state.blogs = state.blogs.filter((b) => b._id !== action.payload);
+        if (state.pagination.totalRecords > 0) {
+          state.pagination.totalRecords -= 1;
+        }
       });
   },
 });
 
 export const { setSingleBlogFromState, clearSingleBlog } = blogSlice.actions;
 export const getreducer = blogSlice.reducer;
+export default blogSlice.reducer;

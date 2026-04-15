@@ -4,7 +4,7 @@ import { ArrowLeft, Upload } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { createBlog } from "../../redux/slice/blogManagement/addBlog";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css"; // Theme styles
+import "react-quill/dist/quill.snow.css";
 
 const AddBlog = () => {
   const navigate = useNavigate();
@@ -14,7 +14,6 @@ const AddBlog = () => {
   const [preview, setPreview] = useState(null);
   const [form, setForm] = useState({ title: "", description: "", image: null });
 
-  // Rich Text Editor Modules
   const modules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -37,7 +36,7 @@ const AddBlog = () => {
 
     const formData = new FormData();
     formData.append("title", form.title);
-    formData.append("content", form.description); // Backend expects 'content'
+    formData.append("content", form.description);
     if (form.image) {
       formData.append("image", form.image);
     }
@@ -74,20 +73,25 @@ const AddBlog = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-500 mb-2 ">Description</label>
-            <div className="mb-12 h-64 border border-gray-300 rounded-lg"> {/* Added height wrapper for Quill */}
+            <label className="block text-sm font-bold text-gray-500 mb-2">Description</label>
+            {/* 
+              FIX: Don't set a fixed height on the wrapper div.
+              Instead, let Quill's editor area (.ql-editor) have the fixed height via the style prop.
+              The `mb-10` accounts for the Quill toolbar height so content below doesn't overlap.
+            */}
+            <div className="border border-gray-300 rounded-lg overflow-hidden mb-10">
               <ReactQuill
                 theme="snow"
                 value={form.description}
                 onChange={(content) => setForm({ ...form, description: content })}
                 modules={modules}
                 placeholder="Write content here..."
-                className="h-full rounded-lg bg-gray-50"
+                style={{ height: "280px" }}
               />
             </div>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-2">
             <label className="block text-sm font-bold text-gray-500 mb-2">Banner Image</label>
             <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col items-center justify-center">
               {preview ? (
@@ -109,7 +113,7 @@ const AddBlog = () => {
             </div>
           </div>
 
-          <div className="flex justify-center gap-3 pt-10">
+          <div className="flex justify-center gap-3 pt-6">
             <button
               type="button"
               onClick={() => navigate("/blog-management")}
