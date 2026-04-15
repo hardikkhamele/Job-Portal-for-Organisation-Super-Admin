@@ -1,5 +1,37 @@
+
 @import "tailwindcss";
 
+.blog-view-content ul {
+  list-style-type: disc !important;
+  margin-left: 1.5rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+  display: block !important;
+}
+
+.blog-view-content ol {
+  list-style-type: decimal !important;
+  margin-left: 1.5rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+  display: block !important;
+}
+
+.blog-view-content li {
+  display: list-item !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.blog-view-content h1, .blog-view-content h2, .blog-view-content h3 {
+  font-weight: bold !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+  display: block !important;
+}
+
+.blog-view-content p {
+  margin-bottom: 1rem !important;
+}
 /* Hide scrollbar but allow scroll */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

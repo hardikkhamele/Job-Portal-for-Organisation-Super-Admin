@@ -16,13 +16,10 @@ const ViewBlog = () => {
 
   useEffect(() => {
     if (id) {
-      // Step 1: Pehle check karo kya hamare paas list mein ye blog pehle se hai?
       const existingBlog = blogs.find((b) => b._id === id);
-
       if (existingBlog) {
         dispatch(setSingleBlogFromState(id));
       } else {
-        // Step 2: Agar list khali hai (jaise refresh karne par), tabhi API call karo
         dispatch(fetchBlogById(id));
       }
     }
@@ -53,10 +50,11 @@ const ViewBlog = () => {
   return (
     <div className="w-full bg-[#F4F6FA] min-h-screen p-6 flex justify-center items-start">
       <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Header */}
         <div className="bg-white px-8 py-5 border-b border-gray-100 flex items-center gap-4">
           <button
             onClick={() => navigate("/blog-management")}
-            className="p-1.5 hover:bg-gray-100 rounded-full cursor-pointer"
+            className="p-1.5 hover:bg-gray-100 rounded-full cursor-pointer transition"
           >
             <ArrowLeft size={22} className="text-gray-600" />
           </button>
@@ -64,8 +62,9 @@ const ViewBlog = () => {
         </div>
 
         <div className="p-8 space-y-8">
+          {/* Blog Title */}
           <div>
-            <label className="block text-sm font-semibold text-gray-600  mb-2">
+            <label className="block text-sm font-semibold text-gray-500 mb-2">
               Blog Title
             </label>
             <div className="w-full border border-gray-100 rounded-lg px-4 py-3 text-lg font-bold text-gray-800 bg-[#F9FAFB]">
@@ -73,33 +72,35 @@ const ViewBlog = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <label className="block text-sm font-semibold text-gray-600  mb-2">
-                Published Date
-              </label>
-              <div className="flex items-center gap-2 w-full border border-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 bg-[#F9FAFB]">
-                <Calendar size={16} className="text-purple-500" />
-                {new Date(singleBlog.createdAt).toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </div>
+          {/* Published Date */}
+          <div className="w-full md:w-1/3">
+            <label className="block text-sm font-semibold text-gray-500 mb-2">
+              Published Date
+            </label>
+            <div className="flex items-center gap-2 border border-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 bg-[#F9FAFB]">
+              <Calendar size={16} className="text-purple-500" />
+              {new Date(singleBlog.createdAt).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
             </div>
           </div>
 
+          {/* Blog Content Section - FIXED FOR LISTS */}
           <div>
-            <label className="block text-sm font-semibold text-gray-600  mb-2">
+            <label className="block text-sm font-semibold text-gray-500 mb-2">
               Content
             </label>
-            <div className="w-full border border-gray-100 rounded-lg px-4 py-3 text-sm leading-relaxed text-gray-600 bg-[#F9FAFB] min-h-[150px] whitespace-pre-line">
-              {singleBlog.content}
-            </div>
+            <div
+              className="w-full border border-gray-100 rounded-lg px-6 py-5 text-sm leading-relaxed text-gray-700 bg-[#F9FAFB] min-h-[200px] blog-view-content"
+              dangerouslySetInnerHTML={{ __html: singleBlog.content }}
+            />
           </div>
 
+          {/* Featured Image */}
           <div>
-            <label className="block text-sm font-semibold text-gray-600  mb-2">
+            <label className="block text-sm font-semibold text-gray-500 mb-2">
               Featured Image
             </label>
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 bg-[#F9FAFB] flex flex-col items-center justify-center min-h-[300px]">
@@ -112,7 +113,7 @@ const ViewBlog = () => {
               ) : (
                 <div className="text-center text-gray-400">
                   <BookOpen size={48} className="mx-auto mb-2 opacity-20" />
-                  <p>No image available</p>
+                  <p>No featured image found</p>
                 </div>
               )}
             </div>
