@@ -26,7 +26,7 @@ const BlogManagement = () => {
   const dispatch = useDispatch();
 
   const { blogs, loading, pagination } = useSelector((state) => state.getblog);
-  // pagination shape from slice: { currentPage, pageSize, totalRecords, totalPages, hasNextPage, hasPrevPage }
+  
   const {
     currentPage = 1,
     totalPages = 1,
@@ -41,7 +41,6 @@ const BlogManagement = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch whenever page changes
   useEffect(() => {
     dispatch(fetchBlogs(currentPage));
   }, [dispatch, currentPage]);
@@ -51,12 +50,10 @@ const BlogManagement = () => {
     dispatch(fetchBlogs(page));
   };
 
-  // Client-side search filters only the current page's loaded blogs
   const filtered = blogs.filter((b) =>
     b.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Derived display range (based on server pagination)
   const startRange = (currentPage - 1) * pageSize + 1;
   const endRange = Math.min(currentPage * pageSize, totalRecords);
 
@@ -74,13 +71,19 @@ const BlogManagement = () => {
     setIsDeleting(false);
     setIsModalOpen(false);
     setSelectedBlogId(null);
-    // After delete, re-fetch current page (deleteBlog already calls fetchBlogs() internally,
-    // but if this was the last item on the page, go back one page)
     const newPage = filtered.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
     dispatch(fetchBlogs(newPage));
   };
 
-  // Ellipsis page number builder
+  // Helper to truncate by word count
+  const truncateTitle = (title) => {
+    const words = title.split(" ");
+    if (words.length > 10) {
+      return words.slice(0, 10).join(" ") + "...";
+    }
+    return title;
+  };
+
   const getPageNumbers = () => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages = [];
@@ -102,7 +105,6 @@ const BlogManagement = () => {
           <hr className="border-gray-300 mt-3 mb-5" />
 
           <div className="border border-[rgba(211,211,211,1)] rounded-lg p-6">
-            {/* Toolbar */}
             <div className="flex justify-between items-center mb-5">
               <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-64 h-11 focus-within:border-purple-400 transition">
                 <Search size={18} className="text-[#D3D3D3] mr-2" />
@@ -123,22 +125,21 @@ const BlogManagement = () => {
               </button>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-center border-collapse">
+              <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="bg-gray-100 text-gray-600">
-                    <th className="py-3 px-4 font-semibold text-sm">Sr.No.</th>
+                    <th className="py-3 px-4 font-semibold text-sm text-center w-20">Sr.No.</th>
                     <th className="py-3 px-4 font-semibold text-sm text-left">Title</th>
                     <th className="py-3 px-4 font-semibold text-sm text-left">Description</th>
-                    <th className="py-3 px-4 font-semibold text-sm">Date</th>
-                    <th className="py-3 px-4 font-semibold text-sm">Action</th>
+                    <th className="py-3 px-4 font-semibold text-sm text-center">Date</th>
+                    <th className="py-3 px-4 font-semibold text-sm text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-purple-600">Loading...</td>
+                      <td colSpan={5} className="py-10 text-center text-purple-600">Loading...</td>
                     </tr>
                   ) : filtered.length > 0 ? (
                     filtered.map((blog, idx) => (
@@ -146,17 +147,21 @@ const BlogManagement = () => {
                         key={blog._id}
                         className="border-b border-gray-100 hover:bg-gray-50 transition"
                       >
-                        <td className="py-4 px-4 text-gray-700 font-medium">
-                          {/* Serial number accounts for server page offset */}
+                        <td className="py-4 px-4 text-gray-700 font-medium text-center">
                           {(currentPage - 1) * pageSize + idx + 1}
                         </td>
-                        <td className="py-4 px-4 text-gray-800 text-left font-semibold">
-                          {blog.title}
+                        
+                        {/* UPDATED TITLE FIELD WITH WORD TRUNCATION */}
+                        <td className="py-4 px-4 text-left">
+                          <div className="text-gray-800 font-semibold max-w-[280px] break-words" title={blog.title}>
+                            {truncateTitle(blog.title)}
+                          </div>
                         </td>
-                        <td className="py-4 px-4 text-gray-600 text-left font-medium text-sm max-w-[300px] truncate">
+
+                        <td className="py-4 px-4 text-gray-600 text-left font-medium text-sm max-w-[350px] truncate">
                           {stripHtml(blog.content)}
                         </td>
-                        <td className="py-4 px-4 text-gray-700 whitespace-nowrap">
+                        <td className="py-4 px-4 text-gray-700 text-center whitespace-nowrap">
                           {new Date(blog.createdAt).toLocaleDateString()}
                         </td>
                         <td className="py-4 px-4">
@@ -182,7 +187,7 @@ const BlogManagement = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="py-10 text-gray-400 italic">
+                      <td colSpan={5} className="py-10 text-center text-gray-400 italic">
                         No blogs found.
                       </td>
                     </tr>
@@ -191,19 +196,15 @@ const BlogManagement = () => {
               </table>
             </div>
 
-            {/* Pagination Footer */}
             <div className="flex justify-between items-center mt-6">
-              {/* Range info */}
               <p className="text-[14px] text-[#A855F7] font-medium">
                 {totalRecords > 0
                   ? `Showing ${startRange} to ${endRange} of ${totalRecords} Blogs`
                   : "No Blogs"}
               </p>
 
-              {/* Page controls */}
               {totalPages > 1 && (
                 <div className="flex items-center gap-1">
-                  {/* Prev */}
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={!hasPrevPage}
@@ -212,7 +213,6 @@ const BlogManagement = () => {
                     <ChevronLeft size={18} />
                   </button>
 
-                  {/* Page Numbers with ellipsis */}
                   {getPageNumbers().map((page, idx) =>
                     page === "..." ? (
                       <span
@@ -236,7 +236,6 @@ const BlogManagement = () => {
                     )
                   )}
 
-                  {/* Next */}
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={!hasNextPage}
