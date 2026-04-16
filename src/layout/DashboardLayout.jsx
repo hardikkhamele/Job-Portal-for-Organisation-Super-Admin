@@ -64,6 +64,7 @@ import EditBlog from "../components/blogManagement/UpdateBlog"
 // customPlan
 import CustomPlans from "../components/SubscriptionManagement/customPlan/CustomPlans";
 import CustomPlanDetail from "../components/SubscriptionManagement/customPlan/CustomPlanDetail";
+import EditCreditModel from "../components/CreditManagement/EditCreditModel";
 
 function DashboardLayout() {
   return (
@@ -148,6 +149,7 @@ function DashboardLayout() {
             />
             <Route path="employee/add-employee" element={<AddEmployee />} />
             <Route path="credit-management" element={<CreditModel />} />
+            <Route path="credit-management/edit" element={<EditCreditModel />} />
             {/* <Route path="database" element={<DatabaseManagement />} /> */}
             <Route
               path="/candidates/candidate-details/:id"
@@ -170,7 +172,7 @@ function DashboardLayout() {
             <Route path="chat-support" element={<ChatSupport />} />
             <Route path="social-links" element={<SocialLinks />} />
             <Route path="revenue-management" element={<RevenueModel />} />
-            <Route path="/revenue/view" element={<ViewRevenue />} />
+            <Route path="/revenue-management/view/:id" element={<ViewRevenue />} />
             <Route path="jobseeker/edit" element={<EditJobSeeker />} />
             <Route path="/employer/edit" element={<EditEmployer />} />
             <Route path="chat-conversation" element={<ChatConversation />} />
