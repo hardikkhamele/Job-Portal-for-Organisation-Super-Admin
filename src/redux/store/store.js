@@ -62,7 +62,7 @@ import creditManagementReducer from "../slice/creditManagement/creditSlice";
 // revenue management
 import revenueReducer from "../slice/revenueManagement/revenueSlice";
 
-
+import allDropdownReducer from "../slice/databaseManagement/acceptRejUploadDatabase/acceptRejectSlice"
 export const store = configureStore({
   reducer: {
     // Auth
@@ -108,6 +108,7 @@ export const store = configureStore({
     acceptCandidate: acceptCandidateReducer, 
     rejectCandidate: rejectCandidateReducer,
     dropdown: dropdownReducer,
+    allDropdown: allDropdownReducer,
 
     // subscriptions management
     employerPlans: employerPlansReducer,

@@ -57,8 +57,8 @@ const BlogManagement = () => {
   const startRange = (currentPage - 1) * pageSize + 1;
   const endRange = Math.min(currentPage * pageSize, totalRecords);
 
-  const handleView = (id) => navigate(`/view-blog/${id}`);
-  const handleEdit = (id) => navigate(`/edit-blog/${id}`);
+  const handleView = (id) => navigate(`/blog-management/view-blog/${id}`);
+  const handleEdit = (id) => navigate(`/blog-management/edit-blog/${id}`);
 
   const openDeleteModal = (id) => {
     setSelectedBlogId(id);
@@ -119,7 +119,7 @@ const BlogManagement = () => {
 
               <button
                 className="bg-[rgba(211,171,42,1)] rounded-lg hover:bg-yellow-600 text-white px-5 py-2 text-sm font-medium transition cursor-pointer shadow-sm"
-                onClick={() => navigate("/add-blog")}
+                onClick={() => navigate("/blog-management/add-blog")}
               >
                 Create Blog
               </button>

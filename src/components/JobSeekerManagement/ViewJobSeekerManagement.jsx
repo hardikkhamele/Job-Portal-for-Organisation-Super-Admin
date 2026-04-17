@@ -44,11 +44,11 @@ useEffect(() => {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-3 bg-gray-100 min-h-screen">
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center gap-3 mb-3">
           <div className="border rounded-full p-2 cursor-pointer hover:bg-gray-100" onClick={() => navigate(-1)}>
-            <ArrowLeft size={18} />
+            <ArrowLeft size={15} />
           </div>
           <h2 className="text-xl font-semibold">Job Seeker Management</h2>
         </div>
@@ -109,7 +109,7 @@ useEffect(() => {
                   {item.description && <p className="text-xs text-gray-500 mb-2 line-clamp-2">{item.description}</p>}
                   <p
                     className="flex items-center gap-1 text-purple-600 text-xs cursor-pointer mt-2"
-                    onClick={() => { dispatch(setActiveSubCategoryId(item.id)); navigate(`/view-roles/${item.id}`); }}
+                    onClick={() => { dispatch(setActiveSubCategoryId(item.id)); navigate(`/job-seeker/view-roles/${item.id}`); }}
                   >
                     View Roles <ChevronRight size={14} />
                   </p>
