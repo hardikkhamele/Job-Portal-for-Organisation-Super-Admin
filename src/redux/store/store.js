@@ -60,7 +60,6 @@ import { getreducer } from "../slice/blogManagement/getBlog";
 import creditManagementReducer from "../slice/creditManagement/creditSlice";
 
 // revenue management
-// import revenueReducer from "../slice/revenueManagement/revenueSlice";
 import revenueReducer from "../slice/revenueManagement/revenueSlice"
 
 import allDropdownReducer from "../slice/databaseManagement/acceptRejUploadDatabase/acceptRejectSlice"
