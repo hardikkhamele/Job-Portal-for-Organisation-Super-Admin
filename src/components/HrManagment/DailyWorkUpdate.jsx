@@ -27,7 +27,6 @@ function DailyWorkUpdate() {
 
   const pagination = useMemo(() => ({ pageIndex, pageSize }), [pageIndex, pageSize]);
 
-  // API Trigger on page change or ID/Date change
   useEffect(() => {
     if (hrId && date) {
       dispatch(fetchHrReports({ 

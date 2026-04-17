@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowLeft, Upload, Eye, EyeOff } from "lucide-react"; // Added Eye icons
+import { ArrowLeft, Upload, Eye, EyeOff } from "lucide-react"; 
 import CopyRight from "../common/CopyRight";
 import { createHRAction, resetState } from "../../redux/slice/hrManagement/createHr";
 
@@ -10,7 +10,7 @@ function CreateHR() {
   const dispatch = useDispatch();
   const { loading, success } = useSelector((state) => state.hr);
 
-  const [showPassword, setShowPassword] = useState(false); // State to toggle visibility
+  const [showPassword, setShowPassword] = useState(false); 
   const [formData, setFormData] = useState({
     hrName: "",
     designation: "",

@@ -58,22 +58,6 @@ function HRManagement() {
     loadHrData();
   }, [dispatch, pagination.pageIndex, pagination.pageSize, searchTerm]);
 
-  // useEffect(() => {
-  //   if (deleteSuccess) {
-  //     setIsModalOpen(false);
-  //     setSelectedId(null);
-  //     dispatch(resetDeleteState());
-  //     loadHrData();
-  //   }
-  // }, [ deleteSuccess,dispatch]);
-
-  // const handleDelete = () => {
-  //   if (selectedId) {
-  //     dispatch(deleteHr(selectedId));
-  //   }
-  // };
-
-  // Status Toggle Handler
   const handleStatusToggle = (id) => {
     // API call karenge aur fir table refresh karenge
     dispatch(toggleHrStatus(id)).then(() => {

@@ -158,46 +158,6 @@ function HRViewDetails() {
             Daily Work Report
           </h2>
 
-          <div className="flex justify-between mb-4">
-            {/* <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-64 h-11">
-              <Search size={18} className="text-[#D3D3D3] mr-2" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="bg-transparent outline-none text-sm w-full"
-              />
-            </div> */}
-
-
-
-            {/*Date calendor  */}
-
-            {/* <div ref={calendarRef} className="flex gap-3 relative">
-              <input
-                value={selected ? selected.toLocaleDateString() : ""}
-                placeholder="Start Date"
-                readOnly
-                onClick={() => setShowCalendar(!showCalendar)}
-                className="border border-[rgba(211,211,211,1)] px-3 py-2 rounded-lg text-sm w-44 cursor-pointer focus:ring-1 focus:ring-purple-400 outline-none"
-              />
-              {showCalendar && (
-                <div className="absolute top-12 right-0 bg-white p-4 rounded-2xl shadow-xl z-50 border border-gray-100">
-                  <DayPicker
-                    mode="single"
-                    selected={selected}
-                    onSelect={(date) => {
-                      setSelected(date);
-                      setShowCalendar(false);
-                    }}
-                  />
-                </div>
-              )}
-            </div> */}
-
-
-
-          </div>
-
           <div className="w-full overflow-x-auto">
             <table className="w-full text-sm text-center border-collapse">
               <thead >
