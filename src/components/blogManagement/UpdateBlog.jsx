@@ -61,7 +61,7 @@ const EditBlog = () => {
     );
 
   return (
-    <div className="w-full bg-[#F4F6FA] min-h-screen p-6 flex justify-center items-start">
+    <div className="w-full bg-[#F4F6FA] min-h-screen p-3 flex justify-center items-start">
       <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="bg-white px-8 py-5 border-b border-gray-100 flex items-center gap-4">
           <button onClick={() => navigate("/blog-management")} className="p-1.5 hover:bg-gray-100 rounded-full">

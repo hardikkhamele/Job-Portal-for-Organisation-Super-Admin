@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { Search, Eye, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { fetchAllTransactions } from "../../redux/slice/RevenueManagement/revenueSlice";
+import { fetchAllTransactions } from "../../redux/slice/revenueManagement/revenueSlice";
 import Footer from "../Footer";
 
 const RevenuePage = () => {

@@ -179,7 +179,7 @@ const AddEmployee = () => {
     "flex items-center gap-2 text-lg font-bold text-purple-800 mb-5 border-b border-purple-100 pb-2";
 
   return (
-    <div className="w-full min-h-screen p-8 bg-gray-50">
+    <div className="w-full min-h-screen p-3 bg-gray-50">
       <div className="w-full bg-white rounded-xl p-6 shadow-md">
         <div className="flex items-center gap-3 mb-6">
           <button

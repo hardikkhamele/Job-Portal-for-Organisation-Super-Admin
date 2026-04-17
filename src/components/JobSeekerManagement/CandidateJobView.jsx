@@ -151,7 +151,7 @@ function CandidateJobView() {
           <Eye
             size={18}
             className="cursor-pointer hover:text-purple-800"
-            onClick={() => navigate(`/candidate-profile/${row.original.id}`)}
+            onClick={() => navigate(`/job-seeker/candidate-profile/${row.original.id}`)}
           />
           {/* <CloudDownload
             size={18}

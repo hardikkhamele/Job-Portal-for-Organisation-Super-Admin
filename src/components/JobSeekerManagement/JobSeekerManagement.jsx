@@ -48,7 +48,7 @@ function JobSeekerManagement() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="m-3 bg-gray-100 min-h-screen">
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-semibold mb-2">Job Seeker Management</h2>
         <hr className="border-gray-300 mt-2 mb-5" />
@@ -126,7 +126,7 @@ function JobSeekerManagement() {
                     className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-1 w-28 rounded"
                     onClick={() => {
                       dispatch(setActiveCategoryId(cat.id));
-                      navigate(`/view-job-seeker/${cat.id}`);
+                      navigate(`/job-seeker/view-job-seeker/${cat.id}`);
                     }}
                   >
                     View

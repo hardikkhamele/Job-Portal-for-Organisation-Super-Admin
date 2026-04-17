@@ -59,7 +59,7 @@ function ViewRoles() {
           >
             <ArrowLeft size={18} />
           </div>
-          <h2 className="text-xl font-semibold">Job Seeker Management</h2>
+          <h2 className="text-xl font-semibold">Jobs Seeker Management</h2>
         </div>
         <hr className="border-gray-300 mt-2 mb-5" />
 
@@ -148,7 +148,7 @@ function ViewRoles() {
                   <p
                     className="flex items-center gap-1 text-purple-600 text-xs cursor-pointer mt-1"
                     onClick={() =>
-                      navigate(`/candidate-job-view/${item.id}`)
+                      navigate(`/job-seeker/candidate-job-view/${item.id}`)
                     }
                   >
                     View Candidates <ChevronRight size={14} />

@@ -424,13 +424,13 @@ const Sidebar = () => {
           <NavItem icon={<MdDashboard />} text="Dashboard" active={isActive("/dashboard")} onClick={() => handleNavigation("/dashboard")} />
           
           {/* 2. HR Management */}
-          <NavItem icon={<Users />} text="HR Management" active={isActive("/hr-management")} onClick={() => handleNavigation("/hr-management")} />
+          <NavItem icon={<Users />} text="HR Management" active={window.location.pathname.startsWith("/hr-management")} onClick={() => handleNavigation("/hr-management")} />
           
           {/* 3. Employee Management */}
-          <NavItem icon={<Briefcase />} text="Employee Management" active={isActive("/employee")} onClick={() => handleNavigation("/employee")} />
+          <NavItem icon={<Briefcase />} text="Employee Management" active={window.location.pathname.startsWith("/employee")} onClick={() => handleNavigation("/employee")} />
           
           {/* 4. Job Seeker Management */}
-          <NavItem icon={<UserSearch />} text="Job Seeker Management" active={isActive("/job-seeker")} onClick={() => handleNavigation("/job-seeker")} />
+          <NavItem icon={<UserSearch />} text="Job Seeker Management" active={window.location.pathname.startsWith("/job-seeker")} onClick={() => handleNavigation("/job-seeker")} />
 
           {/* 5. Database Management Dropdown */}
           <div>
@@ -454,7 +454,7 @@ const Sidebar = () => {
           </div>
 
           {/* 6. Job Management */}
-          <NavItem icon={<FolderKanban />} text="Job Management" active={isActive("/job-management")} onClick={() => handleNavigation("/job-management")} />
+          <NavItem icon={<FolderKanban />} text="Job Management" active={window.location.pathname.startsWith("/job-management")} onClick={() => handleNavigation("/job-management")} />
 
           {/* 7. Subscription Dropdown */}
           <div>
@@ -487,7 +487,7 @@ const Sidebar = () => {
             <NavItem
             icon={<NotebookPen />}
             text="Blog Management"
-            active={isActive("/blog-management")}
+            active={window.location.pathname.startsWith("/blog-management")}
             onClick={() => handleNavigation("/blog-management")}
           />
 

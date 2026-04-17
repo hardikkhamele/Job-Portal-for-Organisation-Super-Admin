@@ -21,8 +21,6 @@ import ResetSuccess from "./components/auth/login/ResetSuccess";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
-
-
 export default function App() {
   function PublicRoute({ children }) {
     const token = localStorage.getItem("token");
@@ -45,6 +43,7 @@ export default function App() {
         draggable
         theme="colored"
       />
+     
 
       <Routes>
         <Route

@@ -21,27 +21,34 @@ import DeleteModal from "../common/DeleteModal";
 import BlockModal from "../common/BlockModal";
 import Footer from "../Footer";
 import { fetchEmployers } from "../../redux/slice/employer/getAllEmployer";
-import { updateEmployerStatus, resetUpdateStatus } from "../../redux/slice/employer/updateStatusSlice";
-import { deleteEmployer, resetDeleteState } from "../../redux/slice/employer/deleteEmployeeSlice";
+import {
+  updateEmployerStatus,
+  resetUpdateStatus,
+} from "../../redux/slice/employer/updateStatusSlice";
+// import { deleteEmployer, resetDeleteState } from "../../redux/slice/employer/deleteEmployeeSlice";
 
 function EmployeeTable() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
-  const { employers, total, pages, loading } = useSelector((state) => state.allEmployer);
-  const { success: updateSuccess, loading: updateLoading } = useSelector((state) => state.updateStatus);
-  const { success: deleteSuccess, loading: deleteLoading } = useSelector((state) => state.deleteEmployee);
 
-  const [openModal, setOpenModal] = useState(false);
+  const { employers, total, pages, loading } = useSelector(
+    (state) => state.allEmployer,
+  );
+  const { success: updateSuccess, loading: updateLoading } = useSelector(
+    (state) => state.updateStatus,
+  );
+  // const { success: deleteSuccess, loading: deleteLoading } = useSelector((state) => state.deleteEmployee);
+
+  // const [openModal, setOpenModal] = useState(false);
   const [openBlockModal, setOpenBlockModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
   // Global loading state to block screen
-  const isActionLoading = updateLoading || deleteLoading;
+  // const isActionLoading = updateLoading || deleteLoading;
 
   // Initial Fetch & Search Fetch
   useEffect(() => {
@@ -50,22 +57,22 @@ function EmployeeTable() {
 
   // ✅ Refresh data automatically when update or delete is successful
   useEffect(() => {
-    if (updateSuccess || deleteSuccess) {
+    if (updateSuccess) {
       dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
-      
+
       // Cleanup states
       if (updateSuccess) dispatch(resetUpdateStatus());
-      if (deleteSuccess) dispatch(resetDeleteState());
+      // if (deleteSuccess) dispatch(resetDeleteState());
     }
-  }, [updateSuccess, deleteSuccess, dispatch, page, searchTerm, pageSize]);  
+  }, [updateSuccess, dispatch, page, searchTerm, pageSize]);
 
-  const handleDeleteConfirm = () => {
-    if (selectedRow) {
-      dispatch(deleteEmployer(selectedRow));
-    }
-    setOpenModal(false);
-    setSelectedRow(null);
-  };
+  // const handleDeleteConfirm = () => {
+  //   if (selectedRow) {
+  //     dispatch(deleteEmployer(selectedRow));
+  //   }
+  //   setOpenModal(false);
+  //   setSelectedRow(null);
+  // };
 
   const handleBlock = () => {
     if (selectedRow) {
@@ -73,7 +80,9 @@ function EmployeeTable() {
       dispatch(updateEmployerStatus({ id: selectedRow._id, status: newStatus }))
         .unwrap()
         .then(() => {
-          dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
+          dispatch(
+            fetchEmployers({ page, limit: pageSize, search: searchTerm }),
+          );
         });
     }
     setOpenBlockModal(false);
@@ -94,24 +103,30 @@ function EmployeeTable() {
             <div className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-[#FFFFFF] to-[#8931BA]">
               <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
                 <img
-                  src={logo || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"}
+                  src={
+                    logo ||
+                    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+                  }
                   alt="logo"
                   className="w-9 h-9 object-contain"
                   onError={(e) => {
-                    e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+                    e.currentTarget.src =
+                      "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
                   }}
                 />
               </div>
             </div>
-            <span className="text-base font-medium">{row.original.companyName}</span>
+            <span className="text-base font-medium">
+              {row.original.companyName}
+            </span>
           </div>
         );
       },
     },
-    { 
-      accessorKey: "companyType", 
+    {
+      accessorKey: "companyType",
       header: "Company Type",
-      cell: ({ getValue }) => getValue() === "N/A" ? "N/A" : getValue() 
+      cell: ({ getValue }) => (getValue() === "N/A" ? "N/A" : getValue()),
     },
     { accessorKey: "totalJobs", header: "Posted Jobs" },
     {
@@ -130,12 +145,16 @@ function EmployeeTable() {
           {row.original.status === "active" ? (
             <>
               <CheckCircle size={20} className="text-green-500" />
-              <span className="text-green-600 capitalize font-medium">Active</span>
+              <span className="text-green-600 capitalize font-medium">
+                Active
+              </span>
             </>
           ) : (
             <>
               <XCircle size={20} className="text-red-500" />
-              <span className="text-red-600 capitalize font-medium">{row.original.status || "Blocked"}</span>
+              <span className="text-red-600 capitalize font-medium">
+                {row.original.status || "Blocked"}
+              </span>
             </>
           )}
         </div>
@@ -148,34 +167,42 @@ function EmployeeTable() {
           <Eye
             size={20}
             className="text-purple-500 cursor-pointer"
-            onClick={() => navigate(`/employee/company-details/${row.original._id}`)}
+            onClick={() =>
+              navigate(`/employee/company-details/${row.original._id}`)
+            }
           />
-           <Edit
+          <Edit
             size={20}
             className="text-purple-500 cursor-pointer"
-            onClick={() => navigate(`/employee/edit-employee//${row.original._id}`)}
+            onClick={() =>
+              navigate(`/employee/edit-employee//${row.original._id}`)
+            }
           />
-          <div 
+          <div
             className="cursor-pointer"
             onClick={() => {
-                setSelectedRow(row.original); 
-                setOpenBlockModal(true);
+              setSelectedRow(row.original);
+              setOpenBlockModal(true);
             }}
           >
             {row.original.status === "active" ? (
-                <Ban size={20} className="text-red-500" title="Block Employer" />
+              <Ban size={20} className="text-red-500" title="Block Employer" />
             ) : (
-                <CheckCircle size={20} className="text-green-600" title="Unblock Employer" />
+              <CheckCircle
+                size={20}
+                className="text-green-600"
+                title="Unblock Employer"
+              />
             )}
           </div>
-          <Trash2
+          {/* <Trash2
             size={22}
             className="text-red-500 cursor-pointer"
             onClick={() => {
               setSelectedRow(row.original._id);
               setOpenModal(true);
             }}
-          />
+          /> */}
         </div>
       ),
     },
@@ -189,19 +216,20 @@ function EmployeeTable() {
 
   return (
     <div className="p-3 bg-gray-100 min-h-screen overflow-y-auto no-scrollbar pb-20 relative">
-      
       {/* Processing Loader Overlay */}
-      {isActionLoading && (
+      {/* {isActionLoading && (
         <div className="fixed inset-0 bg-black/20 z-[9999] flex items-center justify-center cursor-wait">
           <div className=" p-6  flex flex-col items-center gap-4">
             <div className="w-10 h-10 border-b border-3 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
             <p className="text-gray-700 font-semibold text-sm">Please wait...</p>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="bg-white p-6 rounded-xl shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-800 mb-3">Employer Management</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-3">
+          Employer Management
+        </h2>
         {/* <div className="border-b border-gray-500 mb-5"></div> */}
         <hr className="border-gray-300  mb-5" />
 
@@ -214,13 +242,13 @@ function EmployeeTable() {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setPage(1); 
+                setPage(1);
               }}
               className="bg-transparent outline-none text-sm w-full"
             />
           </div>
 
-          <button 
+          <button
             onClick={() => navigate("/employee/add-employee")}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
@@ -234,8 +262,14 @@ function EmployeeTable() {
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id} className="bg-gray-100 text-gray-600">
                   {hg.headers.map((header) => (
-                    <th key={header.id} className="py-4 px-4 text-left font-semibold text-[15px]">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    <th
+                      key={header.id}
+                      className="py-4 px-4 text-left font-semibold text-[15px]"
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                     </th>
                   ))}
                 </tr>
@@ -245,26 +279,42 @@ function EmployeeTable() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={columns.length} className="text-center py-20 text-gray-500">
+                  <td
+                    colSpan={columns.length}
+                    className="text-center py-20 text-gray-500"
+                  >
                     <div className="flex flex-col justify-center items-center gap-3">
                       <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="font-medium">Loading Employee Management...</span>
+                      <span className="font-medium">
+                        Loading Employee Management...
+                      </span>
                     </div>
                   </td>
                 </tr>
               ) : table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="border-b border-gray-200 h-21 hover:bg-gray-50 transition">
+                  <tr
+                    key={row.id}
+                    className="border-b border-gray-200 h-21 hover:bg-gray-50 transition"
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="py-4 px-4 align-middle">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </td>
                     ))}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={columns.length} className="text-center py-20 text-gray-500">No data found</td>
+                  <td
+                    colSpan={columns.length}
+                    className="text-center py-20 text-gray-500"
+                  >
+                    No data found
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -273,7 +323,8 @@ function EmployeeTable() {
 
         <div className="flex justify-between mt-6 font-bold text-purple-600">
           <span>
-            Showing {total === 0 ? 0 : (page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total}
+            Showing {total === 0 ? 0 : (page - 1) * pageSize + 1} to{" "}
+            {Math.min(page * pageSize, total)} of {total}
           </span>
 
           <div className="flex gap-2">
@@ -309,15 +360,17 @@ function EmployeeTable() {
 
         <BlockModal
           isOpen={openBlockModal}
-          onClose={() => { if(!isActionLoading) setOpenBlockModal(false); }}
+          onClose={() => {
+            if (!isActionLoading) setOpenBlockModal(false);
+          }}
           onConfirm={handleBlock}
         />
 
-        <DeleteModal
+        {/* <DeleteModal
           isOpen={openModal}
           onClose={() => { if(!isActionLoading) setOpenModal(false); }}
           onConfirm={handleDeleteConfirm}
-        />
+        /> */}
       </div>
       <Footer />
     </div>

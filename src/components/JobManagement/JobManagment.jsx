@@ -14,7 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-import DeleteModal from "../common/DeleteModal";
+// import DeleteModal from "../common/DeleteModal";
 import { fetchAllJobs } from "../../redux/slice/jobManagement/getAllJob";
 import defaultLogo from "../../assets/Technokreat.svg";
 import Footer from "../Footer";
@@ -27,7 +27,7 @@ const JobManagement = () => {
 
   const [globalFilter, setGlobalFilter] = useState("");
   const [category, setCategory] = useState("All");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
   const [pagination, setPagination] = useState({
@@ -52,15 +52,15 @@ const JobManagement = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [dispatch, pagination.pageIndex, pagination.pageSize, globalFilter, category]);
 
-  const handleConfirmDelete = () => {
-    setIsModalOpen(false);
-    setSelectedRow(null);
-  };
+  // const handleConfirmDelete = () => {
+  //   setIsModalOpen(false);
+  //   setSelectedRow(null);
+  // };
 
-  const handleDeleteClick = (row) => {
-    setSelectedRow(row);
-    setIsModalOpen(true);
-  };
+  // const handleDeleteClick = (row) => {
+  //   setSelectedRow(row);
+  //   setIsModalOpen(true);
+  // };
 
   const columns = [
     {
@@ -117,7 +117,7 @@ const JobManagement = () => {
       cell: ({ row }) => (
         <div className="flex gap-3 justify-center">
           <Eye className="text-purple-600 cursor-pointer hover:scale-110 transition" size={18} onClick={() => navigate(`/job-management/job-view-details/${row.original._id}`, { state: row.original })} />
-          <Trash2 className="text-red-500 cursor-pointer hover:scale-110 transition" size={18} onClick={() => handleDeleteClick(row.original)} />
+          {/* <Trash2 className="text-red-500 cursor-pointer hover:scale-110 transition" size={18} onClick={() => handleDeleteClick(row.original)} /> */}
         </div>
       ),
     },
@@ -134,9 +134,9 @@ const JobManagement = () => {
   });
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-3 bg-gray-100 min-h-screen">
       <div className="bg-white p-5 rounded-xl shadow mb-12">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Job Management</h2>
+        <h2 className="text-2xl font-bold text-black">Job Management</h2>
         <hr className="border-gray-300 mt-2 mb-5" />
 
         <div className="border border-gray-300 rounded-lg p-6 bg-white">
@@ -257,7 +257,7 @@ const JobManagement = () => {
         </div>
       </div>
       <Footer/>
-      <DeleteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmDelete} />
+      {/* <DeleteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmDelete} /> */}
     </div>
   );
 };

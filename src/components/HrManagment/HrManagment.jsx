@@ -16,7 +16,10 @@ import {
 } from "@tanstack/react-table";
 import HrModal from "../common/HrModal";
 import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
-import { deleteHr, resetDeleteState } from "../../redux/slice/hrManagement/deleteHr";
+// import {
+//   deleteHr,
+//   resetDeleteState,
+// } from "../../redux/slice/hrManagement/deleteHr";
 import { toggleHrStatus } from "../../redux/slice/hrManagement/updateStatus"; // Import Toggle Action
 import Footer from "../Footer";
 
@@ -26,7 +29,9 @@ function HRManagement() {
 
   // Redux States
   const { hrList, total, loading } = useSelector((state) => state.allHr);
-  const { loading: deleting, success: deleteSuccess } = useSelector((state) => state.deleteHr);
+  // const { loading: deleting, success: deleteSuccess } = useSelector(
+  //   (state) => state.deleteHr,
+  // );
   const { loadingId } = useSelector((state) => state.updateStatus); // Toggle loading state
 
   // Local States
@@ -45,7 +50,7 @@ function HRManagement() {
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
         search: searchTerm,
-      })
+      }),
     );
   };
 
@@ -53,33 +58,34 @@ function HRManagement() {
     loadHrData();
   }, [dispatch, pagination.pageIndex, pagination.pageSize, searchTerm]);
 
-  useEffect(() => {
-    if (deleteSuccess) {
-      setIsModalOpen(false);
-      setSelectedId(null);
-      dispatch(resetDeleteState());
-      loadHrData();
-    }
-  }, [deleteSuccess, dispatch]);
+  // useEffect(() => {
+  //   if (deleteSuccess) {
+  //     setIsModalOpen(false);
+  //     setSelectedId(null);
+  //     dispatch(resetDeleteState());
+  //     loadHrData();
+  //   }
+  // }, [ deleteSuccess,dispatch]);
 
-  const handleDelete = () => {
-    if (selectedId) {
-      dispatch(deleteHr(selectedId));
-    }
-  };
+  // const handleDelete = () => {
+  //   if (selectedId) {
+  //     dispatch(deleteHr(selectedId));
+  //   }
+  // };
 
   // Status Toggle Handler
   const handleStatusToggle = (id) => {
     // API call karenge aur fir table refresh karenge
     dispatch(toggleHrStatus(id)).then(() => {
-      loadHrData(); 
+      loadHrData();
     });
   };
 
   const columns = [
     {
       header: "Sr.No.",
-      cell: ({ row }) => row.index + 1 + pagination.pageIndex * pagination.pageSize,
+      cell: ({ row }) =>
+        row.index + 1 + pagination.pageIndex * pagination.pageSize,
     },
     {
       accessorKey: "hrName",
@@ -98,15 +104,17 @@ function HRManagement() {
       accessorKey: "isActive",
       cell: ({ row }) => {
         const hr = row.original;
-        const isCurrentLoading = loadingId === hr._id; 
+        const isCurrentLoading = loadingId === hr._id;
 
         return (
           <div className="flex justify-center">
             <button
               onClick={() => handleStatusToggle(hr._id)}
-              disabled={isCurrentLoading} 
+              disabled={isCurrentLoading}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                isCurrentLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                isCurrentLoading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
               } ${hr.isActive ? "bg-green-500" : "bg-gray-300"}`}
             >
               <span
@@ -128,21 +136,27 @@ function HRManagement() {
             <Eye
               size={18}
               className="cursor-pointer hover:scale-110 transition"
-              onClick={() => navigate(`/hr-management/hr-view-details/${hr._id}`, { state: { hr } })}
+              onClick={() =>
+                navigate(`/hr-management/hr-view-details/${hr._id}`, {
+                  state: { hr },
+                })
+              }
             />
             <Edit
               size={18}
               className="cursor-pointer hover:scale-110 transition"
-              onClick={() => navigate(`/hr-management/edit-hr/${hr._id}`, { state: { hr } })}
+              onClick={() =>
+                navigate(`/hr-management/edit-hr/${hr._id}`, { state: { hr } })
+              }
             />
-            <Trash2
+            {/* <Trash2
               size={18}
               className="cursor-pointer text-red-500 hover:scale-110 transition"
               onClick={() => {
                 setSelectedId(hr._id);
                 setIsModalOpen(true);
               }}
-            />
+            /> */}
           </div>
         );
       },
@@ -184,10 +198,10 @@ function HRManagement() {
 
               <div className="flex gap-3">
                 <button
-                  className="bg-[rgba(211,171,42,1)] rounded-lg hover:bg-yellow-600 text-white px-5 py-2 text-sm font-medium transition"
                   onClick={() => navigate("/hr-management/create-hr")}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
-                  Create HR
+                  + Add HR
                 </button>
               </div>
             </div>
@@ -196,10 +210,16 @@ function HRManagement() {
               <table className="w-full text-sm text-center border-collapse">
                 <thead>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
+                    <tr
+                      key={headerGroup.id}
+                      className="bg-gray-100 text-gray-600"
+                    >
                       {headerGroup.headers.map((header) => (
                         <th key={header.id} className="py-3 px-4 font-semibold">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                         </th>
                       ))}
                     </tr>
@@ -209,27 +229,42 @@ function HRManagement() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={columns.length} className="py-20 text-gray-500">
+                      <td
+                        colSpan={columns.length}
+                        className="py-20 text-gray-500"
+                      >
                         <div className="flex flex-col justify-center items-center gap-3">
                           <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                          <span className="font-medium">Loading HR Records...</span>
+                          <span className="font-medium">
+                            Loading HR Records...
+                          </span>
                         </div>
                       </td>
                     </tr>
                   ) : hrList?.length > 0 ? (
                     table.getRowModel().rows.map((row) => (
-                      <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
+                      <tr
+                        key={row.id}
+                        className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition"
+                      >
                         {row.getVisibleCells().map((cell) => (
                           <td key={cell.id} className="py-4 px-4 text-gray-700">
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
                           </td>
                         ))}
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={columns.length} className="py-20 text-gray-400 italic">
-                        No HR records found {searchTerm && `for "${searchTerm}"`}
+                      <td
+                        colSpan={columns.length}
+                        className="py-20 text-gray-400 italic"
+                      >
+                        No HR records found{" "}
+                        {searchTerm && `for "${searchTerm}"`}
                       </td>
                     </tr>
                   )}
@@ -239,8 +274,15 @@ function HRManagement() {
 
             <div className="flex justify-between items-center mt-3">
               <p className="text-sm text-purple-600 font-medium">
-                Showing {(hrList?.length > 0) ? pagination.pageIndex * pagination.pageSize + 1 : 0} to{" "}
-                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, total || 0)}{" "}
+                Showing{" "}
+                {hrList?.length > 0
+                  ? pagination.pageIndex * pagination.pageSize + 1
+                  : 0}{" "}
+                to{" "}
+                {Math.min(
+                  (pagination.pageIndex + 1) * pagination.pageSize,
+                  total || 0,
+                )}{" "}
                 of {total || 0} HRs
               </p>
 
@@ -285,11 +327,11 @@ function HRManagement() {
             setIsModalOpen(false);
             setSelectedId(null);
           }}
-          onConfirm={handleDelete}
-          loading={deleting}
+          // onConfirm={handleDelete}
+          // loading={deleting}
         />
       </div>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

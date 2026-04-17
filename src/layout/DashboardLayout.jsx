@@ -58,9 +58,9 @@ import CandidateDetails from "../components/DatabaseManagement/CandidateDetails"
 import CandidateDetail from "../components/JobSeekerManagement/CandidateDetail";
 import EditEmployee from "../components/EmployeeManagement/EditEmployee";
 import BlogManagement from "../components/blogManagement/BlogManagement";
-import AddBlog from "../components/blogManagement/AddBlog"
-import ViewBlog from "../components/blogManagement/ViewBlog"
-import EditBlog from "../components/blogManagement/UpdateBlog"
+import AddBlog from "../components/blogManagement/AddBlog";
+import ViewBlog from "../components/blogManagement/ViewBlog";
+import EditBlog from "../components/blogManagement/UpdateBlog";
 // customPlan
 import CustomPlans from "../components/SubscriptionManagement/customPlan/CustomPlans";
 import CustomPlanDetail from "../components/SubscriptionManagement/customPlan/CustomPlanDetail";
@@ -149,7 +149,10 @@ function DashboardLayout() {
             />
             <Route path="employee/add-employee" element={<AddEmployee />} />
             <Route path="credit-management" element={<CreditModel />} />
-            <Route path="credit-management/edit" element={<EditCreditModel />} />
+            <Route
+              path="credit-management/edit"
+              element={<EditCreditModel />}
+            />
             {/* <Route path="database" element={<DatabaseManagement />} /> */}
             <Route
               path="/candidates/candidate-details/:id"
@@ -172,7 +175,10 @@ function DashboardLayout() {
             <Route path="chat-support" element={<ChatSupport />} />
             <Route path="social-links" element={<SocialLinks />} />
             <Route path="revenue-management" element={<RevenueModel />} />
-            <Route path="/revenue-management/view/:id" element={<ViewRevenue />} />
+            <Route
+              path="/revenue-management/view/:id"
+              element={<ViewRevenue />}
+            />
             <Route path="jobseeker/edit" element={<EditJobSeeker />} />
             <Route path="/employer/edit" element={<EditEmployer />} />
             <Route path="chat-conversation" element={<ChatConversation />} />
@@ -180,26 +186,28 @@ function DashboardLayout() {
             <Route path="/candidates" element={<DatabaseCandidate />} />
             <Route path="/accept-reject" element={<AcceptReject />} />
 
-          
-  <Route path="/blog-management" element={<BlogManagement />} />
-  <Route path="/add-blog" element={<AddBlog />} />
-<Route path="/view-blog/:id" element={<ViewBlog />} />
-<Route path="/edit-blog/:id" element={<EditBlog />} />
+            <Route path="/blog-management" element={<BlogManagement />} />
+            <Route path="/blog-management/add-blog" element={<AddBlog />} />
+            <Route path="/blog-management/view-blog/:id" element={<ViewBlog />} />
+            <Route path="/blog-management/edit-blog/:id" element={<EditBlog />} />
 
             {/* // Job Seeker Management */}
-            <Route path="job-seeker" element={<JobSeekerManagement />} />
+            <Route path="/job-seeker" element={<JobSeekerManagement />} />
             {/* Changed categoryId to match the param name for consistency */}
             <Route
-              path="view-job-seeker/:categoryId"
+              path="/job-seeker/view-job-seeker/:categoryId"
               element={<ViewJobSeekerManagement />}
             />
-            <Route path="view-roles/:subCategoryId" element={<ViewRoles />} />
             <Route
-              path="candidate-job-view/:designationId"
+              path="/job-seeker/view-roles/:subCategoryId"
+              element={<ViewRoles />}
+            />
+            <Route
+              path="/job-seeker/candidate-job-view/:designationId"
               element={<CandidateJobView />}
             />
             <Route
-              path="candidate-profile/:userId"
+              path="/job-seeker/candidate-profile/:userId"
               element={<CandidateDetail />}
             />
             {/* Fallback */}

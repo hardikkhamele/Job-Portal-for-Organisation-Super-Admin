@@ -21,7 +21,7 @@ function SearchBar() {
         />
       </div> */}
       <div>
-        <p className="text-lg font-semibold text-purple-800 tracking-tighter">Super Admin Panel</p>
+        <p className="text-xl font-semibold text-purple-800 tracking-tighter">Super Admin Panel</p>
       </div>
 
       {/* Icons Section */}
