@@ -31,8 +31,7 @@ import jobByIdReducer from "../slice/jobManagement/getJobId";
 // ─── Job Seeker ───────────────────────────────────────────────
 import jobseekerReducer from "../slice/jobseeker/jobseekerSlice";
 
-// ─── Credit ──────────────────────────────────────────────────
-import getCreditReducer from "../slice/credit/getCredit";
+
 
 // ─── Category (Job Seeker Management) ────────────────────────
 import categoryReducer from "../slice/category/categorySlice";
@@ -56,6 +55,12 @@ import employerReducer from "../slice/subscriptions/employerPlans/getAllEmployer
 //blogmanagement
 import blogReducer from '../slice/blogManagement/addBlog';
 import { getreducer } from "../slice/blogManagement/getBlog";
+
+// credit management
+import creditManagementReducer from "../slice/creditManagement/creditSlice";
+
+// revenue management
+import revenueReducer from "../slice/revenueManagement/revenueSlice";
 
 
 export const store = configureStore({
@@ -89,8 +94,6 @@ export const store = configureStore({
     allJobs: getAllJobReducer,
     jobDetail: jobByIdReducer,
 
-    // Credit
-    getCredit: getCreditReducer,
 
     // Category (Job Seeker Management)
     category: categoryReducer,
@@ -118,5 +121,11 @@ export const store = configureStore({
     //blogmanagement
     blog: blogReducer,
     getblog: getreducer,
+
+    // credit management
+    creditManagement: creditManagementReducer,
+
+    // revenue management
+    revenue: revenueReducer,
   },
 });
