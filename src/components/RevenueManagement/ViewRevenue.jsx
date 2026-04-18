@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTransactionById,clearSelectedTransaction } from "../../redux/slice/revenueManagement/revenueSlice";
+import { fetchTransactionById,clearSelectedTransaction } from "../../redux/slice/RevenueManagement/revenueSlice";
 import BannerTwo from "../../assets/BannerTwo.svg";
 import { Loader2, ArrowLeft } from "lucide-react";
 
