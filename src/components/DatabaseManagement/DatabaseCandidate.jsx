@@ -23,6 +23,8 @@ const DatabaseCandidate = () => {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedDesignation, setSelectedDesignation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedExperience, setSelectedExperience] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -55,6 +57,16 @@ const DatabaseCandidate = () => {
     }
   };
 
+  const handleClearFilters = () => {
+    setSearch("");
+    setSelectedCategory("");
+    setSelectedDesignation("");
+    setSelectedLocation("");
+    setSelectedExperience("");
+    setCurrentPage(1);
+    dispatch(clearDesignations());
+  };
+
   const startIndex = (currentPage - 1) * itemsPerPage;
 
   return (
@@ -68,7 +80,7 @@ const DatabaseCandidate = () => {
           <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search by name, email, etc."
               className="border border-gray-300 bg-gray-100 px-3 py-2 rounded w-full md:w-64 outline-none focus:ring-2 focus:ring-blue-400"
               value={search}
               onChange={(e) => {
@@ -77,7 +89,7 @@ const DatabaseCandidate = () => {
               }}
             />
 
-            <div className="flex gap-3 w-full md:w-auto">
+            <div className="flex flex-wrap gap-3 w-full md:w-auto">
               {/* Category Dropdown */}
               <select
                 value={selectedCategory}
@@ -109,20 +121,37 @@ const DatabaseCandidate = () => {
                 ))}
               </select>
 
-              <select className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-1/2 md:w-48">
+              <select
+                value={selectedLocation}
+                onChange={(e) => setSelectedLocation(e.target.value)}
+                className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-1/2 md:w-48"
+              >
                 <option value="">Select Location</option>
                 <option value="nagpur">Nagpur</option>
                 <option value="delhi">Delhi</option>
                 <option value="mumbai">Mumbai</option>
               </select>
 
-              <select className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-1/2 md:w-48">
+              <select
+                value={selectedExperience}
+                onChange={(e) => setSelectedExperience(e.target.value)}
+                className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-1/2 md:w-48"
+              >
                 <option value="">Select Experience</option>
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
               </select>
+
+              {(search || selectedCategory || selectedDesignation || selectedLocation || selectedExperience) && (
+                <button
+                  onClick={handleClearFilters}
+                  className="bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded text-sm font-medium transition whitespace-nowrap"
+                >
+                  Clear Filters
+                </button>
+              )}
             </div>
           </div>
 
@@ -150,7 +179,7 @@ const DatabaseCandidate = () => {
                     </td>
                   </tr>
                 ) : (
-                  candidates.map((item, index) => (
+                  (candidates || []).map((item, index) => (
                     <tr
                       key={item._id}
                       className="border-t border-gray-300 text-center text-sm"
@@ -175,7 +204,7 @@ const DatabaseCandidate = () => {
                     </tr>
                   ))
                 )}
-                {!loading && candidates.length === 0 && (
+                {!loading && (candidates || []).length === 0 && (
                   <tr>
                     <td colSpan="7" className="text-center p-5">
                       No Candidates Found
@@ -189,8 +218,8 @@ const DatabaseCandidate = () => {
           {/* Footer & Pagination */}
           <div className="flex justify-between items-center mt-4">
             <p className="text-purple-600 text-sm font-medium">
-              Showing {candidates.length > 0 ? startIndex + 1 : 0} to{" "}
-              {startIndex + candidates.length} of {total}
+              Showing {(candidates || []).length > 0 ? startIndex + 1 : 0} to{" "}
+              {startIndex + (candidates || []).length} of {total || 0}
             </p>
 
             <div className="flex items-center gap-2">

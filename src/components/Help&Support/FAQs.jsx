@@ -5,7 +5,7 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { Eye, SquarePen , Trash2, X  } from "lucide-react";
+import { Eye, SquarePen , Trash2, X, ChevronDown } from "lucide-react";
 
 
 import DeleteModal from "../common/DeleteModal";
@@ -55,7 +55,7 @@ const [viewData, setViewData] = useState(null);
       { header: "Question", accessorKey: "question" },
       { header: "Answer", accessorKey: "answer" },
       {
-        header: "Action",
+        header: "Actions",
         cell: ({ row }) => (
           <div className="flex gap-3 justify-center">
             <Eye
@@ -121,7 +121,7 @@ const [viewData, setViewData] = useState(null);
         {/* Top bar */}
         <div className="flex justify-between mb-4">
           <input
-            placeholder="Search"
+            placeholder="Search FAQs"
             className="border border-gray-200 px-3 py-2 rounded-md w-64 bg-[#F7F8F9]"
           />
 
@@ -134,10 +134,7 @@ const [viewData, setViewData] = useState(null);
               >
                
                 {selectedType}
-                 
-
-                
-              
+                <ChevronDown size={18} className="text-gray-500" />
               </div>
 
               {/* Dropdown */}
@@ -286,7 +283,7 @@ const [viewData, setViewData] = useState(null);
                         e.stopPropagation();
                         setModalDropdownOpen(!modalDropdownOpen);
                       }}
-                      className="w-full border border-gray-200 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer"
+                      className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer text-base h-[42px]"
                     >
                       {modalSelected}
                       <span>⌄</span>
@@ -317,11 +314,11 @@ const [viewData, setViewData] = useState(null);
 
               {/* Question */}
               <div className="mb-4">
-                <label className="text-lf text-gray-900">Question</label>
+                <label className="text-lg text-gray-900">Question</label>
                 <input
                   type="text"
                   placeholder="This is a question?"
-                  className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base"
+                  className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base h-[42px]"
                 />
               </div>
 
@@ -370,7 +367,7 @@ const [viewData, setViewData] = useState(null);
 
                 {/* User Type */}
                 <div className="mb-4">
-                  <label className="text-sm text-gray-600">User Type</label>
+                  <label className="text-lg text-gray-900">User Type</label>
 
                   <div className="relative mt-1">
 
@@ -380,7 +377,7 @@ const [viewData, setViewData] = useState(null);
                         e.stopPropagation();
                         setCreateDropdownOpen(!createDropdownOpen);
                       }}
-                      className="w-full border border-gray-200 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer"
+                      className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer text-base h-[42px]"
                     >
                       {createSelectedType}
                       <span>⌄</span>
@@ -417,7 +414,7 @@ const [viewData, setViewData] = useState(null);
                     onChange={(e) =>
                       setEditData({ ...editData, question: e.target.value })
                     }
-                    className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none"
+                    className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base h-[42px]"
                   />
                 </div>
                   
@@ -430,7 +427,7 @@ const [viewData, setViewData] = useState(null);
                     onChange={(e) =>
                       setEditData({ ...editData, answer: e.target.value })
                     }
-                    className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none"
+                    className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base"
                   />
                 </div>
                   

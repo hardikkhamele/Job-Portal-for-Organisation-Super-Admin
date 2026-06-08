@@ -55,10 +55,15 @@ const ViewRevenue = () => {
     <div className="p-5 bg-gray-100 min-h-[90vh]">
       <div className="bg-white p-6 rounded-xl shadow-md max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">View Revenue</h1>
-          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-purple-600 transition-colors">
-            <ArrowLeft size={24} />
-          </button>
+          <div className="flex items-center gap-3">
+            <div
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-900 cursor-pointer"
+            >
+              <ArrowLeft size={25} />
+            </div>
+            <h1 className="text-2xl font-bold">View Revenue</h1>
+          </div>
         </div>
         <hr className="mb-6 border-gray-200" />
 

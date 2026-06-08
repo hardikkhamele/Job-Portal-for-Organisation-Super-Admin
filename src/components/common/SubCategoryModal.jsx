@@ -28,8 +28,16 @@ function SubCategoryModal({
     },
     enableReinitialize: true,
     validationSchema: Yup.object({
-      name: Yup.string().required("Sub-category name is required"),
-      description: Yup.string().required("Description is required"),
+      name: Yup.string()
+        .matches(/^[A-Za-z\s&\-]+$/, "Only alphabets, spaces, '&', and '-' are allowed")
+        .min(2, "Must be at least 2 characters")
+        .max(50, "Must be 50 characters or less")
+        .required("Sub-category name is required"),
+      description: Yup.string()
+        .matches(/^[A-Za-z\s.,&'\-]+$/, "Only alphabets and basic punctuation are allowed")
+        .min(5, "Must be at least 5 characters")
+        .max(250, "Must be 250 characters or less")
+        .required("Description is required"),
       icon: isEdit
         ? Yup.mixed().nullable()
         : Yup.mixed().required("Icon is required"),
@@ -77,6 +85,7 @@ function SubCategoryModal({
               type="text"
               name="name"
               placeholder="e.g. Software Developer"
+              maxLength={50}
               value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -98,6 +107,7 @@ function SubCategoryModal({
               type="text"
               name="description"
               placeholder="e.g. Roles under software development..."
+              maxLength={250}
               value={formik.values.description}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}

@@ -170,6 +170,7 @@ function EmployeeTable() {
             onClick={() =>
               navigate(`/employee/company-details/${row.original._id}`)
             }
+            title="View Details"
           />
           <Edit
             size={20}
@@ -177,6 +178,7 @@ function EmployeeTable() {
             onClick={() =>
               navigate(`/employee/edit-employee//${row.original._id}`)
             }
+            title="Edit Details"
           />
           <div
             className="cursor-pointer"
@@ -257,7 +259,7 @@ function EmployeeTable() {
         </div>
 
         <div className=" rounded-lg overflow-hidden min-h-[400px]">
-          <table className="w-full text-sm text-center border-collapse">
+          <table className="w-full text-sm border-collapse">
             <thead className="bg-[#F1F1F1] text-gray-700">
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id} className="bg-gray-100 text-gray-600">
@@ -298,7 +300,7 @@ function EmployeeTable() {
                     className="border-b border-gray-200 h-21 hover:bg-gray-50 transition"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="py-4 px-4 align-middle">
+                      <td key={cell.id} className="py-4 px-4 align-middle text-left">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),

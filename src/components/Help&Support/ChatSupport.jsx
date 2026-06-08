@@ -5,7 +5,7 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { MessageCircle, CheckCircle, Wifi  } from "lucide-react";
+import { MessageCircle, CheckCircle, Wifi, ChevronDown } from "lucide-react";
 import Footer from "../Footer";
 import { useNavigate } from "react-router-dom";
 
@@ -66,7 +66,7 @@ const ChatSupport = () => {
 },
 
       {
-  header: "Action",
+  header: "Actions",
   cell: ({ row }) => {
     const status = row.original.status;
 
@@ -78,6 +78,7 @@ const ChatSupport = () => {
           size={25}
           className="text-purple-600 cursor-pointer"
           onClick={() => navigate("/chat-conversation")}
+          title="Open Chat Support"
         />
 
         {/* Mark as solved */}
@@ -126,7 +127,7 @@ const filterOptions = ["All User Type", "Job Seeker", "Employer"];
         {/* Top bar */}
         <div className="flex justify-between mb-4">
           <input
-            placeholder="Search"
+            placeholder="Search here..."
             className="border border-gray-200 px-3 py-2 rounded-md w-64 bg-gray-100 outline-none"
           />
 
@@ -141,7 +142,7 @@ const filterOptions = ["All User Type", "Job Seeker", "Employer"];
               className="border px-3 py-2 rounded-md bg-white flex justify-between items-center cursor-pointer"
             >
               {selectedFilter}
-              
+              <ChevronDown size={18} className="text-gray-500" />
             </div>
             
             {/* Dropdown */}

@@ -103,7 +103,7 @@ const [selectedRow, setSelectedRow] = useState(null);
       accessorKey: "discount",
     },
     {
-      header: "Action",
+      header: "Actions",
       cell: ({ row }) => (
         <div className="flex justify-center gap-3">
           <Eye

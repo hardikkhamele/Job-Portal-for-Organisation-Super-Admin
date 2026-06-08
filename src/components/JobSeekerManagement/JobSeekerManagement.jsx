@@ -28,7 +28,7 @@ function JobSeekerManagement() {
     dispatch(getAllCategories());
   }, [dispatch]);
 
-  const filtered = categories.filter((c) =>
+  const filtered = (categories || []).filter((c) =>
     c.categoryName?.toLowerCase().includes(search.toLowerCase())
   );
 

@@ -24,8 +24,23 @@ function DailyWorkUpdate() {
     pageIndex: 0,
     pageSize: 10,
   });
+  
+  const [searchTerm, setSearchTerm] = useState("");
 
   const pagination = useMemo(() => ({ pageIndex, pageSize }), [pageIndex, pageSize]);
+
+  const filteredReports = useMemo(() => {
+    if (!searchTerm) return reports;
+    const lowerSearch = searchTerm.toLowerCase();
+    return (reports || []).filter(
+      (r) =>
+        r.candidateName?.toLowerCase().includes(lowerSearch) ||
+        r.education?.toLowerCase().includes(lowerSearch) ||
+        r.designation?.toLowerCase().includes(lowerSearch) ||
+        r.phoneNumber?.toString().includes(lowerSearch) ||
+        r.candidateStatus?.toLowerCase().includes(lowerSearch)
+    );
+  }, [reports, searchTerm]);
 
   useEffect(() => {
     if (hrId && date) {
@@ -82,7 +97,7 @@ function DailyWorkUpdate() {
   ];
 
   const table = useReactTable({
-    data: reports || [],
+    data: filteredReports || [],
     columns,
     pageCount: totalPages,
     state: { pagination },
@@ -109,9 +124,15 @@ function DailyWorkUpdate() {
         <div className="bg-white border border-gray-300 rounded-lg p-5 mt-4">
           {/* Search & Filter UI */}
           <div className="flex justify-between mb-4">
-            <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-64 h-11">
+            <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-72 h-11 focus-within:border-purple-400 transition">
               <Search size={18} className="text-[#D3D3D3] mr-2" />
-              <input type="text" placeholder="Search..." className="bg-transparent outline-none text-sm w-full" />
+              <input 
+                type="text" 
+                placeholder="Search by name, education..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent outline-none text-sm w-full" 
+              />
             </div>
           </div>
 
@@ -138,7 +159,7 @@ function DailyWorkUpdate() {
                         </div>
                       </td>
                   </tr>
-                ) : reports?.length > 0 ? (
+                ) : filteredReports?.length > 0 ? (
                   table.getRowModel().rows.map((row) => (
                     <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
                       {row.getVisibleCells().map((cell) => (
@@ -162,7 +183,7 @@ function DailyWorkUpdate() {
           {/* Pagination Controls */}
           <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-purple-600 font-medium">
-              Showing {reports.length > 0 ? pageIndex * pageSize + 1 : 0} to{" "}
+              Showing {filteredReports?.length > 0 ? pageIndex * pageSize + 1 : 0} to{" "}
               {Math.min((pageIndex + 1) * pageSize, totalRecords)} of {totalRecords}
             </p>
 

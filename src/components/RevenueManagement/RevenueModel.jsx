@@ -64,7 +64,7 @@ const RevenuePage = () => {
         ),
       },
       {
-        header: "Action",
+        header: "Actions",
         cell: ({ row }) => (
           <Eye
             size={18}
@@ -78,9 +78,9 @@ const RevenuePage = () => {
   );
 
   const table = useReactTable({
-    data: transactions,
+    data: transactions || [],
     columns,
-    pageCount: pagination.totalPages || -1,
+    pageCount: pagination?.totalPages || -1,
     state: { pagination: tablePagination },
     onPaginationChange: setTablePagination,
     getCoreRowModel: getCoreRowModel(),
@@ -97,7 +97,7 @@ const RevenuePage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search by plan, transaction..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 pr-4 py-2 w-full rounded-md border-[#D3D3D3] bg-[#F7F8F9] outline-none"
@@ -137,19 +137,19 @@ const RevenuePage = () => {
 
             <div className="flex justify-between items-center mt-4">
               <p className="text-purple-700 font-bold">
-                Showing {transactions.length > 0 ? (tablePagination.pageIndex * tablePagination.pageSize) + 1 : 0} to{" "}
-                {Math.min((tablePagination.pageIndex + 1) * tablePagination.pageSize, pagination.total)} of {pagination.total} Transactions
+                Showing {transactions?.length > 0 ? (tablePagination.pageIndex * tablePagination.pageSize) + 1 : 0} to{" "}
+                {Math.min((tablePagination.pageIndex + 1) * tablePagination.pageSize, pagination?.total || 0)} of {pagination?.total || 0} Transactions
               </p>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => table.previousPage()}
-                  disabled={!pagination.hasPrevPage}
+                  disabled={!pagination?.hasPrevPage}
                   className="border rounded-full p-2 disabled:opacity-30"
                 >
                   <ChevronLeft size={16} />
                 </button>
-                {Array.from({ length: pagination.totalPages || 0 }).map((_, i) => (
+                {Array.from({ length: pagination?.totalPages || 0 }).map((_, i) => (
                   <button
                     key={i}
                     onClick={() => table.setPageIndex(i)}
@@ -160,7 +160,7 @@ const RevenuePage = () => {
                 ))}
                 <button
                   onClick={() => table.nextPage()}
-                  disabled={!pagination.hasNextPage}
+                  disabled={!pagination?.hasNextPage}
                   className="border rounded-full p-2 disabled:opacity-30"
                 >
                   <ChevronRight size={16} />

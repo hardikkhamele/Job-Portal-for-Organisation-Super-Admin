@@ -121,8 +121,8 @@ const CreateCustomPlan = () => {
         
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-purple-600 transition-all">
-            <CircleChevronLeft size={32} strokeWidth={1.5} />
+          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center bg-white hover:bg-slate-50 transition">
+            <CircleChevronLeft size={20} strokeWidth={1.5} className="text-black" />
           </button>
           <div>
             <h2 className="text-2xl font-bold text-slate-800">Create Custom Plan</h2>

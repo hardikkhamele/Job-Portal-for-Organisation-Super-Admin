@@ -79,7 +79,7 @@ const EmployerPlans = () => {
     { header: "Plan Price", accessorKey: "price", cell: ({ getValue }) => `₹${getValue()}` },
     { header: "Discount", accessorKey: "discount", cell: ({ getValue }) => `${getValue()}%` },
     {
-      header: "Action",
+      header: "Actions",
       cell: ({ row }) => (
         <div className="flex justify-center gap-3">
           <Eye 

@@ -84,9 +84,8 @@ const JobManagement = () => {
       cell: ({ row }) => (
         <div className="text-left">
           <p className="font-medium">{row.original.jobTitle}</p>
-          <div className="flex items-center gap-1 text-sm text-gray-500">
-            <MapPin size={14} className="text-gray-400" />
-            <span>{row.original.jobType} • {row.original.subCategory?.name}</span>
+          <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+            <span>{row.original.jobType} {row.original.subCategory?.name ? `• ${row.original.subCategory?.name}` : ''}</span>
           </div>
         </div>
       ),
@@ -126,7 +125,7 @@ const JobManagement = () => {
   const table = useReactTable({
     data: jobs || [],
     columns,
-    pageCount: reduxPagination.totalPages,
+    pageCount: reduxPagination?.totalPages || -1,
     state: { pagination },
     onPaginationChange: setPagination,
     manualPagination: true,
@@ -215,11 +214,11 @@ const JobManagement = () => {
           <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-gray-500">
               Showing <span className="font-medium text-purple-600">
-                {reduxPagination.totalJobs > 0 ? (pagination.pageIndex * pagination.pageSize) + 1 : 0}
+                {(reduxPagination?.totalJobs || 0) > 0 ? (pagination.pageIndex * pagination.pageSize) + 1 : 0}
               </span> to{" "}
               <span className="font-medium text-purple-600">
-                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, reduxPagination.totalJobs)}
-              </span> of {reduxPagination.totalJobs} Jobs
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, reduxPagination?.totalJobs || 0)}
+              </span> of {reduxPagination?.totalJobs || 0} Jobs
             </p>
 
             <div className="flex items-center gap-2">

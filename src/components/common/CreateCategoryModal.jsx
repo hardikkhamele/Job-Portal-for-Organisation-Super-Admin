@@ -22,8 +22,16 @@ function CreateCategoryModal({ open, setOpen, mode = "create", initialData = nul
     },
     enableReinitialize: true,
     validationSchema: Yup.object({
-      name: Yup.string().required("Category name is required"),
-      description: Yup.string().required("Description is required"),
+      name: Yup.string()
+        .matches(/^[A-Za-z\s&\-]+$/, "Only alphabets, spaces, '&', and '-' are allowed")
+        .min(2, "Must be at least 2 characters")
+        .max(50, "Must be 50 characters or less")
+        .required("Category name is required"),
+      description: Yup.string()
+        .matches(/^[A-Za-z\s.,&'\-]+$/, "Only alphabets and basic punctuation are allowed")
+        .min(5, "Must be at least 5 characters")
+        .max(250, "Must be 250 characters or less")
+        .required("Description is required"),
       icon: isEdit
         ? Yup.mixed().nullable()
         : Yup.mixed().required("Icon is required"),
@@ -70,6 +78,7 @@ function CreateCategoryModal({ open, setOpen, mode = "create", initialData = nul
               type="text"
               name="name"
               placeholder="e.g. IT & Technology"
+              maxLength={50}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               value={formik.values.name}
@@ -91,6 +100,7 @@ function CreateCategoryModal({ open, setOpen, mode = "create", initialData = nul
               type="text"
               name="description"
               placeholder="e.g. Software development, Design..."
+              maxLength={250}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               value={formik.values.description}

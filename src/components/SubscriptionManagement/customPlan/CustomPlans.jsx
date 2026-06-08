@@ -186,18 +186,20 @@ const CustomPlan = () => {
       },
     },
     {
-      header: "Action",
+      header: "Actions",
       cell: ({ row }) => (
         <div className="flex justify-center gap-3">
           <Eye
             onClick={() => navigate(`/custom-plans/view/${row.original._id}`)}
             className="text-purple-600 cursor-pointer"
             size={18}
+            title="View Custom Plan"
           />
           <Edit
             className="text-purple-600 cursor-pointer"
             size={18}
             onClick={() => navigate(`/edit-custom-plan/${row.original._id}`)}
+            title="Edit Custom Plan"
           />
           {/* <Trash2
             className="text-red-500 cursor-pointer"
@@ -206,6 +208,7 @@ const CustomPlan = () => {
               setSelectedRow(row.original);
               setDeleteModalOpen(true);
             }}
+            title="Delete Custom Plan"
           /> */}
         </div>
       ),

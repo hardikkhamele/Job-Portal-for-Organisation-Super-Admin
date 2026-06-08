@@ -125,6 +125,7 @@ function HRManagement() {
                   state: { hr },
                 })
               }
+              title="View HR Details"
             />
             <Edit
               size={18}
@@ -132,6 +133,7 @@ function HRManagement() {
               onClick={() =>
                 navigate(`/hr-management/edit-hr/${hr._id}`, { state: { hr } })
               }
+              title="Edit HR"
             />
             {/* <Trash2
               size={18}

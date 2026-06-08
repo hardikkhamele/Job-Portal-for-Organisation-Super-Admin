@@ -178,7 +178,7 @@ const ChatConversation = () => {
         
         <div className="flex gap-3 mt-4">
           <input
-            placeholder="Enter Message"
+            placeholder="Type your message..."
             className="flex-1 border p-2 rounded-md"
           />
           <button className="bg-purple-600 text-white px-6 py-2 rounded-md flex items-center justify-center cursor-pointer">

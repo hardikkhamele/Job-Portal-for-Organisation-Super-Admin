@@ -106,14 +106,16 @@ function JobViewDetails() {
           {/* LEFT */}
           <div className="md:col-span-2">
             <h3 className="font-semibold mb-2">Job Description</h3>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {job.jobDescription}
-            </p>
+            <div 
+              className="text-sm text-gray-600 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: job.jobDescription }}
+            />
 
             <h3 className="font-semibold mt-6 mb-2">Responsibilities</h3>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {job.jobResponsibilities}
-            </p>
+            <div 
+              className="text-sm text-gray-600 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: job.jobResponsibilities }}
+            />
 
             <h3 className="font-semibold mt-6 mb-2">Skills Required</h3>
             <div className="flex gap-2 flex-wrap">

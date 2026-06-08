@@ -111,8 +111,8 @@ const employerPlansSlice = createSlice({
       .addCase(fetchEmployerPlans.fulfilled, (state, action) => {
         state.loading = false;
         state.plans = action.payload.data;
-        state.total = action.payload.pagination.total;
-        state.totalPages = action.payload.pagination.totalPages;
+        state.total = action.payload.pagination?.total || 0;
+        state.totalPages = action.payload.pagination?.totalPages || 1;
       })
       .addCase(fetchEmployerPlans.rejected, (state) => { state.loading = false; })
       

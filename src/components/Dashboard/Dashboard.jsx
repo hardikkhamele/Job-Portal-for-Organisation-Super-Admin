@@ -137,46 +137,46 @@ const getWeeklyData = (year, month) => {
 
 const jobDataByYear = {
   2024: [
-    { name: "Jan", listing: 3000, shortlisted: 2000, hired: 2500 },
-    { name: "Feb", listing: 3500, shortlisted: 2300, hired: 2800 },
-    { name: "Mar", listing: 4000, shortlisted: 2500, hired: 3200 },
-    { name: "Apr", listing: 4500, shortlisted: 2700, hired: 3500 },
-    { name: "May", listing: 4200, shortlisted: 3000, hired: 3800 },
-    { name: "Jun", listing: 4800, shortlisted: 3300, hired: 4200 },
-    { name: "Jul", listing: 5000, shortlisted: 3500, hired: 4500 },
-    { name: "Aug", listing: 5200, shortlisted: 3700, hired: 4700 },
-    { name: "Sep", listing: 4900, shortlisted: 3400, hired: 4400 },
-    { name: "Oct", listing: 5100, shortlisted: 3600, hired: 4600 },
-    { name: "Nov", listing: 5300, shortlisted: 3800, hired: 4800 },
-    { name: "Dec", listing: 5500, shortlisted: 4000, hired: 5000 },
+    { name: "Jan", listing: 3000, shortlisted: 2500, hired: 2000 },
+    { name: "Feb", listing: 3500, shortlisted: 2800, hired: 2300 },
+    { name: "Mar", listing: 4000, shortlisted: 3200, hired: 2500 },
+    { name: "Apr", listing: 4500, shortlisted: 3500, hired: 2700 },
+    { name: "May", listing: 4200, shortlisted: 3800, hired: 3000 },
+    { name: "Jun", listing: 4800, shortlisted: 4200, hired: 3300 },
+    { name: "Jul", listing: 5000, shortlisted: 4500, hired: 3500 },
+    { name: "Aug", listing: 5200, shortlisted: 4700, hired: 3700 },
+    { name: "Sep", listing: 4900, shortlisted: 4400, hired: 3400 },
+    { name: "Oct", listing: 5100, shortlisted: 4600, hired: 3600 },
+    { name: "Nov", listing: 5300, shortlisted: 4800, hired: 3800 },
+    { name: "Dec", listing: 5500, shortlisted: 5000, hired: 4000 },
   ],
   2025: [
-    { name: "Jan", listing: 3200, shortlisted: 2200, hired: 2700 },
-    { name: "Feb", listing: 3700, shortlisted: 2500, hired: 3000 },
-    { name: "Mar", listing: 4200, shortlisted: 2700, hired: 3400 },
-    { name: "Apr", listing: 4700, shortlisted: 2900, hired: 3700 },
-    { name: "May", listing: 4400, shortlisted: 3200, hired: 4000 },
-    { name: "Jun", listing: 5000, shortlisted: 3500, hired: 4400 },
-    { name: "Jul", listing: 5200, shortlisted: 3700, hired: 4700 },
-    { name: "Aug", listing: 5400, shortlisted: 3900, hired: 4900 },
-    { name: "Sep", listing: 5100, shortlisted: 3600, hired: 4600 },
-    { name: "Oct", listing: 5300, shortlisted: 3800, hired: 4800 },
-    { name: "Nov", listing: 5500, shortlisted: 4000, hired: 5000 },
-    { name: "Dec", listing: 5700, shortlisted: 4200, hired: 5200 },
+    { name: "Jan", listing: 3200, shortlisted: 2700, hired: 2200 },
+    { name: "Feb", listing: 3700, shortlisted: 3000, hired: 2500 },
+    { name: "Mar", listing: 4200, shortlisted: 3400, hired: 2700 },
+    { name: "Apr", listing: 4700, shortlisted: 3700, hired: 2900 },
+    { name: "May", listing: 4400, shortlisted: 4000, hired: 3200 },
+    { name: "Jun", listing: 5000, shortlisted: 4400, hired: 3500 },
+    { name: "Jul", listing: 5200, shortlisted: 4700, hired: 3700 },
+    { name: "Aug", listing: 5400, shortlisted: 4900, hired: 3900 },
+    { name: "Sep", listing: 5100, shortlisted: 4600, hired: 3600 },
+    { name: "Oct", listing: 5300, shortlisted: 4800, hired: 3800 },
+    { name: "Nov", listing: 5500, shortlisted: 5000, hired: 4000 },
+    { name: "Dec", listing: 5700, shortlisted: 5200, hired: 4200 },
   ],
   2026: [
-    { name: "Jan", listing: 3400, shortlisted: 2400, hired: 2900 },
-    { name: "Feb", listing: 3900, shortlisted: 2700, hired: 3200 },
-    { name: "Mar", listing: 4400, shortlisted: 2900, hired: 3600 },
-    { name: "Apr", listing: 4900, shortlisted: 3100, hired: 3900 },
-    { name: "May", listing: 4600, shortlisted: 3400, hired: 4200 },
-    { name: "Jun", listing: 5200, shortlisted: 3700, hired: 4600 },
-    { name: "Jul", listing: 5400, shortlisted: 3900, hired: 4900 },
-    { name: "Aug", listing: 5600, shortlisted: 4100, hired: 5100 },
-    { name: "Sep", listing: 5300, shortlisted: 3800, hired: 4800 },
-    { name: "Oct", listing: 5500, shortlisted: 4000, hired: 5000 },
-    { name: "Nov", listing: 5700, shortlisted: 4200, hired: 5200 },
-    { name: "Dec", listing: 5900, shortlisted: 4400, hired: 5400 },
+    { name: "Jan", listing: 3400, shortlisted: 2900, hired: 2400 },
+    { name: "Feb", listing: 3900, shortlisted: 3200, hired: 2700 },
+    { name: "Mar", listing: 4400, shortlisted: 3600, hired: 2900 },
+    { name: "Apr", listing: 4900, shortlisted: 3900, hired: 3100 },
+    { name: "May", listing: 4600, shortlisted: 4200, hired: 3400 },
+    { name: "Jun", listing: 5200, shortlisted: 4600, hired: 3700 },
+    { name: "Jul", listing: 5400, shortlisted: 4900, hired: 3900 },
+    { name: "Aug", listing: 5600, shortlisted: 5100, hired: 4100 },
+    { name: "Sep", listing: 5300, shortlisted: 4800, hired: 3800 },
+    { name: "Oct", listing: 5500, shortlisted: 5000, hired: 4000 },
+    { name: "Nov", listing: 5700, shortlisted: 5200, hired: 4200 },
+    { name: "Dec", listing: 5900, shortlisted: 5400, hired: 4400 },
   ],
 };
 
@@ -679,8 +679,8 @@ function Dashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="text-center">
-                      <p className="text-xs text-gray-500">Total</p>
+                    <div className="text-center mt-3">
+                      <p className="text-xs text-gray-500">Total Applications</p>
                       <p className="text-lg font-bold text-purple-600">
                         {pieData.reduce((sum, item) => sum + item.value, 0)}
                       </p>

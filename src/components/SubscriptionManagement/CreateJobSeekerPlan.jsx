@@ -113,13 +113,17 @@ const CreateJobSeekerPlan = () => {
 
               {/* Price */}
               <div>
-                <input
-                  name="price"
-                  placeholder="Plan Price"
-                  className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
-                  onChange={formik.handleChange}
-                  value={formik.values.price}
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-700">₹</span>
+                  <input
+                    name="price"
+                    type="number"
+                    placeholder="0.00"
+                    className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 pl-9 rounded-md w-full"
+                    onChange={formik.handleChange}
+                    value={formik.values.price}
+                  />
+                </div>
                 {formik.errors.price && (
                   <p className="text-red-500 text-xs mt-1">
                     {formik.errors.price}

@@ -50,7 +50,7 @@ const BlogManagement = () => {
     dispatch(fetchBlogs(page));
   };
 
-  const filtered = blogs.filter((b) =>
+  const filtered = (blogs || []).filter((b) =>
     b.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -133,7 +133,7 @@ const BlogManagement = () => {
                     <th className="py-3 px-4 font-semibold text-sm text-left">Title</th>
                     <th className="py-3 px-4 font-semibold text-sm text-left">Description</th>
                     <th className="py-3 px-4 font-semibold text-sm text-center">Date</th>
-                    <th className="py-3 px-4 font-semibold text-sm text-center">Action</th>
+                    <th className="py-3 px-4 font-semibold text-sm text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -208,7 +208,7 @@ const BlogManagement = () => {
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={!hasPrevPage}
-                    className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 disabled:opacity-30 hover:bg-gray-50 transition"
+                    className="w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-400 disabled:opacity-30 hover:bg-gray-50 transition"
                   >
                     <ChevronLeft size={18} />
                   </button>
@@ -239,7 +239,7 @@ const BlogManagement = () => {
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={!hasNextPage}
-                    className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center text-[#A855F7] disabled:opacity-30 hover:bg-gray-50 transition"
+                    className="w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center text-[#A855F7] disabled:opacity-30 hover:bg-gray-50 transition"
                   >
                     <ChevronRight size={18} />
                   </button>
