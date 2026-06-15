@@ -51,7 +51,7 @@ const RevenuePage = () => {
       },
       { 
         accessorKey: "price", 
-        header: "Price",
+        header: "₹ Price",
         cell: ({ getValue }) => `₹ ${getValue()}`
       },
       {

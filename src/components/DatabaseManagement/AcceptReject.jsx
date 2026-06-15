@@ -719,6 +719,9 @@ const AcceptReject = () => {
                       onChange={handleFileChange}
                     />
                   </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    * Note: The Excel sheet must contain a column named exactly <span className="font-bold text-purple-700">"Name"</span> (case-sensitive) with candidate names. Columns for <span className="font-bold">"Email"</span> and <span className="font-bold">"Phone"</span> are highly recommended.
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 pt-4">

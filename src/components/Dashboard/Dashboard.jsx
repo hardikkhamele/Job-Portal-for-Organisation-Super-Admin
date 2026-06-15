@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ResponsiveContainer,
   Line,
@@ -297,6 +298,7 @@ function Card({ title, value, growth, icon, bg, subtitle }) {
 }
 
 function Dashboard() {
+  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState(2026);
   const [selectedMonth, setSelectedMonth] = useState("Mar");
   const [viewType, setViewType] = useState("yearly"); // "yearly" or "monthly"
@@ -712,7 +714,10 @@ function Dashboard() {
                   Latest payment activities
                 </p>
               </div>
-              <button className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors flex items-center gap-1">
+              <button
+                onClick={() => navigate("/revenue-management")}
+                className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors flex items-center gap-1"
+              >
                 View All →
               </button>
             </div>

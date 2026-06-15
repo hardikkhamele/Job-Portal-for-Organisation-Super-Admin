@@ -20,7 +20,7 @@ export const rejectCandidate = createAsyncThunk(
 
       toast.success(response.data?.message || "Candidate Rejected!", {
         position: "top-right",
-        autoClose: 2500,
+        autoClose: 10000,
       });
 
       return response.data;
@@ -29,7 +29,7 @@ export const rejectCandidate = createAsyncThunk(
       
       toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 10000,
       });
 
       return rejectWithValue(errorMessage);

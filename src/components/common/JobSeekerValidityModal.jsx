@@ -14,13 +14,18 @@ const JobSeekerValidityModal = ({ isOpen, onClose, data }) => {
           <p className="text-center py-4">Loading details...</p>
         ) : (
           <div className="space-y-2">
-            <p><strong>Title:</strong> {data.title}</p>
-            <p><strong>Price:</strong> ₹{data.price}</p>
-            <p><strong>Discounted Price:</strong> ₹{data.discountedPrice}</p>
-            <p><strong>Type:</strong> {data.planType}</p>
-            <p><strong>Validity:</strong> {data.durationText}</p>
-            <p><strong>Job-Credit:</strong> {data.jobCredits}</p>
-            <p><strong>Database Credit:</strong> {data.databaseCredits}</p>
+            <p><strong>Title:</strong> {data.title || data.name}</p>
+            <p><strong>Price:</strong> {data.price ? (String(data.price).startsWith("₹") ? data.price : `₹${data.price}`) : "N/A"}</p>
+            {data.discountedPrice !== undefined && <p><strong>Discounted Price:</strong> ₹{data.discountedPrice}</p>}
+            {data.discount !== undefined && <p><strong>Discount:</strong> {String(data.discount).endsWith("%") ? data.discount : `${data.discount}%`}</p>}
+            {data.planType && <p><strong>Type:</strong> {data.planType}</p>}
+            <p><strong>Validity:</strong> {data.durationText || data.validity}</p>
+            {data.jobCredits !== undefined && <p><strong>Job-Credit:</strong> {data.jobCredits}</p>}
+            {data.databaseCredits !== undefined && <p><strong>Database Credit:</strong> {data.databaseCredits}</p>}
+            {data.applyLimit !== undefined && <p><strong>Apply Limit:</strong> {data.applyLimit} Jobs/Month</p>}
+            {data.profileBoost && <p><strong>Profile Boost:</strong> {data.profileBoost}</p>}
+            {data.jobAlert && <p><strong>Job Alert:</strong> {data.jobAlert}</p>}
+            {data.support && <p><strong>Support:</strong> {data.support}</p>}
           </div>
         )}
 

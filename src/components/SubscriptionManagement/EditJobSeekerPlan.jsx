@@ -1,16 +1,26 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, CircleChevronLeft } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { CircleChevronLeft } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { toast } from "react-toastify";
 
 const EditJobSeekerPlan = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const planData = location.state || {};
 
   // ✅ Validation Schema
   const validationSchema = Yup.object({
-    name: Yup.string().required("Plan name is required"),
-    tag: Yup.string().required("Plan tag is required"),
+    name: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only alphabetic characters are allowed")
+      .min(2, "Plan Name must be at least 2 characters")
+      .max(50, "Plan Name cannot exceed 50 characters")
+      .required("Plan name is required"),
+    tag: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only alphabetic characters are allowed")
+      .min(2, "Plan Tag must be at least 2 characters")
+      .max(50, "Plan Tag cannot exceed 50 characters")
+      .required("Plan tag is required"),
     validity: Yup.string().required("Validity is required"),
     price: Yup.number()
       .typeError("Must be a number")
@@ -26,19 +36,51 @@ const EditJobSeekerPlan = () => {
   // ✅ Formik Setup
   const formik = useFormik({
     initialValues: {
-      name: "",
-      tag: "",
-      validity: "1 Month",
-      price: "",
-      discount: "",
-      applyLimit: "",
-      profileBoost: "Yes",
-      jobAlert: "Yes",
-      support: "Yes",
+      name: planData.name || "",
+      tag: planData.tag || "",
+      validity: planData.validity || "1 Month",
+      price: planData.price && typeof planData.price === "string" ? planData.price.replace("₹", "") : (planData.price || ""),
+      discount: planData.discount && typeof planData.discount === "string" ? planData.discount.replace("%", "") : (planData.discount || ""),
+      applyLimit: planData.applyLimit || "",
+      profileBoost: planData.profileBoost || "Yes",
+      jobAlert: planData.jobAlert || "Yes",
+      support: planData.support || "Yes",
     },
+    enableReinitialize: true,
     validationSchema,
     onSubmit: (values) => {
       console.log("Form Data:", values);
+      try {
+        const stored = localStorage.getItem("jobSeekerPlans");
+        if (stored) {
+          let currentPlans = JSON.parse(stored);
+          currentPlans = currentPlans.map((plan) => {
+            if (plan.id === planData.id) {
+              return {
+                ...plan,
+                name: values.name,
+                tag: values.tag,
+                validity: values.validity,
+                price: Number(values.price),
+                discount: Number(values.discount),
+                applyLimit: Number(values.applyLimit),
+                profileBoost: values.profileBoost,
+                jobAlert: values.jobAlert,
+                support: values.support,
+              };
+            }
+            return plan;
+          });
+          localStorage.setItem("jobSeekerPlans", JSON.stringify(currentPlans));
+        }
+      } catch (err) {
+        console.error("Failed to update plan in localStorage:", err);
+      }
+
+      toast.success("Job Seeker Plan Updated Successfully!", { autoClose: 1000 });
+      setTimeout(() => {
+        navigate("/job-seeker-plans");
+      }, 1000);
     },
   });
 
@@ -216,7 +258,7 @@ const EditJobSeekerPlan = () => {
               type="submit"
               className="px-10 py-2 rounded-md bg-purple-600 text-white font-medium"
             >
-              Create
+              Save Changes
             </button>
           </div>
 

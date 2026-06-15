@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CircleChevronLeft, Loader2, Save } from "lucide-react";
 import { useFormik } from "formik";
@@ -7,10 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { 
   fetchCustomPlanById, 
   updateCustomPlan,
-  fetchCustomPlanEnums, // Using the string array API
-  clearError 
+  fetchCustomPlanEnums // Using the string array API
 } from "../../../redux/slice/subscriptions/customPlan/customPlanSlice";
 import { 
+  fetchEmployerDropdown,
   fetchDurationDropdown, 
   fetchPlanTypesDropdown 
 } from "../../../redux/slice/subscriptions/employerPlans/getAllEmployerDropdown";
@@ -23,11 +23,12 @@ const EditCustomPlan = () => {
 
   // Redux State
   const { selectedPlan, detailLoading, createLoading, statusOptions } = useSelector((state) => state.customPlan);
-  const { durations, planTypes } = useSelector((state) => state.employer);
+  const { employers, durations, planTypes } = useSelector((state) => state.employer);
 
   useEffect(() => {
     if (id) {
       dispatch(fetchCustomPlanById(id));
+      dispatch(fetchEmployerDropdown());
       dispatch(fetchDurationDropdown());
       dispatch(fetchPlanTypesDropdown());
       dispatch(fetchCustomPlanEnums()); // Fetches ["active", "inactive", "Expired"]
@@ -50,6 +51,7 @@ const EditCustomPlan = () => {
       status: selectedPlan?.status || ""
     },
     validationSchema: Yup.object({
+      employerId: Yup.string().required("Employer is required"),
       planType: Yup.string().required("Plan Type is required"),
       duration: Yup.number().required("Duration is required"),
       price: Yup.number().min(0, "No negative values").required("Required"),
@@ -61,10 +63,22 @@ const EditCustomPlan = () => {
       status: Yup.string().required("Status is required")
     }),
     onSubmit: async (values) => {
-      const resultAction = await dispatch(updateCustomPlan({ id, updateData: values }));
+      const formattedValues = {
+        ...values,
+        duration: values.duration ? Number(values.duration) : "",
+        price: values.price ? Number(values.price) : 0,
+        discount: values.discount ? Number(values.discount) : 0,
+        jobCredits: values.jobCredits ? Number(values.jobCredits) : 0,
+        databaseCredits: values.databaseCredits ? Number(values.databaseCredits) : 0,
+        useCreditsIn: values.useCreditsIn ? Number(values.useCreditsIn) : 0,
+        jobActiveFor: values.jobActiveFor ? Number(values.jobActiveFor) : 30,
+      };
+      const resultAction = await dispatch(updateCustomPlan({ id, updateData: formattedValues }));
       if (updateCustomPlan.fulfilled.match(resultAction)) {
         toast.success("Custom plan updated successfully!");
         navigate("/custom-plans");
+      } else {
+        toast.error(resultAction.payload || "Failed to update custom plan.");
       }
     },
   });
@@ -118,6 +132,9 @@ const EditCustomPlan = () => {
                     <option key={type.value} value={type.value}>{type.label}</option>
                   ))}
                 </select>
+                {formik.touched.planType && formik.errors.planType && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.planType}</p>
+                )}
               </div>
 
               <div>
@@ -139,16 +156,26 @@ const EditCustomPlan = () => {
                     );
                   })}
                 </select>
+                {formik.touched.status && formik.errors.status && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.status}</p>
+                )}
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-slate-700 mb-2 block">Assigned Company</label>
-                <input
-                  type="text"
-                  readOnly
-                  className="w-full p-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed"
-                  value={selectedPlan?.companyName || ""}
-                />
+                <select
+                  name="employerId"
+                  className="w-full p-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                  {...formik.getFieldProps("employerId")}
+                >
+                  <option value="">Select Company</option>
+                  {employers?.map((emp) => (
+                    <option key={emp.value} value={emp.value}>{emp.label}</option>
+                  ))}
+                </select>
+                {formik.touched.employerId && formik.errors.employerId && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.employerId}</p>
+                )}
               </div>
             </div>
           </div>
@@ -168,6 +195,9 @@ const EditCustomPlan = () => {
                       className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500/20 outline-none" 
                       {...formik.getFieldProps("price")} 
                     />
+                    {formik.touched.price && formik.errors.price && (
+                      <p className="text-red-500 text-xs mt-1">{formik.errors.price}</p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-slate-700 mb-2 block">Discount (%)</label>
@@ -179,6 +209,9 @@ const EditCustomPlan = () => {
                       className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500/20 outline-none" 
                       {...formik.getFieldProps("discount")} 
                     />
+                    {formik.touched.discount && formik.errors.discount && (
+                      <p className="text-red-500 text-xs mt-1">{formik.errors.discount}</p>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -192,6 +225,9 @@ const EditCustomPlan = () => {
                       <option key={d.value} value={d.value}>{d.label}</option>
                     ))}
                   </select>
+                  {formik.touched.duration && formik.errors.duration && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.duration}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -211,6 +247,9 @@ const EditCustomPlan = () => {
                     className="w-full p-3 rounded-xl border border-slate-200 outline-none disabled:bg-slate-100"
                     {...formik.getFieldProps("jobCredits")}
                   />
+                  {formik.touched.jobCredits && formik.errors.jobCredits && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.jobCredits}</p>
+                  )}
                 </div>
 
                 <div className={isDatabaseCreditDisabled ? "opacity-40" : ""}>
@@ -223,6 +262,9 @@ const EditCustomPlan = () => {
                     className="w-full p-3 rounded-xl border border-slate-200 outline-none disabled:bg-slate-100"
                     {...formik.getFieldProps("databaseCredits")}
                   />
+                  {formik.touched.databaseCredits && formik.errors.databaseCredits && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.databaseCredits}</p>
+                  )}
                 </div>
 
                 <div>
@@ -234,6 +276,9 @@ const EditCustomPlan = () => {
                     className="w-full p-3 rounded-xl border border-slate-200 outline-none" 
                     {...formik.getFieldProps("useCreditsIn")} 
                   />
+                  {formik.touched.useCreditsIn && formik.errors.useCreditsIn && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.useCreditsIn}</p>
+                  )}
                 </div>
 
                 <div>
@@ -243,6 +288,9 @@ const EditCustomPlan = () => {
                     <option value="30">30 Days</option>
                     <option value="60">60 Days</option>
                   </select>
+                  {formik.touched.jobActiveFor && formik.errors.jobActiveFor && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.jobActiveFor}</p>
+                  )}
                 </div>
               </div>
             </div>

@@ -155,7 +155,7 @@ function DashboardLayout() {
             />
             {/* <Route path="database" element={<DatabaseManagement />} /> */}
             <Route
-              path="/candidates/candidate-details/:id"
+              path="candidates/candidate-details/:id"
               element={<CandidateDetails />}
             />
             <Route path="job-seeker-plans" element={<JobSeekerPlans />} />
@@ -183,7 +183,7 @@ function DashboardLayout() {
             <Route path="/employer/edit" element={<EditEmployer />} />
             <Route path="chat-conversation" element={<ChatConversation />} />
             <Route path="/edit-social-links" element={<EditSocialLinks />} />
-            <Route path="/candidates" element={<DatabaseCandidate />} />
+            <Route path="candidates" element={<DatabaseCandidate />} />
             <Route path="/accept-reject" element={<AcceptReject />} />
 
             <Route path="/blog-management" element={<BlogManagement />} />

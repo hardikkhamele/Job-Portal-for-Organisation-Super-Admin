@@ -8,8 +8,6 @@ import {
 } from "../../redux/slice/category/categorySlice";
 
 function CreateCategoryModal({ open, setOpen, mode = "create", initialData = null }) {
-  if (!open) return null;
-
   const dispatch = useDispatch();
   const { categoryActionLoading } = useSelector((state) => state.category);
   const isEdit = mode === "edit";
@@ -55,6 +53,8 @@ function CreateCategoryModal({ open, setOpen, mode = "create", initialData = nul
       }
     },
   });
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">

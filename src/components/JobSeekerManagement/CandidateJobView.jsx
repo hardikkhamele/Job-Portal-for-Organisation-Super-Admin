@@ -30,6 +30,12 @@ function CandidateJobView() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(5);
+  const [filterValues, setFilterValues] = useState({ education: "", experience: "", location: "" });
+
+  const handleFilterSearch = (filters) => {
+    setFilterValues(filters);
+    setCurrentPage(1);
+  };
 
   // Fetch data when designation, page, or limit changes
   useEffect(() => {
@@ -86,16 +92,29 @@ function CandidateJobView() {
     document.body.removeChild(link);
   };
 
-  const filtered = jobSeekers.filter(
-    (s) =>
+  const filtered = jobSeekers.filter((s) => {
+    const locationStr = typeof s.location === 'object'
+      ? `${s.location.city} ${s.location.state}`
+      : (s.location || "");
+
+    const matchesSearch =
       s.fullName?.toLowerCase().includes(search.toLowerCase()) ||
       s.email?.toLowerCase().includes(search.toLowerCase()) ||
-      // s.location?.toLowerCase().includes(search.toLowerCase())
-      (typeof s.location === 'object' 
-  ? `${s.location.city} ${s.location.state}` 
-  : (s.location || "")
-).toLowerCase().includes(search.toLowerCase())
-  );
+      locationStr.toLowerCase().includes(search.toLowerCase());
+
+    const matchesEducation = !filterValues.education ||
+      s.education?.toLowerCase().includes(filterValues.education.toLowerCase());
+
+    const matchesExperience = !filterValues.experience ||
+      (filterValues.experience === "Fresher"
+        ? (s.experiences?.length === 0 || !s.experiences)
+        : s.experiences?.length > 0);
+
+    const matchesLocation = !filterValues.location ||
+      locationStr.toLowerCase().includes(filterValues.location.toLowerCase());
+
+    return matchesSearch && matchesEducation && matchesExperience && matchesLocation;
+  });
 
   const columns = [
     {
@@ -321,7 +340,7 @@ function CandidateJobView() {
         </div>
       </div>
 
-      <FilterModal isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} />
+      <FilterModal isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} onSearch={handleFilterSearch} />
       <DeleteModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}

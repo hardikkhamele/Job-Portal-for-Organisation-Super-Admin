@@ -1,16 +1,24 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, CircleChevronLeft } from "lucide-react";
+import { CircleChevronLeft } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { toast } from "react-toastify";
 
 const CreateJobSeekerPlan = () => {
   const navigate = useNavigate();
 
   // ✅ Validation Schema
   const validationSchema = Yup.object({
-    name: Yup.string().required("Plan name is required"),
-    tag: Yup.string().required("Plan tag is required"),
+    name: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only alphabetic characters are allowed")
+      .min(2, "Plan Name must be at least 2 characters")
+      .max(50, "Plan Name cannot exceed 50 characters")
+      .required("Plan name is required"),
+    tag: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only alphabetic characters are allowed")
+      .min(2, "Plan Tag must be at least 2 characters")
+      .max(50, "Plan Tag cannot exceed 50 characters")
+      .required("Plan tag is required"),
     validity: Yup.string().required("Validity is required"),
     price: Yup.number()
       .typeError("Must be a number")
@@ -39,6 +47,99 @@ const CreateJobSeekerPlan = () => {
     validationSchema,
     onSubmit: (values) => {
       console.log("Form Data:", values);
+      try {
+        const stored = localStorage.getItem("jobSeekerPlans");
+        let currentPlans = [];
+        if (stored) {
+          currentPlans = JSON.parse(stored);
+        } else {
+          currentPlans = [
+            {
+              id: 1,
+              name: "Basic",
+              tag: "For Active Job Seekers",
+              validity: "1 Month",
+              price: 199,
+              discount: 35,
+              applyLimit: 10,
+              profileBoost: "Yes",
+              jobAlert: "Yes",
+              support: "Yes",
+            },
+            {
+              id: 2,
+              name: "Premium",
+              tag: "Most Popular",
+              validity: "1 Month",
+              price: 299,
+              discount: 35,
+              applyLimit: 20,
+              profileBoost: "Yes",
+              jobAlert: "Yes",
+              support: "Yes",
+            },
+            {
+              id: 3,
+              name: "Premium",
+              tag: "Most Popular",
+              validity: "1 Month",
+              price: 399,
+              discount: 35,
+              applyLimit: 30,
+              profileBoost: "Yes",
+              jobAlert: "Yes",
+              support: "Yes",
+            },
+            {
+              id: 4,
+              name: "Premium",
+              tag: "Most Popular",
+              validity: "1 Month",
+              price: 499,
+              discount: 35,
+              applyLimit: 40,
+              profileBoost: "Yes",
+              jobAlert: "Yes",
+              support: "Yes",
+            },
+            {
+              id: 5,
+              name: "Premium",
+              tag: "Most Popular",
+              validity: "1 Month",
+              price: 599,
+              discount: 35,
+              applyLimit: 50,
+              profileBoost: "Yes",
+              jobAlert: "Yes",
+              support: "Yes",
+            },
+          ];
+        }
+
+        const newPlan = {
+          id: Date.now(),
+          name: values.name,
+          tag: values.tag,
+          validity: values.validity,
+          price: Number(values.price),
+          discount: Number(values.discount),
+          applyLimit: Number(values.applyLimit),
+          profileBoost: values.profileBoost,
+          jobAlert: values.jobAlert,
+          support: values.support,
+        };
+
+        currentPlans.push(newPlan);
+        localStorage.setItem("jobSeekerPlans", JSON.stringify(currentPlans));
+      } catch (err) {
+        console.error("Failed to save plan to localStorage:", err);
+      }
+
+      toast.success("Job Seeker Plan Created Successfully!", { autoClose: 1000 });
+      setTimeout(() => {
+        navigate("/job-seeker-plans");
+      }, 1000);
     },
   });
 

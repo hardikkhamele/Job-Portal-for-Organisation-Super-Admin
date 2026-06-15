@@ -34,14 +34,18 @@ export const fetchDesignationsBySubCategory = createAsyncThunk(
 
 export const uploadCandidateDatabase = createAsyncThunk(
   "dropdown/uploadCandidateDatabase",
-  async (formData) => {
-    const response = await axios.post(`${BASE_URL}/api/admin/candidate-database/uploadCandidateDatabase`, formData, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${BASE_URL}/api/admin/candidate-database/uploadCandidateDatabase`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Something went wrong");
+    }
   }
 );
 
@@ -107,7 +111,10 @@ const allDropdownSlice = createSlice({
       })
       .addCase(uploadCandidateDatabase.rejected, (state, action) => {
         state.uploadLoading = false;
-        state.uploadError = action.error.message;
+        state.uploadError = action.payload;
+        toast.error(action.payload || "Failed to upload database", {
+          autoClose: 3000
+        });
       });
   },
 });

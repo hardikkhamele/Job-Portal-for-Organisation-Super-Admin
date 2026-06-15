@@ -15,8 +15,6 @@ function DesignationModal({
   categoryId,
   subCategoryId,
 }) {
-  if (!open) return null;
-
   const dispatch = useDispatch();
   const { designationActionLoading } = useSelector((state) => state.category);
   const isEdit = mode === "edit";
@@ -29,8 +27,16 @@ function DesignationModal({
     },
     enableReinitialize: true,
     validationSchema: Yup.object({
-      name: Yup.string().required("Designation name is required"),
-      description: Yup.string().required("Description is required"),
+      name: Yup.string()
+        .matches(/^[A-Za-z\s&\-]+$/, "Only alphabets, spaces, '&', and '-' are allowed")
+        .min(2, "Must be at least 2 characters")
+        .max(50, "Must be 50 characters or less")
+        .required("Designation name is required"),
+      description: Yup.string()
+        .matches(/^[A-Za-z\s.,&'\-]+$/, "Only alphabets and basic punctuation are allowed")
+        .min(5, "Must be at least 5 characters")
+        .max(250, "Must be 250 characters or less")
+        .required("Description is required"),
       icon: isEdit
         ? Yup.mixed().nullable()
         : Yup.mixed().required("Icon is required"),
@@ -56,6 +62,8 @@ function DesignationModal({
       }
     },
   });
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">

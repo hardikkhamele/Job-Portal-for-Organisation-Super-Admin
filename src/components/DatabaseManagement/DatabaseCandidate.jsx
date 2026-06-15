@@ -11,7 +11,7 @@ import {
 
 const DatabaseCandidate = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch();cd 
 
   // Selectors
   const { candidates, total, totalPages, loading } = useSelector(
@@ -40,9 +40,19 @@ const DatabaseCandidate = () => {
         search,
         category: selectedCategory,
         designation: selectedDesignation,
+        location: selectedLocation,
+        experience: selectedExperience,
       }),
     );
-  }, [dispatch, currentPage, search, selectedCategory, selectedDesignation]);
+  }, [
+    dispatch,
+    currentPage,
+    search,
+    selectedCategory,
+    selectedDesignation,
+    selectedLocation,
+    selectedExperience,
+  ]);
 
   const handleCategoryChange = (e) => {
     const categoryId = e.target.value;
@@ -123,7 +133,10 @@ const DatabaseCandidate = () => {
 
               <select
                 value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
+                onChange={(e) => {
+                  setSelectedLocation(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-1/2 md:w-48"
               >
                 <option value="">Select Location</option>
@@ -134,7 +147,10 @@ const DatabaseCandidate = () => {
 
               <select
                 value={selectedExperience}
-                onChange={(e) => setSelectedExperience(e.target.value)}
+                onChange={(e) => {
+                  setSelectedExperience(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-1/2 md:w-48"
               >
                 <option value="">Select Experience</option>

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -25,25 +25,25 @@ import {
 const CreditSchema = Yup.object().shape({
   databaseCredit: Yup.object().shape({
     profileUnlock: Yup.number()
-      .min(0, "Must be ≥ 0")
+      .min(1, "Credit value must be greater than 0")
       .integer("Whole number only")
       .required("Required"),
     excelDownload: Yup.number()
-      .min(0, "Must be ≥ 0")
+      .min(1, "Credit value must be greater than 0")
       .integer("Whole number only")
       .required("Required"),
   }),
   jobPostCredit: Yup.object().shape({
     classicJobPost: Yup.number()
-      .min(0, "Must be ≥ 0")
+      .min(1, "Credit value must be greater than 0")
       .integer("Whole number only")
       .required("Required"),
     premiumJobPost: Yup.number()
-      .min(0, "Must be ≥ 0")
+      .min(1, "Credit value must be greater than 0")
       .integer("Whole number only")
       .required("Required"),
     superPremiumJobPost: Yup.number()
-      .min(0, "Must be ≥ 0")
+      .min(1, "Credit value must be greater than 0")
       .integer("Whole number only")
       .required("Required"),
   }),

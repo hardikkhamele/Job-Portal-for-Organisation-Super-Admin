@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, Upload, Eye, EyeOff } from "lucide-react"; 
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +23,7 @@ function EditHR() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (id) {
@@ -51,12 +52,68 @@ function EditHR() {
     }
   }, [success, dispatch, navigate]);
 
+  const validate = () => {
+    const newErrors = {};
+
+    // HR Name validation
+    if (!formData.hrName.trim()) {
+      newErrors.hrName = "HR Name is required";
+    } else if (!/^[A-Za-z\s]+$/.test(formData.hrName)) {
+      newErrors.hrName = "Only alphabetic characters and spaces are allowed";
+    } else if (formData.hrName.trim().length < 2) {
+      newErrors.hrName = "HR Name must be at least 2 characters";
+    } else if (formData.hrName.length > 50) {
+      newErrors.hrName = "HR Name must not exceed 50 characters";
+    }
+
+    // Designation validation
+    if (!formData.designation.trim()) {
+      newErrors.designation = "Designation is required";
+    } else if (!/^[A-Za-z\s]+$/.test(formData.designation)) {
+      newErrors.designation = "Only alphabetic characters and spaces are allowed";
+    } else if (formData.designation.trim().length < 2) {
+      newErrors.designation = "Designation must be at least 2 characters";
+    } else if (formData.designation.length > 50) {
+      newErrors.designation = "Designation must not exceed 50 characters";
+    }
+
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    } else if (formData.email.length > 100) {
+      newErrors.email = "Email must not exceed 100 characters";
+    }
+
+    // Password validation (optional for Edit HR)
+    if (formData.password) {
+      if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      } else if (formData.password.length > 20) {
+        newErrors.password = "Password must not exceed 20 characters";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
       setFormData({ ...formData, image: files[0] });
     } else {
       setFormData({ ...formData, [name]: value });
+      // Clear validation error when typing
+      if (errors[name]) {
+        setErrors((prev) => {
+          const updated = { ...prev };
+          delete updated[name];
+          return updated;
+        });
+      }
     }
   };
 
@@ -64,14 +121,16 @@ function EditHR() {
     e.preventDefault();
     if (!id) return;
 
-    const data = new FormData();
-    data.append("hrName", formData.hrName);
-    data.append("designation", formData.designation);
-    data.append("email", formData.email);
-    if (formData.password) data.append("password", formData.password);
-    if (formData.image) data.append("image", formData.image);
+    if (validate()) {
+      const data = new FormData();
+      data.append("hrName", formData.hrName);
+      data.append("designation", formData.designation);
+      data.append("email", formData.email);
+      if (formData.password) data.append("password", formData.password);
+      if (formData.image) data.append("image", formData.image);
 
-    dispatch(updateHrDetails({ id, formData: data }));
+      dispatch(updateHrDetails({ id, formData: data }));
+    }
   };
 
   if (loading) return <div className="p-10 text-center font-bold text-purple-600">Loading HR Details...</div>;
@@ -93,7 +152,7 @@ function EditHR() {
 
         <div className="border border-gray-300 rounded-lg p-6 min-h-[500px] flex flex-col justify-between">
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-x-10 gap-y-6">
-            <div>
+             <div>
               <label className="text-sm text-gray-700 font-medium">HR Name</label>
               <input
                 type="text"
@@ -101,8 +160,14 @@ function EditHR() {
                 placeholder="Enter HR Name"
                 value={formData.hrName}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all"
+                maxLength={50}
+                className={`w-full mt-2 bg-gray-100 border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all ${
+                  errors.hrName ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                }`}
               />
+              {errors.hrName && (
+                <p className="text-red-500 text-xs mt-1">{errors.hrName}</p>
+              )}
             </div>
 
             <div>
@@ -113,8 +178,14 @@ function EditHR() {
                 placeholder="Enter Designation"
                 value={formData.designation}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all"
+                maxLength={50}
+                className={`w-full mt-2 bg-gray-100 border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all ${
+                  errors.designation ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                }`}
               />
+              {errors.designation && (
+                <p className="text-red-500 text-xs mt-1">{errors.designation}</p>
+              )}
             </div>
 
             <div>
@@ -125,8 +196,14 @@ function EditHR() {
                 placeholder="Enter Email Id"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all"
+                maxLength={100}
+                className={`w-full mt-2 bg-gray-100 border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all ${
+                  errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                }`}
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div>
@@ -138,7 +215,10 @@ function EditHR() {
                   placeholder="Enter New Password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full bg-gray-100 border border-gray-300 rounded-md px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all"
+                  maxLength={20}
+                  className={`w-full bg-gray-100 border rounded-md px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-1 transition-all ${
+                    errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                  }`}
                 />
                 <button
                   type="button"
@@ -148,6 +228,9 @@ function EditHR() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              )}
             </div>
 
             <div className="col-span-2">

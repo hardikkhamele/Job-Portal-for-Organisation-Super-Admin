@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,71 +9,106 @@ import { Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-rea
 import { useNavigate } from "react-router";
 import JobSeekerValidityModal from "../common/JobSeekerValidityModal";
 import DeleteModal from "../common/DeleteModal";
+
 const JobSeekerPlans = () => {
   const [globalFilter, setGlobalFilter] = useState("");
   const [openModal, setOpenModal] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 5,
   });
- const navigate = useNavigate ();
+  const navigate = useNavigate();
 
-  // ✅ Data
-  const data = useMemo(
-    () => [
+  // ✅ Load from localStorage or seed default plans
+  const [plans, setPlans] = useState(() => {
+    const stored = localStorage.getItem("jobSeekerPlans");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    const defaultPlans = [
       {
         id: 1,
         name: "Basic",
         tag: "For Active Job Seekers",
         validity: "1 Month",
-        price: "₹199",
-        discount: "35%",
+        price: 199,
+        discount: 35,
+        applyLimit: 10,
+        profileBoost: "Yes",
+        jobAlert: "Yes",
+        support: "Yes",
       },
       {
         id: 2,
         name: "Premium",
         tag: "Most Popular",
         validity: "1 Month",
-        price: "₹299",
-        discount: "35%",
+        price: 299,
+        discount: 35,
+        applyLimit: 20,
+        profileBoost: "Yes",
+        jobAlert: "Yes",
+        support: "Yes",
       },
       {
         id: 3,
         name: "Premium",
         tag: "Most Popular",
         validity: "1 Month",
-        price: "₹399",
-        discount: "35%",
+        price: 399,
+        discount: 35,
+        applyLimit: 30,
+        profileBoost: "Yes",
+        jobAlert: "Yes",
+        support: "Yes",
       },
       {
         id: 4,
         name: "Premium",
         tag: "Most Popular",
         validity: "1 Month",
-        price: "₹499",
-        discount: "35%",
+        price: 499,
+        discount: 35,
+        applyLimit: 40,
+        profileBoost: "Yes",
+        jobAlert: "Yes",
+        support: "Yes",
       },
       {
         id: 5,
         name: "Premium",
         tag: "Most Popular",
         validity: "1 Month",
-        price: "₹599",
-        discount: "35%",
+        price: 599,
+        discount: 35,
+        applyLimit: 50,
+        profileBoost: "Yes",
+        jobAlert: "Yes",
+        support: "Yes",
       },
-    ],
-    []
-  );
+    ];
+    localStorage.setItem("jobSeekerPlans", JSON.stringify(defaultPlans));
+    return defaultPlans;
+  });
+
+  // ✅ Keep localStorage in sync with plans state
+  useEffect(() => {
+    localStorage.setItem("jobSeekerPlans", JSON.stringify(plans));
+  }, [plans]);
 
   // ✅ Search Filter
   const filteredData = useMemo(() => {
-    return data.filter((item) =>
-      item.name.toLowerCase().includes(globalFilter.toLowerCase())
+    return plans.filter((item) =>
+      item.name?.toLowerCase().includes(globalFilter.toLowerCase())
     );
-  }, [data, globalFilter]);
+  }, [plans, globalFilter]);
 
   // ✅ Columns
   const columns = [
@@ -97,10 +132,12 @@ const [selectedRow, setSelectedRow] = useState(null);
     {
       header: "Plan Price",
       accessorKey: "price",
+      cell: ({ getValue }) => `₹${String(getValue()).replace("₹", "")}`,
     },
     {
       header: "Discount",
       accessorKey: "discount",
+      cell: ({ getValue }) => `${String(getValue()).replace("%", "")}%`,
     },
     {
       header: "Actions",
@@ -109,17 +146,19 @@ const [selectedRow, setSelectedRow] = useState(null);
           <Eye
             className="text-purple-600 cursor-pointer"
             size={18}
-            onClick={() => setOpenModal(true)}
+            onClick={() => {
+              setSelectedRow(row.original);
+              setOpenModal(true);
+            }}
           />
           <Edit className="text-purple-600 cursor-pointer" size={18} 
-            onClick={()=> navigate("/edit-job-seeker-plan") }
+            onClick={()=> navigate("/edit-job-seeker-plan", { state: row.original }) }
           />
           <Trash2 className="text-red-500 cursor-pointer" size={18}
-           
             onClick={() => {
-    setSelectedRow(row.original); 
-    setDeleteModalOpen(true);     
-  }}
+              setSelectedRow(row.original); 
+              setDeleteModalOpen(true);     
+            }}
            />
         </div>
       ),
@@ -249,15 +288,19 @@ const [selectedRow, setSelectedRow] = useState(null);
       <JobSeekerValidityModal
         isOpen={openModal}
         onClose={() => setOpenModal(false)}
+        data={selectedRow}
       />
       <DeleteModal
-  isOpen={deleteModalOpen}
-  onClose={() => setDeleteModalOpen(false)}
-  onConfirm={() => {
-    console.log("Delete:", selectedRow);
-    setDeleteModalOpen(false);
-  }}
-/>
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={() => {
+          if (selectedRow) {
+            setPlans((prev) => prev.filter((plan) => plan.id !== selectedRow.id));
+          }
+          setDeleteModalOpen(false);
+          setSelectedRow(null);
+        }}
+      />
     </div>
   );
 };

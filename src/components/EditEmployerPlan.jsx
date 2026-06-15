@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CircleChevronLeft } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 import { updateEmployerPlans, fetchEmployerPlanById, clearSinglePlan } from "../redux/slice/subscriptions/employerPlans/getEmployerPlans";
 const EditEmployerPlan = () => {
@@ -23,13 +24,30 @@ const EditEmployerPlan = () => {
 
   // 2. Validation Schema
   const validationSchema = Yup.object({
-    category: Yup.string(),
-    name: Yup.string(),
-    tag: Yup.string(),
-    validity: Yup.string(),
-    price: Yup.number(),
-    discount: Yup.number().typeError("Must be a number"),
-    jobCredits: Yup.number().typeError("Must be a number"),
+    category: Yup.string().required("Plan category is required"),
+    name: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only alphabetic characters are allowed")
+      .min(2, "Plan Name must be at least 2 characters")
+      .max(50, "Plan Name cannot exceed 50 characters")
+      .required("Plan name is required"),
+    tag: Yup.string()
+      .matches(/^[A-Za-z\s]*$/, "Only alphabetic characters are allowed")
+      .max(50, "Plan Tag cannot exceed 50 characters"),
+    validity: Yup.string().required("Validity is required"),
+    price: Yup.number()
+      .typeError("Must be a number")
+      .required("Price is required")
+      .min(0, "Price cannot be negative"),
+    discount: Yup.number()
+      .typeError("Must be a number")
+      .min(0, "Discount cannot be negative")
+      .max(100, "Discount cannot exceed 100%"),
+    jobCredits: Yup.number()
+      .typeError("Must be a number")
+      .min(0, "Credits cannot be negative"),
+    databaseCredit: Yup.number()
+      .typeError("Must be a number")
+      .min(0, "Credits cannot be negative"),
   });
 
   // 3. Formik Setup
@@ -119,6 +137,9 @@ const EditEmployerPlan = () => {
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
                   {...formik.getFieldProps("tag")}
                 />
+                {formik.touched.tag && formik.errors.tag && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.tag}</p>
+                )}
               </div>
 
               <div>
@@ -128,16 +149,25 @@ const EditEmployerPlan = () => {
                   <option value="90">3 Months</option>
                   <option value="180">6 Months</option>
                 </select>
+                {formik.touched.validity && formik.errors.validity && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.validity}</p>
+                )}
               </div>
 
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">Price</label>
                 <input name="price" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("price")} />
+                {formik.touched.price && formik.errors.price && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.price}</p>
+                )}
               </div>
 
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">Discount (%)</label>
                 <input name="discount" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("discount")} />
+                {formik.touched.discount && formik.errors.discount && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.discount}</p>
+                )}
               </div>
             </div>
           </div>
@@ -149,10 +179,16 @@ const EditEmployerPlan = () => {
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">Job Credit</label>
                 <input name="jobCredits" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("jobCredits")} />
+                {formik.touched.jobCredits && formik.errors.jobCredits && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.jobCredits}</p>
+                )}
               </div>
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">Database Credit</label>
                 <input name="databaseCredit" className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full" {...formik.getFieldProps("databaseCredit")} />
+                {formik.touched.databaseCredit && formik.errors.databaseCredit && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.databaseCredit}</p>
+                )}
               </div>
             </div>
           </div>

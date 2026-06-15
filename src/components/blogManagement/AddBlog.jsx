@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Upload } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +13,33 @@ const AddBlog = () => {
 
   const [preview, setPreview] = useState(null);
   const [form, setForm] = useState({ title: "", description: "", image: null });
+  const [errors, setErrors] = useState({ title: "", description: "" });
+
+  const validate = () => {
+    let valid = true;
+    const newErrors = { title: "", description: "" };
+
+    const titleText = form.title.trim();
+    if (!titleText) {
+      newErrors.title = "Blog Title is required";
+      valid = false;
+    } else if (!/^[A-Za-z\s]+$/.test(titleText)) {
+      newErrors.title = "Only alphabets are allowed";
+      valid = false;
+    }
+
+    const strippedDescription = form.description.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+    if (!strippedDescription) {
+      newErrors.description = "Description is required";
+      valid = false;
+    } else if (!/^[A-Za-z\s]+$/.test(strippedDescription)) {
+      newErrors.description = "Only alphabets are allowed";
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
 
   const modules = {
     toolbar: [
@@ -33,6 +60,7 @@ const AddBlog = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
 
     const formData = new FormData();
     formData.append("title", form.title);
@@ -67,9 +95,20 @@ const AddBlog = () => {
               type="text"
               required
               placeholder="Enter blog title..."
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:border-purple-400 outline-none transition"
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:border-purple-400 outline-none transition ${
+                errors.title ? "border-red-500" : "border-gray-200"
+              }`}
+              value={form.title}
+              onChange={(e) => {
+                const val = e.target.value;
+                setForm({ ...form, title: val });
+                let err = "";
+                if (!val.trim()) err = "Blog Title is required";
+                else if (!/^[A-Za-z\s]+$/.test(val)) err = "Only alphabets are allowed";
+                setErrors((prev) => ({ ...prev, title: err }));
+              }}
             />
+            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
           </div>
 
           <div>
@@ -79,16 +118,26 @@ const AddBlog = () => {
               Instead, let Quill's editor area (.ql-editor) have the fixed height via the style prop.
               The `mb-10` accounts for the Quill toolbar height so content below doesn't overlap.
             */}
-            <div className="border border-gray-300 rounded-lg overflow-hidden mb-10">
+            <div className={`border rounded-lg overflow-hidden mb-10 ${
+              errors.description ? "border-red-500" : "border-gray-300"
+            }`}>
               <ReactQuill
                 theme="snow"
                 value={form.description}
-                onChange={(content) => setForm({ ...form, description: content })}
+                onChange={(content) => {
+                  setForm({ ...form, description: content });
+                  const stripped = content.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+                  let err = "";
+                  if (!stripped) err = "Description is required";
+                  else if (!/^[A-Za-z\s]+$/.test(stripped)) err = "Only alphabets are allowed";
+                  setErrors((prev) => ({ ...prev, description: err }));
+                }}
                 modules={modules}
                 placeholder="Write content here..."
                 style={{ height: "280px" }}
               />
             </div>
+            {errors.description && <p className="text-red-500 text-xs mt-1 -mt-8 mb-8">{errors.description}</p>}
           </div>
 
           <div className="pt-2">

@@ -24,7 +24,24 @@ import {
   CitySelect,
 } from "react-country-state-city";
 import "react-country-state-city/dist/react-country-state-city.css";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
+
+const validateImageFile = (file) => {
+  if (!file) return false;
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+  const maxSizeBytes = 2 * 1024 * 1024; // 2MB
+
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Invalid file format. Only JPG, JPEG, and PNG are allowed.");
+    return false;
+  }
+  if (file.size > maxSizeBytes) {
+    toast.error("File size exceeds 2MB limit. Please upload a smaller image.");
+    return false;
+  }
+  return true;
+};
+
 
 const AddEmployee = () => {
   const navigate = useNavigate();
@@ -48,14 +65,47 @@ const AddEmployee = () => {
   const years = Array.from({ length: 2026 - 1952 + 1 }, (_, i) => 2026 - i);
 
   const validationSchema = Yup.object({
-    name: Yup.string().required("Company Name is required"),
+    name: Yup.string()
+      .matches(/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, "Name must contain only alphabetic characters and proper spacing")
+      .required("Company Name is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
     password: Yup.string()
-      .min(6, "Min 6 characters")
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character"
+      )
       .required("Password is required"),
     mobile: Yup.string()
-      .matches(/^[0-9]{10}$/, "Invalid mobile number")
+      .matches(/^(?!00)[0-9]{10}$/, "Mobile number must be exactly 10 digits and cannot start with '00'")
       .required("Mobile is required"),
+    hiringFor: Yup.string()
+      .max(100, "Hiring For must be at most 100 characters")
+      .matches(
+        /^[A-Za-z0-9\s,\-\/\.\(\)]*$/,
+        "Hiring For can only contain alphanumeric characters, spaces, and common symbols like , - / . ()"
+      ),
+    legalName: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, "Legal Name must contain only alphabetic characters and proper spacing"),
+    regNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(/^\d{6}$/, "Registration Number must be exactly 6 digits"),
+    gstNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i,
+        "GST Number must be a valid 15-digit code (e.g. 22AAAAA0000A1Z5)"
+      ),
+    cinNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(
+        /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/i,
+        "CIN Number must be a valid 21-character code (e.g. L01234MH2026PTC012345)"
+      ),
   });
   const initialValues = {
     name: "",
@@ -206,27 +256,42 @@ const AddEmployee = () => {
                 <h2 className={sectionHeading}>
                   <Building2 size={20} /> Company Details
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   <div className="flex flex-col items-center justify-center border-2 border-dashed border-purple-200 rounded-xl p-6 bg-purple-50/20 relative hover:border-purple-400 transition cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"
                       className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={(e) => setLogo(e.target.files[0])}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (validateImageFile(file)) {
+                            setLogo(file);
+                          } else {
+                            e.target.value = "";
+                          }
+                        }
+                      }}
                     />
                     {logo ? (
-                      <img
-                        src={URL.createObjectURL(logo)}
-                        alt="logo"
-                        className="h-16 w-16 object-contain"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <Upload
-                          className="mx-auto text-purple-500 mb-1"
-                          size={20}
+                      <div className="relative group w-full h-full flex items-center justify-center p-2">
+                        <img
+                          src={URL.createObjectURL(logo)}
+                          alt="logo"
+                          className="h-16 w-16 object-contain"
                         />
-                        <p className="text-xs text-gray-500">Company Logo</p>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
+                          <p className="text-white text-xs font-semibold">Change Logo</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center p-4">
+                        <Upload
+                          className="mx-auto text-purple-500 mb-2"
+                          size={24}
+                        />
+                        <p className="text-sm font-semibold text-gray-700">Company Logo</p>
+                        <p className="text-[11px] text-gray-400 mt-1">PNG, JPG, JPEG (Max 2MB)</p>
                       </div>
                     )}
                   </div>
@@ -235,24 +300,49 @@ const AddEmployee = () => {
                       type="file"
                       accept="image/*"
                       className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={(e) => setBanner(e.target.files[0])}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (validateImageFile(file)) {
+                            setBanner(file);
+                          } else {
+                            e.target.value = "";
+                          }
+                        }
+                      }}
                     />
                     {banner ? (
-                      <img
-                        src={URL.createObjectURL(banner)}
-                        alt="banner"
-                        className="h-16 w-full object-cover rounded"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <ImageIcon
-                          className="mx-auto text-purple-500 mb-1"
-                          size={20}
+                      <div className="relative group w-full h-full flex items-center justify-center p-2">
+                        <img
+                          src={URL.createObjectURL(banner)}
+                          alt="banner"
+                          className="h-16 w-full object-cover rounded"
                         />
-                        <p className="text-xs text-gray-500">Company Banner</p>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
+                          <p className="text-white text-xs font-semibold">Change Banner</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center p-4">
+                        <ImageIcon
+                          className="mx-auto text-purple-500 mb-2"
+                          size={24}
+                        />
+                        <p className="text-sm font-semibold text-gray-700">Company Banner</p>
+                        <p className="text-[11px] text-gray-400 mt-1">PNG, JPG, JPEG (Max 2MB)</p>
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Image Upload Guidelines */}
+                <div className="mb-8 bg-purple-50/40 border border-purple-100 rounded-xl p-4 flex flex-col gap-2">
+                  <p className="text-sm font-semibold text-purple-900">Image Upload Guidelines:</p>
+                  <ul className="text-xs text-gray-600 space-y-1 list-disc pl-5">
+                    <li>Supported Formats: <span className="font-medium text-gray-800">PNG, JPG, JPEG</span></li>
+                    <li>Maximum File Size: <span className="font-medium text-gray-800">2MB</span> per image</li>
+                    <li>Recommended Dimensions: <span className="font-medium text-gray-800">Square (1:1 Ratio)</span> for Logo, <span className="font-medium text-gray-800">Landscape (16:9 Ratio)</span> for Banner</li>
+                  </ul>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -323,6 +413,9 @@ const AddEmployee = () => {
                       component="p"
                       className="text-red-500 text-xs mt-1"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Must be at least 8 characters, containing 1 uppercase, 1 lowercase, 1 number, and 1 special character (e.g. @$!%*?&).
+                    </p>
                   </div>
 
                   {/* ✅ Mobile - error border + message */}
@@ -491,11 +584,22 @@ const AddEmployee = () => {
                   <BadgeCheck size={20} /> Hiring Preference
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <Field
-                    name="hiringFor"
-                    placeholder="Hiring For..."
-                    className={inputClass}
-                  />
+                  <div>
+                    <Field
+                      name="hiringFor"
+                      placeholder="Hiring For..."
+                      className={
+                        touched.hiringFor && errors.hiringFor
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="hiringFor"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
                   <Field
                     as="select"
                     name="jobLocationType"
@@ -546,26 +650,70 @@ const AddEmployee = () => {
                   Legal Documentation
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field
-                    name="legalName"
-                    placeholder="Legal Name"
-                    className={inputClass}
-                  />
-                  <Field
-                    name="regNumber"
-                    placeholder="Reg Number"
-                    className={inputClass}
-                  />
-                  <Field
-                    name="gstNumber"
-                    placeholder="GST Number"
-                    className={inputClass}
-                  />
-                  <Field
-                    name="cinNumber"
-                    placeholder="CIN Number"
-                    className={inputClass}
-                  />
+                  <div>
+                    <Field
+                      name="legalName"
+                      placeholder="Legal Name"
+                      className={
+                        touched.legalName && errors.legalName
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="legalName"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Field
+                      name="regNumber"
+                      placeholder="Reg Number"
+                      className={
+                        touched.regNumber && errors.regNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="regNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Field
+                      name="gstNumber"
+                      placeholder="GST Number"
+                      className={
+                        touched.gstNumber && errors.gstNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="gstNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Field
+                      name="cinNumber"
+                      placeholder="CIN Number"
+                      className={
+                        touched.cinNumber && errors.cinNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="cinNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
                 </div>
               </div>
 

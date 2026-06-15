@@ -254,7 +254,8 @@
 
 
 import React, { useState, useEffect } from "react";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import {
   ArrowLeft,
   Eye,
@@ -273,6 +274,23 @@ import { updateEmployer, resetUpdateState } from "../../redux/slice/employer/upd
 import { fetchEmployerById } from "../../redux/slice/employer/getEmployeeById"; 
 import { CountrySelect, StateSelect, CitySelect } from "react-country-state-city";
 import "react-country-state-city/dist/react-country-state-city.css";
+import { toast } from "react-toastify";
+
+const validateImageFile = (file) => {
+  if (!file) return false;
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+  const maxSizeBytes = 2 * 1024 * 1024; // 2MB
+
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Invalid file format. Only JPG, JPEG, and PNG are allowed.");
+    return false;
+  }
+  if (file.size > maxSizeBytes) {
+    toast.error("File size exceeds 2MB limit. Please upload a smaller image.");
+    return false;
+  }
+  return true;
+};
 
 const EditEmployee = () => {
   const { id } = useParams();
@@ -292,6 +310,51 @@ const EditEmployee = () => {
   const [cityData, setCityData] = useState({ id: 0, name: "" });
 
   const years = Array.from({ length: 2026 - 1950 + 1 }, (_, i) => 2026 - i);
+
+  const validationSchema = Yup.object({
+    name: Yup.string()
+      .matches(/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, "Name must contain only alphabetic characters and proper spacing")
+      .required("Company Name is required"),
+    email: Yup.string().email("Invalid email").required("Email is required"),
+    mobileNumber: Yup.string()
+      .matches(/^(?!00)[0-9]{10}$/, "Mobile number must be exactly 10 digits and cannot start with '00'")
+      .required("Mobile number is required"),
+    password: Yup.string()
+      .nullable()
+      .notRequired()
+      .test("is-strong", "Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character", (value) => {
+        if (!value) return true; // optional
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
+      }),
+    hiringFor: Yup.string()
+      .max(100, "Hiring For must be at most 100 characters")
+      .matches(
+        /^[A-Za-z0-9\s,\-\/\.\(\)]*$/,
+        "Hiring For can only contain alphanumeric characters, spaces, and common symbols like , - / . ()"
+      ),
+    legalName: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, "Legal Name must contain only alphabetic characters and proper spacing"),
+    regNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(/^\d{6}$/, "Registration Number must be exactly 6 digits"),
+    gstNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i,
+        "GST Number must be a valid 15-digit code (e.g. 22AAAAA0000A1Z5)"
+      ),
+    cinNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(
+        /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/i,
+        "CIN Number must be a valid 21-character code (e.g. L01234MH2026PTC012345)"
+      ),
+  });
 
   useEffect(() => {
     if (id) {
@@ -382,6 +445,7 @@ const EditEmployee = () => {
   };
 
   const inputClass = "w-full mt-2 bg-gray-50 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all";
+  const inputErrorClass = "w-full mt-2 bg-gray-50 border border-red-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-400 transition-all";
   const sectionHeading = "flex items-center gap-2 text-lg font-bold text-purple-800 mb-5 border-b border-purple-100 pb-2";
 
   if (fetchLoading) return <div className="p-8 text-center font-bold">Fetching Data...</div>;
@@ -396,40 +460,142 @@ const EditEmployee = () => {
           <h1 className="text-2xl font-bold text-gray-800">Edit Employer Details</h1>
         </div>
 
-        <Formik initialValues={initialValues} enableReinitialize={true} onSubmit={handleSubmit}>
-          {() => (
+        <Formik initialValues={initialValues} enableReinitialize={true} validationSchema={validationSchema} onSubmit={handleSubmit}>
+          {({ errors, touched, setFieldValue }) => (
             <Form className="space-y-12">
               
               <div className="bg-white border border-gray-200 p-4 rounded-2xl">
                 <h2 className={sectionHeading}><Building2 size={20} /> Basic Info</h2>
                 
                 {/* Logo & Banner Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   <div className="flex flex-col items-center justify-center border-2 border-dashed border-purple-200 rounded-xl p-6 relative hover:border-purple-400 transition cursor-pointer">
-                    <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setLogo(e.target.files[0])} />
-                    {logo ? <img src={URL.createObjectURL(logo)} alt="logo" className="h-16 w-16 object-contain" /> : 
-                     employer?.companyDetail?.companyLogo?.[0] ? <img src={employer.companyDetail.companyLogo[0]} alt="logo" className="h-16 w-16 object-contain" /> :
-                     <div className="text-center"><Upload className="mx-auto text-purple-500 mb-1" size={20} /><p className="text-xs text-gray-500">Change Logo</p></div>}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (validateImageFile(file)) {
+                            setLogo(file);
+                          } else {
+                            e.target.value = "";
+                          }
+                        }
+                      }}
+                    />
+                    {logo ? (
+                      <div className="relative group w-full h-full flex items-center justify-center p-2">
+                        <img src={URL.createObjectURL(logo)} alt="logo" className="h-16 w-16 object-contain" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
+                          <p className="text-white text-xs font-semibold">Change Logo</p>
+                        </div>
+                      </div>
+                    ) : employer?.companyDetail?.companyLogo?.[0] ? (
+                      <div className="relative group w-full h-full flex items-center justify-center p-2">
+                        <img src={employer.companyDetail.companyLogo[0]} alt="logo" className="h-16 w-16 object-contain" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
+                          <p className="text-white text-xs font-semibold">Change Logo</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center p-4">
+                        <Upload className="mx-auto text-purple-500 mb-2" size={24} />
+                        <p className="text-sm font-semibold text-gray-700">Company Logo</p>
+                        <p className="text-[11px] text-gray-400 mt-1">PNG, JPG, JPEG (Max 2MB)</p>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-center justify-center border-2 border-dashed border-purple-200 rounded-xl p-6 relative hover:border-purple-400 transition cursor-pointer">
-                    <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setBanner(e.target.files[0])} />
-                    {banner ? <img src={URL.createObjectURL(banner)} alt="banner" className="h-16 w-full object-cover rounded" /> : 
-                     employer?.companyDetail?.companyBanner?.[0] ? <img src={employer.companyDetail.companyBanner[0]} alt="banner" className="h-16 w-full object-cover rounded" /> :
-                     <div className="text-center"><ImageIcon className="mx-auto text-purple-500 mb-1" size={20} /><p className="text-xs text-gray-500">Change Banner</p></div>}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (validateImageFile(file)) {
+                            setBanner(file);
+                          } else {
+                            e.target.value = "";
+                          }
+                        }
+                      }}
+                    />
+                    {banner ? (
+                      <div className="relative group w-full h-full flex items-center justify-center p-2">
+                        <img src={URL.createObjectURL(banner)} alt="banner" className="h-16 w-full object-cover rounded" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
+                          <p className="text-white text-xs font-semibold">Change Banner</p>
+                        </div>
+                      </div>
+                    ) : employer?.companyDetail?.companyBanner?.[0] ? (
+                      <div className="relative group w-full h-full flex items-center justify-center p-2">
+                        <img src={employer.companyDetail.companyBanner[0]} alt="banner" className="h-16 w-full object-cover rounded" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
+                          <p className="text-white text-xs font-semibold">Change Banner</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center p-4">
+                        <ImageIcon className="mx-auto text-purple-500 mb-2" size={24} />
+                        <p className="text-sm font-semibold text-gray-700">Company Banner</p>
+                        <p className="text-[11px] text-gray-400 mt-1">PNG, JPG, JPEG (Max 2MB)</p>
+                      </div>
+                    )}
                   </div>
+                </div>
+
+                {/* Image Upload Guidelines */}
+                <div className="mb-8 bg-purple-50/40 border border-purple-100 rounded-xl p-4 flex flex-col gap-2">
+                  <p className="text-sm font-semibold text-purple-900">Image Upload Guidelines:</p>
+                  <ul className="text-xs text-gray-600 space-y-1 list-disc pl-5">
+                    <li>Supported Formats: <span className="font-medium text-gray-800">PNG, JPG, JPEG</span></li>
+                    <li>Maximum File Size: <span className="font-medium text-gray-800">2MB</span> per image</li>
+                    <li>Recommended Dimensions: <span className="font-medium text-gray-800">Square (1:1 Ratio)</span> for Logo, <span className="font-medium text-gray-800">Landscape (16:9 Ratio)</span> for Banner</li>
+                  </ul>
                 </div>
 
                 {/* Form Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div><label className="text-sm font-semibold text-gray-700">Company Name</label><Field name="name" className={inputClass} /></div>
-                  <div><label className="text-sm font-semibold text-gray-700">Email</label><Field name="email" type="email" className={inputClass} /></div>
-                  <div><label className="text-sm font-semibold text-gray-700">Mobile Number</label><Field name="mobileNumber" className={inputClass} /></div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">Company Name *</label>
+                    <Field name="name" className={touched.name && errors.name ? inputErrorClass : inputClass} />
+                    <ErrorMessage name="name" component="p" className="text-red-500 text-xs mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">Email *</label>
+                    <Field name="email" type="email" className={touched.email && errors.email ? inputErrorClass : inputClass} />
+                    <ErrorMessage name="email" component="p" className="text-red-500 text-xs mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">Mobile Number *</label>
+                    <Field
+                      name="mobileNumber"
+                      type="text"
+                      inputMode="numeric"
+                      className={touched.mobileNumber && errors.mobileNumber ? inputErrorClass : inputClass}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const onlyNums = val.replace(/\D/g, "");
+                        if (onlyNums.length <= 10) {
+                          setFieldValue("mobileNumber", onlyNums);
+                        }
+                      }}
+                    />
+                    <ErrorMessage name="mobileNumber" component="p" className="text-red-500 text-xs mt-1" />
+                  </div>
                   <div className="relative">
                     <label className="text-sm font-semibold text-gray-700">New Password</label>
-                    <Field name="password" type={showPassword ? "text" : "password"} className={inputClass} />
+                    <Field name="password" type={showPassword ? "text" : "password"} className={touched.password && errors.password ? inputErrorClass : inputClass} />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-10 text-gray-400">
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
+                    <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1" />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Must be at least 8 characters, containing 1 uppercase, 1 lowercase, 1 number, and 1 special character (e.g. @$!%*?&).
+                    </p>
                   </div>
                 </div>
 
@@ -470,7 +636,22 @@ const EditEmployee = () => {
               <div className="border border-gray-200 rounded-2xl p-4">
                 <h2 className={sectionHeading}><BadgeCheck size={20} /> Hiring Preference</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Field name="hiringFor" placeholder="Hiring For..." className={inputClass} />
+                  <div>
+                    <Field
+                      name="hiringFor"
+                      placeholder="Hiring For..."
+                      className={
+                        touched.hiringFor && errors.hiringFor
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="hiringFor"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
                   <Field as="select" name="jobLocationType" className={inputClass}>
                     <option value="">Location Type</option>
                     <option value="Onsite">Onsite</option>
@@ -495,10 +676,70 @@ const EditEmployee = () => {
               <div className="border border-gray-200 rounded-2xl p-4">
                 <h2 className={sectionHeading}><ImageIcon size={20} /> Legal Documentation</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div><label className="text-sm font-semibold text-gray-700">Legal Name</label><Field name="legalName" className={inputClass} /></div>
-                  <div><label className="text-sm font-semibold text-gray-700">Registration Number</label><Field name="regNumber" className={inputClass} /></div>
-                  <div><label className="text-sm font-semibold text-gray-700">GST Number</label><Field name="gstNumber" className={inputClass} /></div>
-                  <div><label className="text-sm font-semibold text-gray-700">CIN Number</label><Field name="cinNumber" className={inputClass} /></div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">Legal Name</label>
+                    <Field
+                      name="legalName"
+                      className={
+                        touched.legalName && errors.legalName
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="legalName"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">Registration Number</label>
+                    <Field
+                      name="regNumber"
+                      className={
+                        touched.regNumber && errors.regNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="regNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">GST Number</label>
+                    <Field
+                      name="gstNumber"
+                      className={
+                        touched.gstNumber && errors.gstNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="gstNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">CIN Number</label>
+                    <Field
+                      name="cinNumber"
+                      className={
+                        touched.cinNumber && errors.cinNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="cinNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
                 </div>
               </div>
 

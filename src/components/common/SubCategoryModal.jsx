@@ -14,8 +14,6 @@ function SubCategoryModal({
   initialData = null,
   categoryId,
 }) {
-  if (!open) return null;
-
   const dispatch = useDispatch();
   const { subCategoryActionLoading } = useSelector((state) => state.category);
   const isEdit = mode === "edit";
@@ -62,6 +60,8 @@ function SubCategoryModal({
       }
     },
   });
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">

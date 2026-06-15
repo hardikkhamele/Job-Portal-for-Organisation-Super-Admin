@@ -17,6 +17,13 @@ import {
 import CopyRight from "../common/CopyRight";
 import Footer from "../Footer";
 
+const decodeHtml = (html) => {
+  if (!html) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+};
+
 function JobViewDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -108,13 +115,13 @@ function JobViewDetails() {
             <h3 className="font-semibold mb-2">Job Description</h3>
             <div 
               className="text-sm text-gray-600 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: job.jobDescription }}
+              dangerouslySetInnerHTML={{ __html: decodeHtml(job.jobDescription) }}
             />
 
             <h3 className="font-semibold mt-6 mb-2">Responsibilities</h3>
             <div 
               className="text-sm text-gray-600 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: job.jobResponsibilities }}
+              dangerouslySetInnerHTML={{ __html: decodeHtml(job.jobResponsibilities) }}
             />
 
             <h3 className="font-semibold mt-6 mb-2">Skills Required</h3>
@@ -135,19 +142,25 @@ function JobViewDetails() {
             <h3 className="font-semibold mb-4">Job Overview</h3>
 
             <div className="grid grid-cols-1 gap-4 text-sm">
-              <div className="flex gap-3 items-center">
-                <Calendar size={18} className="text-purple-600" />
+              {/* ERROR CODE: Previously used 'items-center' which centered the icon across both the label and value lines, making it float in the middle. We wrap the icon in a container matching the label's line-height ('h-5 flex items-center') to ensure it aligns perfectly with the first-line label. */}
+              <div className="flex gap-3 items-start">
+                <div className="h-5 flex items-center flex-shrink-0">
+                  <Calendar size={18} className="text-purple-600" />
+                </div>
                 <div>
-                  <p className="text-gray-500">Job Posted</p>
-                  <p>{new Date(job.createdAt).toLocaleDateString()}</p>
+                  <p className="text-gray-500 leading-5">Job Posted</p>
+                  <p className="text-gray-800 font-semibold">{new Date(job.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 items-center">
-                <Calendar size={18} className="text-purple-600" />
+              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. */}
+              <div className="flex gap-3 items-start">
+                <div className="h-5 flex items-center flex-shrink-0">
+                  <Calendar size={18} className="text-purple-600" />
+                </div>
                 <div>
-                  <p className="text-gray-500">Job Expire</p>
-                  <p>
+                  <p className="text-gray-500 leading-5">Job Expire</p>
+                  <p className="text-gray-800 font-semibold">
                     {new Date(
                       job.advanceInformation?.expireDate,
                     ).toLocaleDateString()}
@@ -155,38 +168,54 @@ function JobViewDetails() {
                 </div>
               </div>
 
-              <div className="flex gap-3 items-center">
-                <GraduationCap size={18} className="text-purple-600" />
+              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. Also handled education array joining with comma separation for multiple values. */}
+              <div className="flex gap-3 items-start">
+                <div className="h-5 flex items-center flex-shrink-0">
+                  <GraduationCap size={18} className="text-purple-600" />
+                </div>
                 <div>
-                  <p className="text-gray-500">Education</p>
-                  <p>{job.advanceInformation?.education}</p>
+                  <p className="text-gray-500 leading-5">Education</p>
+                  <p className="text-gray-800 font-semibold">
+                    {Array.isArray(job.advanceInformation?.education)
+                      ? job.advanceInformation.education.join(", ")
+                      : job.advanceInformation?.education}
+                  </p>
                 </div>
               </div>
 
-              <div className="flex gap-3 items-center">
-                <Wallet size={18} className="text-purple-600" />
+              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. */}
+              <div className="flex gap-3 items-start">
+                <div className="h-5 flex items-center flex-shrink-0">
+                  <Wallet size={18} className="text-purple-600" />
+                </div>
                 <div>
-                  <p className="text-gray-500">Salary ({job.salaryType})</p>
-                  <p>
+                  <p className="text-gray-500 leading-5">Salary ({job.salaryType})</p>
+                  <p className="text-gray-800 font-semibold">
                     ₹{job.salaryRange?.minSalary} - ₹
                     {job.salaryRange?.maxSalary}
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-3 items-center">
-                <MapPin size={18} className="text-purple-600" />
+              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. */}
+              <div className="flex gap-3 items-start">
+                <div className="h-5 flex items-center flex-shrink-0">
+                  <MapPin size={18} className="text-purple-600" />
+                </div>
                 <div>
-                  <p className="text-gray-500">Location</p>
-                  <p>{job.jobLocation?.name}</p>
+                  <p className="text-gray-500 leading-5">Location</p>
+                  <p className="text-gray-800 font-semibold">{job.jobLocation?.name}</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 items-center">
-                <Briefcase size={18} className="text-purple-600" />
+              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. */}
+              <div className="flex gap-3 items-start">
+                <div className="h-5 flex items-center flex-shrink-0">
+                  <Briefcase size={18} className="text-purple-600" />
+                </div>
                 <div>
-                  <p className="text-gray-500">Experience</p>
-                  <p>{job.advanceInformation?.experience}</p>
+                  <p className="text-gray-500 leading-5">Experience</p>
+                  <p className="text-gray-800 font-semibold">{job.advanceInformation?.experience}</p>
                 </div>
               </div>
             </div>

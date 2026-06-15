@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowLeft, Upload, Eye, EyeOff } from "lucide-react"; 
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import CopyRight from "../common/CopyRight";
 import { createHRAction, resetState } from "../../redux/slice/hrManagement/createHr";
 
@@ -18,6 +18,7 @@ function CreateHR() {
     password: "",
     // image: null,
   });
+  const [errors, setErrors] = useState({});
 
   // Handle navigation on success
   useEffect(() => {
@@ -27,18 +28,76 @@ function CreateHR() {
     }
   }, [success, navigate, dispatch]);
 
+  const validate = () => {
+    const newErrors = {};
+
+    // HR Name validation
+    if (!formData.hrName.trim()) {
+      newErrors.hrName = "HR Name is required";
+    } else if (!/^[A-Za-z\s]+$/.test(formData.hrName)) {
+      newErrors.hrName = "Only alphabetic characters and spaces are allowed";
+    } else if (formData.hrName.trim().length < 2) {
+      newErrors.hrName = "HR Name must be at least 2 characters";
+    } else if (formData.hrName.length > 50) {
+      newErrors.hrName = "HR Name must not exceed 50 characters";
+    }
+
+    // Designation validation
+    if (!formData.designation.trim()) {
+      newErrors.designation = "Designation is required";
+    } else if (!/^[A-Za-z\s]+$/.test(formData.designation)) {
+      newErrors.designation = "Only alphabetic characters and spaces are allowed";
+    } else if (formData.designation.trim().length < 2) {
+      newErrors.designation = "Designation must be at least 2 characters";
+    } else if (formData.designation.length > 50) {
+      newErrors.designation = "Designation must not exceed 50 characters";
+    }
+
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    } else if (formData.email.length > 100) {
+      newErrors.email = "Email must not exceed 100 characters";
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    } else if (formData.password.length > 20) {
+      newErrors.password = "Password must not exceed 20 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
       setFormData({ ...formData, image: files[0] });
     } else {
       setFormData({ ...formData, [name]: value });
+      // Clear validation error when typing
+      if (errors[name]) {
+        setErrors((prev) => {
+          const updated = { ...prev };
+          delete updated[name];
+          return updated;
+        });
+      }
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(createHRAction(formData));
+    if (validate()) {
+      dispatch(createHRAction(formData));
+    }
   };
 
   return (
@@ -72,9 +131,15 @@ function CreateHR() {
                 placeholder="Enter HR Name"
                 value={formData.hrName}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                maxLength={50}
+                className={`w-full mt-2 bg-gray-100 border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 ${
+                  errors.hrName ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                }`}
                 required
               />
+              {errors.hrName && (
+                <p className="text-red-500 text-xs mt-1">{errors.hrName}</p>
+              )}
             </div>
 
             {/* Designation */}
@@ -86,9 +151,15 @@ function CreateHR() {
                 placeholder="Enter Designation"
                 value={formData.designation}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                maxLength={50}
+                className={`w-full mt-2 bg-gray-100 border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 ${
+                  errors.designation ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                }`}
                 required
               />
+              {errors.designation && (
+                <p className="text-red-500 text-xs mt-1">{errors.designation}</p>
+              )}
             </div>
 
             {/* Email */}
@@ -100,9 +171,15 @@ function CreateHR() {
                 placeholder="Enter Email Id"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full mt-2 bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                maxLength={100}
+                className={`w-full mt-2 bg-gray-100 border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 ${
+                  errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                }`}
                 required
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
             </div>
 
             {/* Password with Eye Toggle */}
@@ -115,7 +192,10 @@ function CreateHR() {
                   placeholder="Enter Password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full bg-gray-100 border border-gray-300 rounded-md px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400"
+                  maxLength={20}
+                  className={`w-full bg-gray-100 border rounded-md px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-1 ${
+                    errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                  }`}
                   required
                 />
                 <button
@@ -126,6 +206,9 @@ function CreateHR() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              )}
             </div>
 
             {/* Upload Image */}

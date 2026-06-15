@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CircleChevronLeft } from "lucide-react";
 import { useFormik } from "formik";
@@ -29,8 +29,14 @@ const CreateEmployerplan = () => {
   // ✅ Validation Schema
   const validationSchema = Yup.object({
     title: Yup.string().required("Plan Type is required"),
-    name: Yup.string().required("Plan name is required"),
-    tag: Yup.string(),
+    name: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only alphabetic characters are allowed")
+      .min(2, "Plan Name must be at least 2 characters")
+      .max(50, "Plan Name cannot exceed 50 characters")
+      .required("Plan name is required"),
+    tag: Yup.string()
+      .matches(/^[A-Za-z\s]*$/, "Only alphabetic characters are allowed")
+      .max(50, "Plan Tag cannot exceed 50 characters"),
     validity: Yup.string().required("Duration is required"),
     price: Yup.number()
       .typeError("Must be a number")

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   CircleChevronLeft, 
@@ -30,7 +30,7 @@ const CreateCustomPlan = () => {
   const [paymentResponse, setPaymentResponse] = useState(null);
 
   // Redux State
-  const { employers, employerPlans, durations, planTypes, loading: dropdownLoading } = useSelector((state) => state.employer);
+  const { employers, employerPlans, durations, planTypes } = useSelector((state) => state.employer);
   const { createLoading } = useSelector((state) => state.customPlan);
   const { singlePlan } = useSelector((state) => state.employerPlans);
 
@@ -86,10 +86,23 @@ const CreateCustomPlan = () => {
     }),
     validateOnMount: true, // Check validity immediately on load
     onSubmit: async (values) => {
-      const resultAction = await dispatch(createCustomPlanPayment(values));
+      const formattedValues = {
+        ...values,
+        duration: values.duration ? Number(values.duration) : "",
+        price: values.price ? Number(values.price) : 0,
+        discount: values.discount ? Number(values.discount) : 0,
+        jobCredits: values.jobCredits ? Number(values.jobCredits) : 0,
+        databaseCredits: values.databaseCredits ? Number(values.databaseCredits) : 0,
+        useCreditsIn: values.useCreditsIn ? Number(values.useCreditsIn) : 0,
+        jobActiveFor: values.jobActiveFor ? Number(values.jobActiveFor) : 30,
+      };
+      const resultAction = await dispatch(createCustomPlanPayment(formattedValues));
       if (createCustomPlanPayment.fulfilled.match(resultAction)) {
         setPaymentResponse(resultAction.payload.data);
         setShowModal(true);
+        toast.success("Payment link generated successfully!");
+      } else {
+        toast.error(resultAction.payload || "Failed to generate payment link. Please verify payment gateway settings.");
       }
     },
   });
@@ -149,6 +162,9 @@ const CreateCustomPlan = () => {
                     <option key={plan.value} value={plan.value}>{plan.label}</option>
                   ))}
                 </select>
+                {formik.touched.employerPlanId && formik.errors.employerPlanId && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.employerPlanId}</p>
+                )}
               </div>
 
               <div>
@@ -162,6 +178,9 @@ const CreateCustomPlan = () => {
                     <option key={type.value} value={type.value}>{type.label}</option>
                   ))}
                 </select>
+                {formik.touched.planType && formik.errors.planType && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.planType}</p>
+                )}
               </div>
 
               <div>
@@ -175,6 +194,9 @@ const CreateCustomPlan = () => {
                     <option key={emp.value} value={emp.value}>{emp.label}</option>
                   ))}
                 </select>
+                {formik.touched.employerId && formik.errors.employerId && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.employerId}</p>
+                )}
               </div>
             </div>
           </div>
@@ -188,10 +210,16 @@ const CreateCustomPlan = () => {
                   <div>
                     <label className="text-sm font-semibold text-slate-700 mb-2 block">Price (₹)</label>
                     <input type="number" min="0" onKeyDown={handleNoNegative} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500/20 outline-none" {...formik.getFieldProps("price")} />
+                    {formik.touched.price && formik.errors.price && (
+                      <p className="text-red-500 text-xs mt-1">{formik.errors.price}</p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-slate-700 mb-2 block">Discount (%)</label>
                     <input type="number" min="0" max="100" onKeyDown={handleNoNegative} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500/20 outline-none" {...formik.getFieldProps("discount")} />
+                    {formik.touched.discount && formik.errors.discount && (
+                      <p className="text-red-500 text-xs mt-1">{formik.errors.discount}</p>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -200,6 +228,9 @@ const CreateCustomPlan = () => {
                     <option value="">Select Duration</option>
                     {durations?.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
                   </select>
+                  {formik.touched.duration && formik.errors.duration && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.duration}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -211,14 +242,23 @@ const CreateCustomPlan = () => {
                 <div className={isJobCreditDisabled ? "opacity-40" : ""}>
                   <label className="text-sm font-semibold text-slate-700 mb-2 block">Job Credits</label>
                   <input type="number" min="0" onKeyDown={handleNoNegative} disabled={isJobCreditDisabled} className="w-full p-3 rounded-xl border border-slate-200 outline-none disabled:bg-slate-100" {...formik.getFieldProps("jobCredits")} />
+                  {formik.touched.jobCredits && formik.errors.jobCredits && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.jobCredits}</p>
+                  )}
                 </div>
                 <div className={isDatabaseCreditDisabled ? "opacity-40" : ""}>
                   <label className="text-sm font-semibold text-slate-700 mb-2 block">DB Credits</label>
                   <input type="number" min="0" onKeyDown={handleNoNegative} disabled={isDatabaseCreditDisabled} className="w-full p-3 rounded-xl border border-slate-200 outline-none disabled:bg-slate-100" {...formik.getFieldProps("databaseCredits")} />
+                  {formik.touched.databaseCredits && formik.errors.databaseCredits && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.databaseCredits}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 mb-2 block">Use Credits In (Days)</label>
                   <input type="number" min="0" onKeyDown={handleNoNegative} className="w-full p-3 rounded-xl border border-slate-200 outline-none" {...formik.getFieldProps("useCreditsIn")} />
+                  {formik.touched.useCreditsIn && formik.errors.useCreditsIn && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.useCreditsIn}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 mb-2 block">Job Active For</label>
@@ -227,6 +267,9 @@ const CreateCustomPlan = () => {
                     <option value="30">30 Days</option>
                     <option value="60">60 Days</option>
                   </select>
+                  {formik.touched.jobActiveFor && formik.errors.jobActiveFor && (
+                    <p className="text-red-500 text-xs mt-1">{formik.errors.jobActiveFor}</p>
+                  )}
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { ArrowLeft, MapPin, Mail, Phone, Briefcase, GraduationCap } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,10 +22,42 @@ const CandidateDetails = () => {
   }, [dispatch, id]);
 
   if (loading) return <div className="p-10 text-center font-bold text-purple-600">Loading Profile...</div>;
-  if (error) return <div className="p-10 text-center text-red-500 font-medium">{error}</div>;
-  if (!candidate) return null;
+  if (error) {
+    return (
+      <div className="p-10 text-center">
+        <div className="inline-block bg-red-50 border border-red-200 rounded-xl p-6 max-w-md">
+          <p className="text-red-600 font-semibold text-lg mb-2">Unable to load profile</p>
+          <p className="text-red-400 text-sm">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+  if (!candidate) return (
+    <div className="p-10 text-center">
+      <div className="inline-block bg-gray-50 border border-gray-200 rounded-xl p-6 max-w-md">
+        <p className="text-gray-600 font-semibold text-lg mb-2">Candidate not found</p>
+        <p className="text-gray-400 text-sm">The candidate profile you are looking for does not exist or could not be loaded.</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition"
+        >
+          Go Back
+        </button>
+      </div>
+    </div>
+  );
 
-  const { personalInfo, professionalInfo, category, subCategory, designation } = candidate;
+  const personalInfo = candidate.personalInfo || candidate;
+  const professionalInfo = candidate.professionalInfo || {};
+  const category = candidate.category || {};
+  const subCategory = candidate.subCategory || {};
+  const designation = candidate.designation || {};
 
   return (
     <div className="p-3 bg-gray-100 min-h-screen">
@@ -58,7 +90,11 @@ const CandidateDetails = () => {
                 <p className="text-purple-600 font-medium">{designation?.name || "No"}</p>
                 <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
                   <MapPin size={14} />
-                  <span>{personalInfo?.location || "Location not specified"}</span>
+                  <span>
+                    {typeof personalInfo?.location === "object"
+                      ? [personalInfo.location.city, personalInfo.location.state].filter(Boolean).join(", ") || "Location not specified"
+                      : (personalInfo?.location || "Location not specified")}
+                  </span>
                 </div>
               </div>
             </div>

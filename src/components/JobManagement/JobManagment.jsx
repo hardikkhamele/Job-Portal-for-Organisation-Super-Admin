@@ -1,21 +1,21 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   useReactTable,
   getCoreRowModel,
+  getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
 import {
   Search,
   Eye,
-  Trash2,
-  MapPin,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 // import DeleteModal from "../common/DeleteModal";
 import { fetchAllJobs } from "../../redux/slice/jobManagement/getAllJob";
+import { getAllCategories, getSubCategoriesByCategoryId } from "../../redux/slice/category/categorySlice";
 import defaultLogo from "../../assets/Technokreat.svg";
 import Footer from "../Footer";
 
@@ -23,34 +23,70 @@ const JobManagement = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  const { jobs, loading, pagination: reduxPagination } = useSelector((state) => state.allJobs);
+  const { jobs, loading } = useSelector((state) => state.allJobs);
+  const { categories, subCategories, subCategoriesLoading } = useSelector((state) => state.category);
 
   const [globalFilter, setGlobalFilter] = useState("");
   const [category, setCategory] = useState("All");
-  // const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
 
   const [pagination, setPagination] = useState({
     pageIndex: 0, 
     pageSize: 10,
   });
 
+  // Fetch categories on mount
+  useEffect(() => {
+    dispatch(getAllCategories());
+  }, [dispatch]);
+
+  // Fetch all jobs on mount (higher limit to fetch all)
+  useEffect(() => {
+    dispatch(fetchAllJobs({ page: 1, limit: 150 }));
+  }, [dispatch]);
+
+  // Fetch subcategories when category filter changes
+  useEffect(() => {
+    if (category !== "All") {
+      dispatch(getSubCategoriesByCategoryId(category));
+    }
+  }, [dispatch, category]);
+
+  // Reset pagination index on filter/search change
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [globalFilter, category]);
 
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      dispatch(fetchAllJobs({ 
-        page: pagination.pageIndex + 1, 
-        limit: pagination.pageSize,
-        search: globalFilter,
-        category: category
-      }));
-    }, 500); 
+  // Local filtered jobs computed client-side
+  const filteredJobs = useMemo(() => {
+    let result = jobs || [];
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [dispatch, pagination.pageIndex, pagination.pageSize, globalFilter, category]);
+    // 1. Filter by Category (via Subcategories map)
+    if (category !== "All") {
+      if (subCategories && subCategories.length > 0) {
+        const subCatIds = subCategories.map((sub) => sub.id);
+        result = result.filter(
+          (job) => job.subCategory && subCatIds.includes(job.subCategory.id)
+        );
+      } else {
+        // If category is selected but subcategories are empty or not loaded yet, return empty list
+        result = [];
+      }
+    }
+
+    // 2. Filter by Search input (globalFilter)
+    if (globalFilter.trim()) {
+      const searchLower = globalFilter.toLowerCase();
+      result = result.filter(
+        (job) =>
+          job.jobTitle?.toLowerCase().includes(searchLower) ||
+          job.employerName?.toLowerCase().includes(searchLower) ||
+          job.subCategory?.name?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return result;
+  }, [jobs, category, subCategories, globalFilter]);
+
 
   // const handleConfirmDelete = () => {
   //   setIsModalOpen(false);
@@ -66,6 +102,7 @@ const JobManagement = () => {
     {
       header: "Sr.No.",
       cell: ({ row }) => pagination.pageIndex * pagination.pageSize + row.index + 1,
+      meta: { align: "text-center" },
     },
     {
       header: "Employer",
@@ -78,6 +115,7 @@ const JobManagement = () => {
           </div>
         );
       },
+      meta: { align: "text-left" },
     },
     {
       header: "Job list",
@@ -89,6 +127,7 @@ const JobManagement = () => {
           </div>
         </div>
       ),
+      meta: { align: "text-left" },
     },
     {
       header: "Spam Counts",
@@ -98,6 +137,7 @@ const JobManagement = () => {
           <span className="text-xs text-gray-500">Reports</span>
         </div>
       ),
+      meta: { align: "text-center" },
     },
     {
       header: "Posted Time & Date",
@@ -110,6 +150,7 @@ const JobManagement = () => {
           </div>
         );
       },
+      meta: { align: "text-center" },
     },
     {
       header: "Action",
@@ -119,17 +160,18 @@ const JobManagement = () => {
           {/* <Trash2 className="text-red-500 cursor-pointer hover:scale-110 transition" size={18} onClick={() => handleDeleteClick(row.original)} /> */}
         </div>
       ),
+      meta: { align: "text-center" },
     },
   ];
 
   const table = useReactTable({
-    data: jobs || [],
+    data: filteredJobs || [],
     columns,
-    pageCount: reduxPagination?.totalPages || -1,
     state: { pagination },
     onPaginationChange: setPagination,
-    manualPagination: true,
+    manualPagination: false,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
 
   return (
@@ -157,20 +199,26 @@ const JobManagement = () => {
               onChange={(e) => setCategory(e.target.value)}
             >
               <option value="All">All Categories</option>
-              <option value="Software Development">Software Development</option>
-              <option value="Data Science">Data Science</option>
-              <option value="DevOps & Cloud">DevOps & Cloud</option>
-              <option value="Web Development">Web Development</option>
+              {categories && categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.categoryName}
+                </option>
+              ))}
             </select>
           </div>
 
           <div className="overflow-x-auto min-h-[400px]">
-            <table className="w-full text-sm text-center border-collapse">
+            <table className="w-full text-sm border-collapse">
               <thead className="bg-gray-50 text-gray-600 text-sm">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id} className="bg-gray-100 text-gray-600">
                     {headerGroup.headers.map((header) => (
-                      <th key={header.id} className="py-3 px-4 font-semibold">
+                      <th
+                        key={header.id}
+                        className={`py-3 px-4 font-semibold ${
+                          header.column.columnDef.meta?.align || "text-center"
+                        }`}
+                      >
                         {flexRender(header.column.columnDef.header, header.getContext())}
                       </th>
                     ))}
@@ -179,7 +227,7 @@ const JobManagement = () => {
               </thead>
 
               <tbody className="text-gray-700">
-                {loading ? (
+                {loading || (category !== "All" && subCategoriesLoading) ? (
                   /* --- Loader inside table body --- */
                   <tr>
                     <td colSpan={columns.length} className="p-20 text-center">
@@ -193,7 +241,12 @@ const JobManagement = () => {
                   table.getRowModel().rows.map((row) => (
                     <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
                       {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="p-3 text-gray-700">
+                        <td
+                          key={cell.id}
+                          className={`p-3 text-gray-700 ${
+                            cell.column.columnDef.meta?.align || "text-center"
+                          }`}
+                        >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       ))}
@@ -214,11 +267,11 @@ const JobManagement = () => {
           <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-gray-500">
               Showing <span className="font-medium text-purple-600">
-                {(reduxPagination?.totalJobs || 0) > 0 ? (pagination.pageIndex * pagination.pageSize) + 1 : 0}
+                {filteredJobs.length > 0 ? (pagination.pageIndex * pagination.pageSize) + 1 : 0}
               </span> to{" "}
               <span className="font-medium text-purple-600">
-                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, reduxPagination?.totalJobs || 0)}
-              </span> of {reduxPagination?.totalJobs || 0} Jobs
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, filteredJobs.length)}
+              </span> of {filteredJobs.length} Jobs
             </p>
 
             <div className="flex items-center gap-2">
