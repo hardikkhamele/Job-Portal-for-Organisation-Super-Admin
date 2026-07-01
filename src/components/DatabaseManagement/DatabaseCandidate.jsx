@@ -11,7 +11,7 @@ import {
 
 const DatabaseCandidate = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();cd 
+  const dispatch = useDispatch();
 
   // Selectors
   const { candidates, total, totalPages, loading } = useSelector(

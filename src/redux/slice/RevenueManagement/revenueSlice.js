@@ -23,12 +23,15 @@ export const fetchAllTransactions = createAsyncThunk(
   }
 );
 
-// Thunk to fetch a single transaction by ID
 export const fetchTransactionById = createAsyncThunk(
   'revenue/fetchById',
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/admin/employer-billing-transactions/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/api/admin/employer-billing-transactions/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);

@@ -26,6 +26,14 @@ const RevenuePage = () => {
     pageSize: 10, // Adjust based on your preferred limit
   });
 
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setTablePagination((prev) => ({
+      ...prev,
+      pageIndex: 0,
+    }));
+  };
+
   useEffect(() => {
     dispatch(
       fetchAllTransactions({
@@ -87,21 +95,74 @@ const RevenuePage = () => {
     manualPagination: true, // Let the API handle it
   });
 
+  const renderPaginationButtons = () => {
+    const totalPages = pagination?.totalPages || 0;
+    const buttons = [];
+    const maxVisible = 5;
+
+    let start = Math.max(1, tablePagination.pageIndex + 1 - 2);
+    let end = Math.min(totalPages, start + maxVisible - 1);
+
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => table.setPageIndex(i - 1)}
+          className={`w-8 h-8 rounded-full text-sm font-medium transition ${
+            tablePagination.pageIndex === i - 1
+              ? "bg-purple-600 text-white"
+              : "border text-purple-600 hover:bg-purple-50"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+    return buttons;
+  };
+
   return (
     <div className="p-5 bg-gray-100 min-h-screen pb-20">
       <div className="bg-white p-6 mb-3 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold mb-2">Revenue Management</h1>
         <hr className="mb-6 border-gray-300" />
 
-        <div className="relative w-64 mb-4 border border-[#D3D3D3] rounded-lg">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search by plan, transaction..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full rounded-md border-[#D3D3D3] bg-[#F7F8F9] outline-none"
-          />
+        <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
+          <div className="relative w-64 border border-[#D3D3D3] rounded-lg">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search by plan, transaction..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="pl-10 pr-4 py-2 w-full rounded-md border-[#D3D3D3] bg-[#F7F8F9] outline-none"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Show:</span>
+            <select
+              value={tablePagination.pageSize}
+              onChange={(e) => {
+                const newLimit = Number(e.target.value);
+                setTablePagination({
+                  pageIndex: 0,
+                  pageSize: newLimit,
+                });
+              }}
+              className="border border-[#D3D3D3] rounded px-3 py-1.5 outline-none focus:border-purple-500 bg-[#F7F8F9] cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <span>entries</span>
+          </div>
         </div>
 
         {loading ? (
@@ -149,15 +210,7 @@ const RevenuePage = () => {
                 >
                   <ChevronLeft size={16} />
                 </button>
-                {Array.from({ length: pagination?.totalPages || 0 }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => table.setPageIndex(i)}
-                    className={`w-8 h-8 rounded-full ${tablePagination.pageIndex === i ? "bg-purple-600 text-white" : "border"}`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {renderPaginationButtons()}
                 <button
                   onClick={() => table.nextPage()}
                   disabled={!pagination?.hasNextPage}

@@ -43,10 +43,12 @@ import acceptCandidateReducer from "../slice/databaseManagement/acceptCandidate"
 import rejectCandidateReducer from "../slice/databaseManagement/rejectCandidate"
 import dropdownReducer from "../slice/databaseManagement/dropdownSlice"
 
+
 // subscriptions management
 import employerPlansReducer from "../slice/subscriptions/employerPlans/getEmployerPlans"
 import planTypeDropdownReducer from "../slice/subscriptions/employerPlans/plantypeDropdown"
 import durationDropdownReducer from "../slice/subscriptions/employerPlans/durationDropdown"
+import jobseekerPlansReducer from "../slice/subscriptions/jobseekerPlans/jobseekerPlansSlice"
 
 // customPlan
 import customPlanReducer from "../slice/subscriptions/customPlan/customPlanSlice"
@@ -114,6 +116,7 @@ export const store = configureStore({
     employerPlans: employerPlansReducer,
     planTypeDropdown: planTypeDropdownReducer,
     durationDropdown:durationDropdownReducer,
+    jobseekerPlans: jobseekerPlansReducer,
 
     //customPlan
     customPlan: customPlanReducer,
@@ -121,12 +124,12 @@ export const store = configureStore({
 
     //blogmanagement
     blog: blogReducer,
-    getblog: getreducer,
+    getblog: getreducer,   
 
     // credit management
     creditManagement: creditManagementReducer,
 
-    // revenue management
+    // revenue management 
     revenue: revenueReducer,
   },
 });

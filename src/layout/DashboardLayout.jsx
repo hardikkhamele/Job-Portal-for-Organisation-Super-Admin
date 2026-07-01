@@ -170,6 +170,7 @@ function DashboardLayout() {
             <Route path="create-custom-plan" element={<CreateCustomPlan />} />
             <Route path="edit-custom-plan/:id" element={<EditCustomPlan />} />
 
+            <Route path="jobseeker" element={<JobSeeker />} />
             <Route path="employer" element={<Employer />} />
             <Route path="faqs" element={<FAQs />} />
             <Route path="chat-support" element={<ChatSupport />} />

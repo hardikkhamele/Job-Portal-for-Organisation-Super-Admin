@@ -11,7 +11,6 @@ export default function EmployerPage() {
         <h4 className="mb-2 ml-5 text-2xl font-semibold">Hello! TechnoHire</h4>
         <h1 className="text-3xl ml-5 font-bold">Dashboard - Employee</h1>
       </div>
-
       {/* Summary Cards */}
       <div className="mr-5 ml-5 p-2 grid grid-cols-4 gap-12">
         <SummaryCard

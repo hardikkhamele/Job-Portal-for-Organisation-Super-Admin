@@ -1,14 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Bell, MessageSquare, Moon } from "lucide-react";
 import Ilogo from "../../assets/Ilogo.svg";
 import Switch from "./DarkMode";
 import { useNavigate } from "react-router";
+import { getUnreadCount } from "../../utils/notificationHelper";
 
 function SearchBar() {
   const [search, setSearch] = useState("");
-  const navigate = useNavigate ();
+  const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(getUnreadCount());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setUnreadCount(getUnreadCount());
+    };
+    window.addEventListener("notificationsUpdated", handleUpdate);
+    // Sync initially
+    handleUpdate();
+    return () => {
+      window.removeEventListener("notificationsUpdated", handleUpdate);
+    };
+  }, []);
+
   return (
-    <div className="flex h-14 justify-between items-center bg-white px-3 border-b  border-purple-400">
+    <div className="flex h-14 justify-between items-center bg-white px-3 border-b border-purple-400">
       {/* Search Input */}
       {/* <div className="relative w-1/3">
         <Search className="absolute left-3 top-3 text-gray-500" size={18} />
@@ -35,11 +50,13 @@ function SearchBar() {
         </button> */}
 
         {/* Notifications */}
-        <button onClick={()=>navigate("/notification-page")} className="relative p-2 bg-gray-100 rounded-full cursor-pointer">
+        <button onClick={() => navigate("/notification-page")} className="relative p-2 bg-gray-100 rounded-full cursor-pointer">
           <Bell size={20} className="text-gray-700" />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-            2
-          </span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full animate-bounce">
+              {unreadCount}
+            </span>
+          )}
         </button>
 
         {/* User Profile (Replace with actual user image) */}

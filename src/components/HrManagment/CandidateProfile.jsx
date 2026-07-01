@@ -70,7 +70,9 @@ function CandidateProfile() {
               <div className="mb-4">
                 <h3 className="font-medium mb-2">About</h3>
                 <p className="text-sm text-gray-600">
-                  {data.additionalNotes || "No additional notes provided."}
+                  {data.additionalNotes
+                    ? data.additionalNotes.replace(/<[^>]*>?/gm, '')
+                    : "No additional notes provided."}
                 </p>
               </div>
 

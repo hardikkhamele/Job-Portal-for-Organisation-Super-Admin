@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { fetchPlanTypeDropdown } from "../../redux/slice/subscriptions/employerPlans/plantypeDropdown";
 import { fetchDurationDropdown } from "../../redux/slice/subscriptions/employerPlans/durationDropdown";
 import { createEmployerPlan } from "../../redux/slice/subscriptions/employerPlans/getEmployerPlans";
+import { addNotification } from "../../utils/notificationHelper";
 
 const CreateEmployerplan = () => {
   const navigate = useNavigate();
@@ -85,6 +86,11 @@ const CreateEmployerplan = () => {
       dispatch(createEmployerPlan(payload))
         .unwrap()
         .then(() => {
+          addNotification(
+            "Plan Created Successfully",
+            `Employer Plan "${formik.values.name}" has been created successfully.`,
+            "success"
+          );
           // toast.success("Employer Plan Created Successfully!");
           navigate(-1);
         })

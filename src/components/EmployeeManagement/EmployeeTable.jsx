@@ -363,9 +363,21 @@ function EmployeeTable() {
         <BlockModal
           isOpen={openBlockModal}
           onClose={() => {
-            if (!isActionLoading) setOpenBlockModal(false);
+            if (!updateLoading) {
+              setOpenBlockModal(false);
+              setSelectedRow(null);
+            }
           }}
           onConfirm={handleBlock}
+          loading={updateLoading}
+          title={selectedRow?.status === "active" ? "Block Employer" : "Unblock Employer"}
+          message={
+            selectedRow?.status === "active"
+              ? `Are you sure you want to block "${selectedRow?.name}"?`
+              : `Are you sure you want to unblock "${selectedRow?.name}"?`
+          }
+          buttonText={selectedRow?.status === "active" ? "Block" : "Unblock"}
+          variant={selectedRow?.status === "active" ? "danger" : undefined}
         />
 
         {/* <DeleteModal

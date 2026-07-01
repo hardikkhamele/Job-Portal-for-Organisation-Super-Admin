@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -11,6 +11,10 @@ import { useNavigate } from "react-router-dom";
 
 const ChatSupport = () => {
    const navigate = useNavigate();
+   const [searchTerm, setSearchTerm] = useState("");
+   const [filterOpen, setFilterOpen] = useState(false);
+   const [selectedFilter, setSelectedFilter] = useState("All User Type");
+
   //  Pagination State
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -18,7 +22,7 @@ const ChatSupport = () => {
   });
 
   //  Dummy Data (15 items = 3 pages)
-  const data = useMemo(() => {
+  const rawData = useMemo(() => {
     return Array.from({ length: 15 }, (_, i) => ({
       sr: i + 1,
       name: ["Tames John", "Hamilton Fast", "Johny Willison", "Archer Root", "Bravo Hairly"][i % 5],
@@ -33,6 +37,38 @@ const ChatSupport = () => {
     }));
   }, []);
 
+  // Filter and search logic
+  const filteredData = useMemo(() => {
+    let result = rawData;
+
+    // Filter by User Type
+    if (selectedFilter !== "All User Type") {
+      result = result.filter((item) => item.userType === selectedFilter);
+    }
+
+    // Filter by Search Term
+    if (searchTerm.trim() !== "") {
+      const searchLower = searchTerm.toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.name.toLowerCase().includes(searchLower) ||
+          item.userType.toLowerCase().includes(searchLower) ||
+          item.status.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Adjust Sr.No. for filtered results
+    return result.map((item, idx) => ({
+      ...item,
+      sr: idx + 1,
+    }));
+  }, [rawData, selectedFilter, searchTerm]);
+
+  // Reset pagination index when filters change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [selectedFilter, searchTerm]);
+
   //  Columns
   const columns = useMemo(
     () => [
@@ -41,69 +77,65 @@ const ChatSupport = () => {
       { header: "User Type", accessorKey: "userType" },
       { header: "Date", accessorKey: "date" },
       {
-  header: "Status",
-  cell: ({ row }) => {
-    const status = row.original.status;
+        header: "Status",
+        cell: ({ row }) => {
+          const status = row.original.status;
 
-    return (
-
-      
-      <div className="flex items-center justify-center gap-2">
-        {status === "Ongoing" ? (
-          <>
-           <Wifi size={20} className="text-yellow-500" />
-            <span className="text-yellow-500 text">Ongoing</span>
-          </>
-        ) : (
-          <>
-            <CheckCircle size={20} className="text-green-600" />
-            <span className="text-green-600 text">Solved</span>
-          </>
-        )}
-      </div>
-    );
-  },
-},
-
+          return (
+            <div className="flex items-center justify-center gap-2">
+              {status === "Ongoing" ? (
+                <>
+                  <Wifi size={20} className="text-yellow-500" />
+                  <span className="text-yellow-500 text">Ongoing</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={20} className="text-green-600" />
+                  <span className="text-green-600 text">Solved</span>
+                </>
+              )}
+            </div>
+          );
+        },
+      },
       {
-  header: "Actions",
-  cell: ({ row }) => {
-    const status = row.original.status;
+        header: "Actions",
+        cell: ({ row }) => {
+          const status = row.original.status;
 
-    return (
-      <div className="flex items-center justify-center gap-3">
-        
-        {/* Chat Icon */}
-        <MessageCircle
-          size={25}
-          className="text-purple-600 cursor-pointer"
-          onClick={() => navigate("/chat-conversation")}
-          title="Open Chat Support"
-        />
+          return (
+            <div className="flex items-center justify-center gap-3">
+              {/* Chat Icon */}
+              <MessageCircle
+                size={25}
+                className="text-purple-600 cursor-pointer"
+                onClick={() => navigate("/chat-conversation")}
+                title="Open Chat Support"
+              />
 
-        {/* Mark as solved */}
-        {status === "Solved" ? (
-          <div className="flex items-center gap-1 text-green-600 text-sm">
-            <CheckCircle size={20} />
-            <span>Mark As Solved</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1 text-gray-400 text-sm">
-            <CheckCircle size={20} />
-            <span>Mark As Solved</span>
-          </div>
-        )}
-      </div>
-    );
-  },
-}
+              {/* Mark as solved */}
+              {status === "Solved" ? (
+                <div className="flex items-center gap-1 text-green-600 text-sm">
+                  <CheckCircle size={20} />
+                  <span>Mark As Solved</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-gray-400 text-sm">
+                  <CheckCircle size={20} />
+                  <span>Mark As Solved</span>
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
     ],
-    []
+    [navigate]
   );
 
   //  Table
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: { pagination },
     onPaginationChange: setPagination,
@@ -111,10 +143,7 @@ const ChatSupport = () => {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-const [filterOpen, setFilterOpen] = useState(false);
-const [selectedFilter, setSelectedFilter] = useState("All User Type");
-
-const filterOptions = ["All User Type", "Job Seeker", "Employer"];
+  const filterOptions = ["All User Type", "Job Seeker", "Employer"];
 
   return (
     <div className="p-5 bg-gray-100 min-h-screen">
@@ -128,11 +157,12 @@ const filterOptions = ["All User Type", "Job Seeker", "Employer"];
         <div className="flex justify-between mb-4">
           <input
             placeholder="Search here..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="border border-gray-200 px-3 py-2 rounded-md w-64 bg-gray-100 outline-none"
           />
 
           <div className="relative w-44">
-  
             {/* Selected */}
             <div
               onClick={(e) => {
@@ -147,7 +177,7 @@ const filterOptions = ["All User Type", "Job Seeker", "Employer"];
             
             {/* Dropdown */}
             {filterOpen && (
-              <div className="absolute w-full bg-white  rounded-md mt-1 shadow z-10">
+              <div className="absolute w-full bg-white rounded-md mt-1 shadow z-10">
                 {filterOptions.map((item, i) => (
                   <div
                     key={i}
@@ -165,7 +195,7 @@ const filterOptions = ["All User Type", "Job Seeker", "Employer"];
               </div>
             )}
           </div>
-          </div>
+        </div>
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow">
@@ -186,36 +216,44 @@ const filterOptions = ["All User Type", "Job Seeker", "Employer"];
             </thead>
 
             <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="py-4 px-4 text-gray-700 ">
-                      {flexRender(
-                        cell.column.columnDef.cell ??
-                          cell.column.columnDef.accessorKey,
-                        cell.getContext()
-                      )}
-                    </td>
-                  ))}
+              {table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="py-8 text-gray-500">
+                    No chats found matching the filters.
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition">
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="py-4 px-4 text-gray-700 ">
+                        {flexRender(
+                          cell.column.columnDef.cell ??
+                            cell.column.columnDef.accessorKey,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
 
           {/* Pagination */}
-          <div className="flex justify-between items-center p-4 text">
-            <span className="text-purple-600 font-bold">
+          <div className="flex justify-between items-center p-4">
+            <span className="text-purple-600 font-bold text-sm">
               Showing{" "}
-              {pagination.pageIndex * 5 + 1} to{" "}
-              {Math.min((pagination.pageIndex + 1) * 5, data.length)} of{" "}
-              {data.length} Chats
+              {filteredData.length === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1} to{" "}
+              {Math.min((pagination.pageIndex + 1) * pagination.pageSize, filteredData.length)} of{" "}
+              {filteredData.length} Chats
             </span>
 
             <div className="flex gap-2 items-center">
               <button
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
-                className="border px-2 py-1 rounded-full"
+                className="border px-2 py-1 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {"<"}
               </button>
@@ -224,7 +262,7 @@ const filterOptions = ["All User Type", "Job Seeker", "Employer"];
                 <button
                   key={page}
                   onClick={() => table.setPageIndex(page)}
-                  className={`px-3 py-1 rounded-full ${
+                  className={`px-3 py-1 rounded-full cursor-pointer ${
                     pagination.pageIndex === page
                       ? "bg-purple-600 text-white"
                       : "border"
@@ -237,7 +275,7 @@ const filterOptions = ["All User Type", "Job Seeker", "Employer"];
               <button
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
-                className="border px-2 py-1 rounded-full"
+                className="border px-2 py-1 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {">"}
               </button>

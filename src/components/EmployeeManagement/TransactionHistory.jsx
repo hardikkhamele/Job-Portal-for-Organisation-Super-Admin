@@ -1,4 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllTransactions } from "../../redux/slice/RevenueManagement/revenueSlice";
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,142 +10,42 @@ import {
 } from "@tanstack/react-table";
 import { Users, Zap, Clock, Eye,  TrendingUp, ArrowLeftRight, X} from "lucide-react";
 
-function TransactionHistory() {
+function TransactionHistory({ employerId, employer }) {
+  const dispatch = useDispatch();
+  const { transactions } = useSelector((state) => state.revenue);
+  
   const [globalFilter, setGlobalFilter] = useState("");
-   const [statusFilter, setStatusFilter] = useState("All");
-   const [open, setOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [open, setOpen] = useState(false);
 
-     const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchAllTransactions({ page: 1, limit: 150 }));
+  }, [dispatch]);
 
   //  TABLE DATA
   const data = useMemo(
-    () => [
-      {
-        sr: 1,
-        id: "PYM782390HJF",
-        plan: "Basic Bundle Plan",
-        price: "₹ 1,949",
-        date: "Feb 2, 2026 19:28",
-        status: "Successful",
-      },
-      {
-        sr: 2,
-        id: "PYM784670HJF",
-        plan: "Basic Bundle Plan",
-        price: "₹ 1,949",
-        date: "Feb 2, 2026 19:28",
-        status: "Failed",
-      },
-      {
-        sr: 3,
-        id: "PYM784670HJF",
-        plan: "Advanced Bundle Plan",
-        price: "₹ 3,649",
-        date: "Feb 2, 2026 19:28",
-        status: "Successful",
-      },
-      {
-        sr: 4,
-        id: "PYM7845678TF",
-        plan: "Advanced Bundle Plan",
-        price: "₹ 3,649",
-        date: "Feb 2, 2026 19:28",
-        status: "Failed",
-      },
+    () => {
+      const employerName = employer?.name?.toLowerCase() || "";
+      const filtered = (transactions || []).filter(
+        (item) => item.employerName?.toLowerCase() === employerName || item.companyName?.toLowerCase() === employerName
+      );
 
-      {
-        sr: 5,
-        id: "PYM782390HJF",
-        plan: "Basic Bundle Plan",
-        price: "₹ 1,949",
-        date: "Feb 2, 2026 19:28",
-        status: "Successful",
-      },
-      {
-        sr: 6,
-        id: "PYM784670HJF",
-        plan: "Basic Bundle Plan",
-        price: "₹ 1,949",
-        date: "Feb 2, 2026 19:28",
-        status: "Failed",
-      },
-      {
-        sr: 7,
-        id: "PYM784670HJF",
-        plan: "Advanced Bundle Plan",
-        price: "₹ 3,649",
-        date: "Feb 2, 2026 19:28",
-        status: "Successful",
-      },
-      {
-        sr: 8,
-        id: "PYM7845678TF",
-        plan: "Advanced Bundle Plan",
-        price: "₹ 3,649",
-        date: "Feb 2, 2026 19:28",
-        status: "Failed",
-      },
-
-      {
-        sr: 9,
-        id: "PYM782390HJF",
-        plan: "Basic Bundle Plan",
-        price: "₹ 1,949",
-        date: "Feb 2, 2026 19:28",
-        status: "Successful",
-      },
-      {
-        sr: 10,
-        id: "PYM784670HJF",
-        plan: "Basic Bundle Plan",
-        price: "₹ 1,949",
-        date: "Feb 2, 2026 19:28",
-        status: "Failed",
-      },
-      {
-        sr: 11,
-        id: "PYM784670HJF",
-        plan: "Advanced Bundle Plan",
-        price: "₹ 3,649",
-        date: "Feb 2, 2026 19:28",
-        status: "Successful",
-      },
-      {
-        sr: 12,
-        id: "PYM7845678TF",
-        plan: "Advanced Bundle Plan",
-        price: "₹ 3,649",
-        date: "Feb 2, 2026 19:28",
-        status: "Failed",
-      },
-
-      {
-        sr: 13,
-        id: "PYM782390HJF",
-        plan: "Basic Bundle Plan",
-        price: "₹ 1,949",
-        date: "Feb 2, 2026 19:28",
-        status: "Successful",
-      },
-      {
-        sr: 14,
-        id: "PYM784670HJF",
-        plan: "Basic Bundle Plan",
-        price: "₹ 1,949",
-        date: "Feb 2, 2026 19:28",
-        status: "Failed",
-      },
-      {
-        sr: 15,
-        id: "PYM784670HJF",
-        plan: "Advanced Bundle Plan",
-        price: "₹ 3,649",
-        date: "Feb 2, 2026 19:28",
-        status: "Successful",
-      },
-    ],
-    []
+      return filtered.map((item, idx) => ({
+        sr: idx + 1,
+        id: item.transactionId || "N/A",
+        plan: item.planDetails || item.planDescription || "N/A",
+        price: item.price ? `₹ ${item.price.toLocaleString()}` : item.totalAmountPaid ? `₹ ${item.totalAmountPaid.toLocaleString()}` : "N/A",
+        rawPrice: item.price || item.totalAmountPaid || 0,
+        date: item.createdAt ? new Date(item.createdAt).toLocaleString("en-GB") : item.paymentDateTime ? new Date(item.paymentDateTime).toLocaleString("en-GB") : "N/A",
+        rawDate: item.createdAt || item.paymentDateTime,
+        status: item.status === "success" || item.paymentStatus === "success" ? "Successful" : "Failed",
+        originalItem: item
+      }));
+    },
+    [transactions, employer]
   );
 
 
@@ -223,15 +125,34 @@ function TransactionHistory() {
 
         });
 
-    return (
+  const totalMoneySpent = useMemo(() => {
+    return data
+      .filter((t) => t.status === "Successful")
+      .reduce((sum, t) => sum + t.rawPrice, 0);
+  }, [data]);
+
+  const thisMonthSpent = useMemo(() => {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    return data
+      .filter((t) => t.status === "Successful" && t.rawDate && new Date(t.rawDate) >= startOfMonth)
+      .reduce((sum, t) => sum + t.rawPrice, 0);
+  }, [data]);
+
+  const latestTransactionPrice = data[0]?.price || "N/A";
+  const latestTransactionDate = data[0]?.date || "N/A";
+
+  return (
     <div className="p-4">
 
       {/*  TOP CARDS */}
       <div className="grid grid-cols-3 gap-6 mb-7">
         <div className="border border-purple-500 rounded-xl p-5 flex justify-between items-center shadow-sm">
           <div>
-            <p className="text-gray-500 text mb-5">Total Money Spend</p>
-            <h2 className="text-2xl font-bold ">₹ 85,000</h2>
+            <p className="text-gray-500 text mb-5">Total Money Spent</p>
+            <h2 className="text-2xl font-bold ">₹ {totalMoneySpent.toLocaleString()}</h2>
           </div>
           <div className="bg-purple-100 p-3 rounded-full">
             <Users className="text-purple-600" />
@@ -240,11 +161,11 @@ function TransactionHistory() {
 
         <div className="border border-purple-500 rounded-xl p-6 flex justify-between items-center">
           <div>
-            <p className="text-gray-500 text mb-3">This Month Spend</p>
-            <h2 className="text-2xl font-bold mb-5">₹ 8,000</h2>
+            <p className="text-gray-500 text mb-3">This Month Spent</p>
+            <h2 className="text-2xl font-bold mb-5">₹ {thisMonthSpent.toLocaleString()}</h2>
            <div className="flex items-center gap-1 text-green-500 text">
               <TrendingUp size={20} />
-              <span className="text-black">10% vs Last months</span>
+              <span className="text-black">Real-time stats</span>
             </div>
           </div>
           <div className="bg-purple-100 p-3 rounded-full">
@@ -255,10 +176,10 @@ function TransactionHistory() {
         <div className="border border-purple-500 rounded-xl p-4 flex justify-between items-center">
           <div>
             <p className="text-gray-500 text mb-5">Latest Transaction</p>
-            <h2 className="text-2xl font-bold mb-5">₹ 1,949</h2>
+            <h2 className="text-2xl font-bold mb-5">{latestTransactionPrice}</h2>
             <div className="flex items-center gap-1 text-gray-500 text">
-                <ArrowLeftRight size={20} />
-            <p className="text-gray-700 text">Feb 2, 2026 19:28</p>
+                 <ArrowLeftRight size={20} />
+            <p className="text-gray-700 text">{latestTransactionDate}</p>
           </div>
            </div>
 
@@ -324,19 +245,27 @@ function TransactionHistory() {
           </thead>
 
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-t border-gray-200">
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="p-4 text-center">
-                    {flexRender(
-                      cell.column.columnDef.cell ??
-                        cell.column.columnDef.accessorKey,
-                      cell.getContext()
-                    )}
-                  </td>
-                ))}
+            {table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row) => (
+                <tr key={row.id} className="border-t border-gray-200">
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="p-4 text-center">
+                      {flexRender(
+                        cell.column.columnDef.cell ??
+                          cell.column.columnDef.accessorKey,
+                        cell.getContext()
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={columns.length} className="p-8 text-gray-400 italic text-center">
+                  No billing transactions found for this employer.
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

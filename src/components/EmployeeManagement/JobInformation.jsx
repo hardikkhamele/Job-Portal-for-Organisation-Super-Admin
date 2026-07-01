@@ -4,7 +4,7 @@ import { Eye, Trash2, CheckCircle, XCircle, Briefcase, Layers, Database, AlertTr
 import DeleteModal from "../../components/common/DeleteModal";
 
 
-function JobInformation({ setViewJob }) {
+function JobInformation({ setViewJob, jobs = [] }) {
 
     const [search, setSearch] = useState("");
     const [jobTypeFilter, setJobTypeFilter] = useState("All");
@@ -34,32 +34,18 @@ function JobInformation({ setViewJob }) {
 
   // DATA
   const data = useMemo(
-    () => [
-      { sr: 1, post: "UI/UX Designer", type: "Classic", date: "Feb 12, 2026 19:28", status: "Active" },
-      { sr: 2, post: "Senior UX Designer", type: "Super", date: "Feb 12, 2026 19:28", status: "Expired" },
-      { sr: 3, post: "Technical Support Specialist", type: "Premium", date: "Feb 10, 2026 19:28", status: "Active" },
-      { sr: 4, post: "Senior UX Designer", type: "Premium", date: "Feb 14, 2026 19:28", status: "Active" },
-      { sr: 5, post: "Junior Graphic Designer", type: "Classic", date: "Feb 19, 2026 19:28", status: "Active" },
-      { sr: 6, post: "Junior UI/UX Designer", type: "Super", date: "Feb 20, 2026 19:28", status: "Expired" },
-      { sr: 7, post: "Front End Developer", type: "Premium", date: "Feb 2, 2026 19:28", status: "Expired" },
-
-      { sr: 8, post: "UI/UX Designer", type: "Classic", date: "Feb 12, 2026 19:28", status: "Active" },
-      { sr: 9, post: "Senior UX Designer", type: "Super", date: "Feb 12, 2026 19:28", status: "Expired" },
-      { sr: 10, post: "Technical Support Specialist", type: "Premium", date: "Feb 10, 2026 19:28", status: "Active" },
-      { sr: 11, post: "Senior UX Designer", type: "Classic", date: "Feb 14, 2026 19:28", status: "Active" },
-      { sr: 12, post: "Junior Graphic Designer", type: "Premium", date: "Feb 19, 2026 19:28", status: "Expired" },
-      { sr: 13, post: "Junior UI/UX Designer", type: "Super", date: "Feb 20, 2026 19:28", status: "Active" },
-      { sr: 14, post: "Front End Developer", type: "Premium", date: "Feb 2, 2026 19:28", status: "Expired" },
-
-      { sr: 15, post: "UI/UX Designer", type: "Premium", date: "Feb 12, 2026 19:28", status: "Active" },
-      { sr: 16, post: "Senior UX Designer", type: "Super", date: "Feb 12, 2026 19:28", status: "Expired" },
-      { sr: 17, post: "Technical Support Specialist", type: "Premium", date: "Feb 10, 2026 19:28", status: "Active" },
-      { sr: 18, post: "Senior UX Designer", type: "Classic", date: "Feb 14, 2026 19:28", status: "Active" },
-      { sr: 19, post: "Junior Graphic Designer", type: "Classic", date: "Feb 19, 2026 19:28", status: "Expired" },
-      { sr: 20, post: "Junior UI/UX Designer", type: "Super", date: "Feb 20, 2026 19:28", status: "Active" },
-      { sr: 21, post: "Front End Developer", type: "Premium", date: "Feb 2, 2026 19:28", status: "Expired" },
-    ],
-    []
+    () => (jobs || []).map((job, index) => ({
+      sr: index + 1,
+      id: job._id,
+      post: job.jobTitle || "N/A",
+      type: job.jobType || job.advanceInformation?.jobType || "Classic",
+      date: job.advanceInformation?.expireDate 
+        ? new Date(job.advanceInformation.expireDate).toLocaleDateString("en-GB") 
+        : "N/A",
+      status: job.status === "active" ? "Active" : "Expired",
+      ...job
+    })),
+    [jobs]
   );
 
   // PAGINATION
@@ -138,6 +124,11 @@ function JobInformation({ setViewJob }) {
   });
 
 
+  const totalJobsUploaded = data.length;
+  const activeJobsCount = data.filter((item) => item.status === "Active").length;
+  const latestJobPost = data[0]?.post || "N/A";
+  const latestJobExpiry = data[0]?.date || "N/A";
+
   return (
     <div className="p-4">
         {/* CARDS */}
@@ -147,11 +138,11 @@ function JobInformation({ setViewJob }) {
           <div className="border border-purple-400 rounded-xl p-5 flex justify-between items-start bg-white shadow-sm">
             <div>
               <p className="text-gray-800 text mb-5">Total Job Uploaded</p>
-              <h2 className="text-2xl font-semibold mb-5">120</h2>
+              <h2 className="text-2xl font-semibold mb-5">{totalJobsUploaded}</h2>
 
               <p className="text-sm flex items-center gap-1">
                 <TrendingUp className="text-green-500" size={20} />
-                <span className="text-gray-800 text-lg">10% vs Last months</span>
+                <span className="text-gray-800 text-lg">Real-time stats</span>
               </p>
             </div>
 
@@ -164,13 +155,12 @@ function JobInformation({ setViewJob }) {
           <div className="border border-purple-400 rounded-xl p-5 flex justify-between items-start bg-white shadow-sm">
             <div>
               <p className="text-gray-800 text mb-5">Active Jobs</p>
-              <h2 className="text-2xl font-semibold mb-5">28</h2>
+              <h2 className="text-2xl font-semibold mb-5">{activeJobsCount}</h2>
 
               <p className="text flex items-center gap-2">
                 <AlertTriangle className="text-yellow-500" size={20} />
                 <span className="text-gray-700">
-                  <span className="font-semibold text-gray-800 underline">1 Job Post</span>{" "}
-                  will Expire on Feb 07, 2026
+                  <span className="font-semibold text-gray-800">Active postings</span>
                 </span>
               </p>
             </div>
@@ -184,13 +174,12 @@ function JobInformation({ setViewJob }) {
           <div className="border border-purple-400 rounded-xl p-5 flex justify-between items-start bg-white shadow-sm">
             <div>
               <p className="text-gray-800 text mb-5">Latest Job Post</p>
-              <h2 className="text-2xl font-semibold mb-5">UI/UX Designer</h2>
+              <h2 className="text-2xl font-semibold mb-5">{latestJobPost}</h2>
 
               <p className="text flex items-center gap-2">
                 <AlertTriangle className="text-yellow-500" size={20} />
                 <span className="text-gray-700">
-                  <span className="font-semibold text-gray-800 underline">Job Post</span>{" "}
-                  will Expire on Feb 12, 2026
+                  Expires: <span className="font-semibold text-gray-800">{latestJobExpiry}</span>
                 </span>
               </p>
             </div>

@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-table";
 import { Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchJobSeekerPlans, deleteJobSeekerPlan } from "../../redux/slice/subscriptions/jobseekerPlans/jobseekerPlansSlice";
 import JobSeekerValidityModal from "../common/JobSeekerValidityModal";
 import DeleteModal from "../common/DeleteModal";
 
@@ -21,92 +23,19 @@ const JobSeekerPlans = () => {
     pageSize: 5,
   });
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  // ✅ Load from localStorage or seed default plans
-  const [plans, setPlans] = useState(() => {
-    const stored = localStorage.getItem("jobSeekerPlans");
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    const defaultPlans = [
-      {
-        id: 1,
-        name: "Basic",
-        tag: "For Active Job Seekers",
-        validity: "1 Month",
-        price: 199,
-        discount: 35,
-        applyLimit: 10,
-        profileBoost: "Yes",
-        jobAlert: "Yes",
-        support: "Yes",
-      },
-      {
-        id: 2,
-        name: "Premium",
-        tag: "Most Popular",
-        validity: "1 Month",
-        price: 299,
-        discount: 35,
-        applyLimit: 20,
-        profileBoost: "Yes",
-        jobAlert: "Yes",
-        support: "Yes",
-      },
-      {
-        id: 3,
-        name: "Premium",
-        tag: "Most Popular",
-        validity: "1 Month",
-        price: 399,
-        discount: 35,
-        applyLimit: 30,
-        profileBoost: "Yes",
-        jobAlert: "Yes",
-        support: "Yes",
-      },
-      {
-        id: 4,
-        name: "Premium",
-        tag: "Most Popular",
-        validity: "1 Month",
-        price: 499,
-        discount: 35,
-        applyLimit: 40,
-        profileBoost: "Yes",
-        jobAlert: "Yes",
-        support: "Yes",
-      },
-      {
-        id: 5,
-        name: "Premium",
-        tag: "Most Popular",
-        validity: "1 Month",
-        price: 599,
-        discount: 35,
-        applyLimit: 50,
-        profileBoost: "Yes",
-        jobAlert: "Yes",
-        support: "Yes",
-      },
-    ];
-    localStorage.setItem("jobSeekerPlans", JSON.stringify(defaultPlans));
-    return defaultPlans;
-  });
+  const { plans, loading } = useSelector((state) => state.jobseekerPlans);
 
-  // ✅ Keep localStorage in sync with plans state
+  // ✅ Load real-time plans from API
   useEffect(() => {
-    localStorage.setItem("jobSeekerPlans", JSON.stringify(plans));
-  }, [plans]);
+    dispatch(fetchJobSeekerPlans());
+  }, [dispatch]);
 
   // ✅ Search Filter
   const filteredData = useMemo(() => {
-    return plans.filter((item) =>
-      item.name?.toLowerCase().includes(globalFilter.toLowerCase())
+    return (plans || []).filter((item) =>
+      item.planName?.toLowerCase().includes(globalFilter.toLowerCase())
     );
   }, [plans, globalFilter]);
 
@@ -119,19 +48,20 @@ const JobSeekerPlans = () => {
     },
     {
       header: "Plan Name",
-      accessorKey: "name",
+      accessorKey: "planName",
     },
     {
       header: "Plan Tag",
-      accessorKey: "tag",
+      accessorKey: "planTag",
     },
     {
       header: "Validity",
       accessorKey: "validity",
+      cell: ({ getValue }) => `${getValue()} Month(s)`,
     },
     {
       header: "Plan Price",
-      accessorKey: "price",
+      accessorKey: "planPrice",
       cell: ({ getValue }) => `₹${String(getValue()).replace("₹", "")}`,
     },
     {
@@ -221,28 +151,44 @@ const JobSeekerPlans = () => {
             </thead>
 
             <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-gray-300 text-center hover:bg-gray-50"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="p-3">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </td>
-                  ))}
+              {loading ? (
+                <tr>
+                  <td colSpan={columns.length} className="p-8 text-center">
+                    <div className="flex justify-center items-center">
+                      <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  </td>
                 </tr>
-              ))}
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="p-8 text-center text-gray-500">
+                    No Job Seeker Plans Found.
+                  </td>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="border-b border-gray-300 text-center hover:bg-gray-50"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="p-3">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
 
           {/* 🔹 Pagination */}
           <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-purple-600">
-              Showing {pagination.pageIndex * pagination.pageSize + 1} to{" "}
+              Showing {filteredData.length === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1} to{" "}
               {Math.min(
                 (pagination.pageIndex + 1) * pagination.pageSize,
                 filteredData.length
@@ -295,7 +241,7 @@ const JobSeekerPlans = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={() => {
           if (selectedRow) {
-            setPlans((prev) => prev.filter((plan) => plan.id !== selectedRow.id));
+            dispatch(deleteJobSeekerPlan(selectedRow._id));
           }
           setDeleteModalOpen(false);
           setSelectedRow(null);

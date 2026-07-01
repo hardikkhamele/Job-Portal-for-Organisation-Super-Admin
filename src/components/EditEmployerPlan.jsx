@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { addNotification } from "../utils/notificationHelper";
 
 import { updateEmployerPlans, fetchEmployerPlanById, clearSinglePlan } from "../redux/slice/subscriptions/employerPlans/getEmployerPlans";
 const EditEmployerPlan = () => {
@@ -84,7 +85,11 @@ const EditEmployerPlan = () => {
       dispatch(updateEmployerPlans({ id, updateData }))
         .unwrap()
         .then(() => {
-         
+          addNotification(
+            "Plan Created Successfully",
+            `Employer Plan "${formik.values.name}" has been updated successfully.`,
+            "success"
+          );
           navigate(-1);
         })
         .catch((err) => toast.error(err || "Update failed"));

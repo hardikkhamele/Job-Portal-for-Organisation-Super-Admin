@@ -20,6 +20,7 @@ import {
 import { createCustomPlanPayment } from "../../../redux/slice/subscriptions/customPlan/customPlanSlice";
 import { fetchEmployerPlanById, clearSinglePlan } from "../../../redux/slice/subscriptions/employerPlans/getEmployerPlans";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 
 const CreateCustomPlan = () => {
   const navigate = useNavigate();
@@ -100,6 +101,16 @@ const CreateCustomPlan = () => {
       if (createCustomPlanPayment.fulfilled.match(resultAction)) {
         setPaymentResponse(resultAction.payload.data);
         setShowModal(true);
+        addNotification(
+          "Payment Successful",
+          `Custom plan payment link generated successfully for price ₹${values.price}.`,
+          "success"
+        );
+        addNotification(
+          "Plan Created Successfully",
+          `Custom Plan has been initiated/created successfully.`,
+          "success"
+        );
         toast.success("Payment link generated successfully!");
       } else {
         toast.error(resultAction.payload || "Failed to generate payment link. Please verify payment gateway settings.");

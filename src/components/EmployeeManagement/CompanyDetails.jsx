@@ -187,9 +187,9 @@ function CompanyDetails() {
             )}
 
             {/* OTHER TABS CONTENT */}
-            {activeTab === "transaction" && <TransactionHistory employerId={id} />}
-            {activeTab === "job" && <JobInformation setViewJob={setViewJob} employerId={id} />}
-            {activeTab === "credit" && <CreditHistory employerId={id} credits={employer.credits} />}
+            {activeTab === "transaction" && <TransactionHistory employerId={id} employer={employer} />}
+            {activeTab === "job" && <JobInformation setViewJob={setViewJob} employerId={id} jobs={employer.jobs} />}
+            {activeTab === "credit" && <CreditHistory employerId={id} employer={employer} />}
           </>
         )}
       </div>

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Briefcase, Layers, Database, AlertTriangle, TrendingUp, HandCoins } from "lucide-react";
 
-const CreditHistory = () => {
+const CreditHistory = ({ employerId, employer }) => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All Credit");
   const [isOpen, setIsOpen] = useState(false);
@@ -18,141 +18,18 @@ const CreditHistory = () => {
     "Job Credit Spent",
   ];
 
-  const data = [
-    {
-      id: 1,
-      status: "Job Credits Spent",
-      details: "Posted job : Premium",
-      credit: "-2 Job Credits",
-      type: "Spent",
-      date: "Feb 12, 2026 19:28",
-    },
-    {
-      id: 2,
-      status: "Job & Database Credits Added",
-      details: "Basic Bundle Plan",
-      credit: "+6 Job Credits +500 Database Credits",
-      type: "Added",
-      date: "Feb 2, 2026 19:28",
-    },
-    {
-      id: 3,
-      status: "Database Credits Added",
-      details: "Basic Database Plan",
-      credit: "+100 Database Credits",
-      type: "Added",
-      date: "Feb 7, 2026 19:38",
-    },
-    {
-      id: 4,
-      status: "Database Credits Spent",
-      details: "Viewed phone number",
-      credit: "-1 Database Credits",
-      type: "Spent",
-      date: "Feb 7, 2026 19:25",
-    },
+  const rawLogs = employer?.creditHistory || employer?.creditLogs || employer?.creditsHistory || [];
 
-
-    {
-      id: 5,
-      status: "Job Credits Spent",
-      details: "Posted job : Premium",
-      credit: "-2 Job Credits",
-      type: "Spent",
-      date: "Feb 12, 2026 19:28",
-    },
-    {
-      id: 6,
-      status: "Job & Database Credits Added",
-      details: "Basic Bundle Plan",
-      credit: "+6 Job Credits +500 Database Credits",
-      type: "Added",
-      date: "Feb 2, 2026 19:28",
-    },
-    {
-      id: 7,
-      status: "Database Credits Added",
-      details: "Basic Database Plan",
-      credit: "+100 Database Credits",
-      type: "Added",
-      date: "Feb 7, 2026 19:38",
-    },
-    {
-      id: 8,
-      status: "Database Credits Spent",
-      details: "Viewed phone number",
-      credit: "-1 Database Credits",
-      type: "Spent",
-      date: "Feb 7, 2026 19:25",
-    },
-
-    {
-      id: 9,
-      status: "Job Credits Spent",
-      details: "Posted job : Premium",
-      credit: "-2 Job Credits",
-      type: "Spent",
-      date: "Feb 12, 2026 19:28",
-    },
-    {
-      id: 10,
-      status: "Job & Database Credits Added",
-      details: "Basic Bundle Plan",
-      credit: "+6 Job Credits +500 Database Credits",
-      type: "Added",
-      date: "Feb 2, 2026 19:28",
-    },
-    {
-      id: 11,
-      status: "Database Credits Added",
-      details: "Basic Database Plan",
-      credit: "+100 Database Credits",
-      type: "Added",
-      date: "Feb 7, 2026 19:38",
-    },
-    {
-      id: 12,
-      status: "Database Credits Spent",
-      details: "Viewed phone number",
-      credit: "-1 Database Credits",
-      type: "Spent",
-      date: "Feb 7, 2026 19:25",
-    },
-
-    {
-      id: 13,
-      status: "Job Credits Spent",
-      details: "Posted job : Premium",
-      credit: "-2 Job Credits",
-      type: "Spent",
-      date: "Feb 12, 2026 19:28",
-    },
-    {
-      id: 14,
-      status: "Job & Database Credits Added",
-      details: "Basic Bundle Plan",
-      credit: "+6 Job Credits +500 Database Credits",
-      type: "Added",
-      date: "Feb 2, 2026 19:28",
-    },
-    {
-      id: 15,
-      status: "Database Credits Added",
-      details: "Basic Database Plan",
-      credit: "+100 Database Credits",
-      type: "Added",
-      date: "Feb 7, 2026 19:38",
-    },
-    {
-      id: 16,
-      status: "Database Credits Spent",
-      details: "Viewed phone number",
-      credit: "-1 Database Credits",
-      type: "Spent",
-      date: "Feb 7, 2026 19:25",
-    },
-
-  ];
+  const data = useMemo(() => {
+    return rawLogs.map((log, index) => ({
+      id: log._id || index + 1,
+      status: log.status || log.action || "Credit Activity",
+      details: log.details || log.description || "N/A",
+      credit: log.credit || `${log.amount > 0 ? '+' : ''}${log.amount} ${log.creditType || 'Credits'}`,
+      type: log.type || (log.amount > 0 ? "Added" : "Spent"),
+      date: log.createdAt ? new Date(log.createdAt).toLocaleString("en-GB") : "N/A",
+    }));
+  }, [rawLogs]);
 
   //  SEARCH + FILTER
   const filteredData = useMemo(() => {
@@ -194,6 +71,9 @@ useEffect(() => {
   setPage(1);
 }, [search, filter]);
 
+  // The API returns a single "credits" field (number) — no separate job/database breakdown
+  const totalCredits = employer?.credits ?? 0;
+
   return (
     <div className="p-4">
 
@@ -204,12 +84,12 @@ useEffect(() => {
         {/* Total Credits */}
         <div className="border border-purple-400 rounded-xl p-5 flex justify-between items-start bg-white shadow-sm">
           <div>
-            <p className="text-gray-800 mb-5 text-lg">Total Credits + Database Credits</p>
-            <h2 className="text-2xl font-semibold mb-5">725</h2>
+            <p className="text-gray-800 mb-5 text-lg">Total Credits Available</p>
+            <h2 className="text-2xl font-semibold mb-5">{totalCredits}</h2>
 
             <p className="flex items-center gap-1">
               <TrendingUp className="text-green-500" size={20} />
-              <span className="text-gray-800">10% vs Last months</span>
+              <span className="text-gray-800">Real-time stats</span>
             </p>
           </div>
 
@@ -222,12 +102,12 @@ useEffect(() => {
         <div className="border border-purple-400 rounded-xl p-5 flex justify-between items-start bg-white shadow-sm">
           <div>
             <p className="text-gray-800 mb-5 text-lg">Job Credits left</p>
-            <h2 className="text-2xl font-semibold mb-5">25</h2>
+            <h2 className="text-2xl font-semibold mb-5">{totalCredits}</h2>
 
             <p className="flex items-center gap-2">
               <AlertTriangle className="text-yellow-500" size={20} />
               <span className="text-gray-800">
-                <span className="font-semibold underline text-lg text-gray-800 ">1 Credit</span> will Expire on Feb 07,2026
+                Active credits left
               </span>
             </p>
           </div>
@@ -241,12 +121,12 @@ useEffect(() => {
         <div className="border border-purple-400 rounded-xl p-5 flex justify-between items-start bg-white shadow-sm">
           <div>
             <p className="text-gray-800 mb-5 text-lg">Database Credits left</p>
-            <h2 className="text-2xl font-semibold mb-5">700</h2>
+            <h2 className="text-2xl font-semibold mb-5">{totalCredits}</h2>
 
             <p className="flex items-center gap-1">
               <AlertTriangle className="text-yellow-500" size={20} />
               <span className="text-gray-800">
-              <span className="text-gray-800 underline font-semibold text-lg">20 credits</span> will Expire on Feb 07,2026
+                Active credits left
               </span>
             </p>
           </div>
@@ -316,26 +196,34 @@ useEffect(() => {
             </thead>
 
             <tbody>
-              {paginatedData.map((item, index) => (
-                <tr key={item.id} className="border-t border-gray-200">
-                  <td className="p-4">{(page - 1) * pageSize + index + 1}</td>
-                  <td>{item.status}</td>
-                  <td>{item.details}</td>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((item, index) => (
+                  <tr key={item.id} className="border-t border-gray-200">
+                    <td className="p-4">{(page - 1) * pageSize + index + 1}</td>
+                    <td>{item.status}</td>
+                    <td>{item.details}</td>
 
-                  {/* COLOR LOGIC */}
-                  <td
-                    className={
-                      item.credit.startsWith("+")
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }
-                  >
-                    {item.credit}
+                    {/* COLOR LOGIC */}
+                    <td
+                      className={
+                        item.credit.startsWith("+")
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {item.credit}
+                    </td>
+
+                    <td>{item.date}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="p-8 text-gray-400 italic">
+                    No credit transaction history found for this employer.
                   </td>
-
-                  <td>{item.date}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
 

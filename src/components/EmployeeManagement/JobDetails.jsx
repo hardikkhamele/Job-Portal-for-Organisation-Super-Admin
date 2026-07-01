@@ -1,4 +1,5 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import {
   ArrowLeft,
   Calendar,
@@ -16,7 +17,29 @@ Camera, Share2, ThumbsUp, Users
 
 import bannertwo from "../../assets/BannerTwo.svg";
 
+const decodeHtml = (html) => {
+  if (!html) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+};
+
 function JobDetails({ job, onBack }) {
+  const { employer } = useSelector((state) => state.employeeDetails);
+  
+  const getSafeImage = (imgArray, placeholder) => {
+    if (!imgArray || imgArray.length === 0) return placeholder;
+    const item = imgArray[0];
+    return typeof item === "string" ? item : (item?.url || placeholder);
+  };
+
+  const logo = getSafeImage(employer?.companyDetail?.companyLogo, bannertwo);
+  const website = employer?.companyDetail?.companyWebsite || "#";
+  const email = employer?.email || "N/A";
+  const phone = employer?.mobileNumber || "N/A";
+  const companyName = employer?.name || "N/A";
+  const companyIndustry = employer?.businessDetail?.typeOfCompany || "IT Services and IT Consulting";
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">
 
@@ -45,27 +68,29 @@ function JobDetails({ job, onBack }) {
         <div className="flex items-center gap-5">
 
           <img
-            src={bannertwo}   
+            src={logo}   
             alt="company logo"
-            className="w-18 h-18 rounded-full object-cover shadow-lg"
+            className="w-18 h-18 rounded-full object-cover shadow-lg bg-gray-50 border border-gray-200"
           />
           <div>
             <h3 className="font-bold text-2xl">
-              Talentrise Technokrate
+              {companyName}
             </h3>
             <p className="text text-gray-500">
-              IT Services and IT Consulting
+              {companyIndustry}
             </p>
           </div>
         </div>
 
         <div className="flex gap-4 items-center text">
           <span className="text-red-500 font-semibold">
-            1858 Spam Reports
+            {job?.spamCount || 0} Spam Reports
           </span>
           <div className="flex items-center gap-1">
-            <CheckCircle className="text-green-500" size={16} />
-            <span className="text-green-500 font-semibold">Active</span>
+            <CheckCircle className={job?.status === "active" ? "text-green-500" : "text-red-500"} size={16} />
+            <span className={`${job?.status === "active" ? "text-green-500" : "text-red-500"} font-semibold capitalize`}>
+              {job?.status || "Inactive"}
+            </span>
           </div>
 
         </div>
@@ -80,36 +105,38 @@ function JobDetails({ job, onBack }) {
 
             {/* TITLE */}
             <h2 className="text-2xl font-semibold">
-              {job?.post}
+              {job?.jobTitle || job?.post}
             </h2>
 
             {/* BADGE 1 */}
             <span className="bg-gray-200 px-3 py-1 rounded-full text font-semibold">
-              {job?.type}
+              {job?.jobType || job?.type || "Classic"}
             </span>
 
             {/* BADGE 2 */}
             <span className="bg-purple-200 text-purple-700 px-3 py-1 rounded-full text font-semibold">
-              Full time
+              {job?.advanceInformation?.jobType || "Full time"}
             </span>
 
           </div>
 
           {/* CONTACT ROW */}
           <div className="flex gap-6 text text-gray-600">
-            <div className="flex items-center gap-2 underline">
-              <Link2 size={16} className="text-purple-600" />
-              https://Technokrate.com
-            </div>
+            {website !== "#" && (
+              <div className="flex items-center gap-2 underline">
+                <Link2 size={16} className="text-purple-600" />
+                <a href={website} target="_blank" rel="noopener noreferrer">{website}</a>
+              </div>
+            )}
 
             <div className="flex items-center gap-2">
               <Phone size={16} className="text-purple-600" />
-              (406) 555-0120
+              {phone}
             </div>
 
             <div className="flex items-center gap-2">
               <Mail size={16} className="text-purple-600" />
-              career@Technokrate.com
+              {email}
             </div>
           </div>
         </div>
@@ -132,7 +159,7 @@ function JobDetails({ job, onBack }) {
           
           {/* NUMBER */}
           <h2 className="text-2xl font-bold">
-            18,578
+            {job?.jobApplications?.length || job?.applicationsCount || 0}
           </h2>
           
         </div>
@@ -144,156 +171,109 @@ function JobDetails({ job, onBack }) {
         {/* LEFT */}
         <div>
           <h3 className="font-semibold mb-3 text-xl">Job Description</h3>
+          {job?.jobDescription ? (
+            <div
+              className="text-gray-600 text leading-6"
+              dangerouslySetInnerHTML={{ __html: decodeHtml(job.jobDescription) }}
+            />
+          ) : (
+            <p className="text-gray-500 italic">No description provided.</p>
+          )}
 
-          <p className="text-gray-600 text leading-6">
-            As a Senior UI/UX Designer, you will craft intuitive and visually compelling designs that elevate user experiences. Collaborating closely with product managers and developers, you’ll lead the end-to-end design process, including research, wireframing, prototyping, and high-fidelity visuals. 
-            You possess a deep understanding of design principles, user psychology, and industry trends. 
-            With exceptional proficiency in Figma and similar tools, you ensure designs are both innovative and practical. 
-            Your expertise in solving complex problems and delivering pixel-perfect designs will play a critical role in shaping our digital products and achieving business goals.
-          </p>
-
-          <p className="text-gray-600 text leading-6 mt-4">
-            As a Senior UI/UX Designer, you’ll create seamless designs tailored to user needs. 
-            You will oversee every design stage—from research and wireframes to interactive prototypes and final visuals. 
-            With expertise in user-centric design, tools like Figma, and cross-functional collaboration, you’ll craft experiences that balance innovation, functionality, and business goals.
-          </p>
+          {job?.jobResponsibilities && (
+            <div className="mt-6">
+              <h3 className="font-semibold mb-3 text-xl">Responsibilities</h3>
+              <div
+                className="text-gray-600 text leading-6"
+                dangerouslySetInnerHTML={{ __html: decodeHtml(job.jobResponsibilities) }}
+              />
+            </div>
+          )}
         </div>
 
         {/* RIGHT */}
-        <div className="border border-purple-300 rounded-xl p-6">
-        <h3 className="font-semibold mb-6">Job Overview</h3>
+        <div className="border border-purple-300 rounded-xl p-6 h-fit">
+          <h3 className="font-semibold mb-6">Job Overview</h3>
 
-        <div className="grid grid-cols-3 gap-y-8 text-sm">
+          <div className="grid grid-cols-2 gap-y-8 text-sm">
 
-          {/* ITEM */}
-          <div className="flex flex-col items-start gap-2">
-            <Calendar className="text-purple-600" size={22} />
-            <p className="text-gray-400 text-xs">Job Posted :</p>
-            <p className="text-gray-700">Jan 7, 2026 19:28</p>
+            {/* ITEM */}
+            <div className="flex flex-col items-start gap-2">
+              <Calendar className="text-purple-600" size={22} />
+              <p className="text-gray-400 text-xs">Job Posted :</p>
+              <p className="text-gray-700">
+                {job?.createdAt ? new Date(job.createdAt).toLocaleDateString("en-GB") : "N/A"}
+              </p>
+            </div>
+
+            {/* ITEM */}
+            <div className="flex flex-col items-start gap-2">
+              <Clock className="text-purple-600" size={22} />
+              <p className="text-gray-400 text-xs">Job Expire In :</p>
+              <p className="text-gray-700">
+                {job?.advanceInformation?.expireDate 
+                  ? new Date(job.advanceInformation.expireDate).toLocaleDateString("en-GB") 
+                  : "N/A"}
+              </p>
+            </div>
+
+            {/* ITEM */}
+            <div className="flex flex-col items-start gap-2">
+              <Briefcase className="text-purple-600" size={22} />
+              <p className="text-gray-400 text-xs">Education :</p>
+              <p className="text-gray-700">
+                {Array.isArray(job?.advanceInformation?.education)
+                  ? job.advanceInformation.education.join(", ")
+                  : job?.advanceInformation?.education || "N/A"}
+              </p>
+            </div>
+
+            {/* ITEM */}
+            <div className="flex flex-col items-start gap-2">
+              <Wallet className="text-purple-600" size={22} />
+              <p className="text-gray-400 text-xs">Salary ({job?.salaryType || "N/A"}) :</p>
+              <p className="text-gray-700">
+                {job?.salaryRange?.minSalary && job?.salaryRange?.maxSalary 
+                  ? `₹${job.salaryRange.minSalary.toLocaleString()} - ₹${job.salaryRange.maxSalary.toLocaleString()}`
+                  : "N/A"}
+              </p>
+            </div>
+
+            {/* ITEM */}
+            <div className="flex flex-col items-start gap-2">
+              <MapPin className="text-purple-600" size={22} />
+              <p className="text-gray-400 text-xs">Location :</p>
+              <p className="text-gray-700">{job?.jobLocation?.name || "N/A"}</p>
+            </div>
+
+            {/* ITEM */}
+            <div className="flex flex-col items-start gap-2">
+              <Briefcase className="text-purple-600" size={22} />
+              <p className="text-gray-400 text-xs">Experience :</p>
+              <p className="text-gray-700">{job?.advanceInformation?.experience || "N/A"}</p>
+            </div>
+
           </div>
-
-          {/* ITEM */}
-          <div className="flex flex-col items-start gap-2">
-            <Clock className="text-purple-600" size={22} />
-            <p className="text-gray-400 text-xs">Job Expire In :</p>
-            <p className="text-gray-700">Feb 12, 2026 19:28</p>
-          </div>
-
-          {/* ITEM */}
-          <div className="flex flex-col items-start gap-2">
-            <Briefcase className="text-purple-600" size={22} />
-            <p className="text-gray-400 text-xs">Education :</p>
-            <p className="text-gray-700">Graduation</p>
-          </div>
-
-          {/* ITEM */}
-          <div className="flex flex-col items-start gap-2">
-            <Wallet className="text-purple-600" size={22} />
-            <p className="text-gray-400 text-xs">Salary :</p>
-            <p className="text-gray-700">₹45k–₹50k/month</p>
-          </div>
-
-          {/* ITEM */}
-          <div className="flex flex-col items-start gap-2">
-            <MapPin className="text-purple-600" size={22} />
-            <p className="text-gray-400 text-xs">Location :</p>
-            <p className="text-gray-700">India</p>
-          </div>
-
-          {/* ITEM */}
-          <div className="flex flex-col items-start gap-2">
-            <Briefcase className="text-purple-600" size={22} />
-            <p className="text-gray-400 text-xs">Job Type :</p>
-            <p className="text-gray-700">Full Time</p>
-          </div>
-
-          {/* ITEM */}
-          <div className="flex flex-col items-start gap-2">
-            <Briefcase className="text-purple-600" size={22} />
-            <p className="text-gray-400 text-xs">Experience :</p>
-            <p className="text-gray-700">4–5 Years</p>
-          </div>
-
         </div>
       </div>
 
-
-              <div className="mt-1 space-y-8">
-
-        {/* RESPONSIBILITIES */}
-        <div>
-          <h3 className="font-semibold mb-3 text">
-            Responsibilities & Description
-          </h3>
-
-          <ul className="list-disc pl-5 space-y-3 text-gray-600 text leading-6">
-            <li>Conduct user research to identify pain points and opportunities.</li>
-            <li>Create wireframes, prototypes, and user flows that enhance experiences.</li>
-            <li>Collaborate with developers to ensure design feasibility and implementation.</li>
-            <li>Iterate designs based on feedback and usability testing.</li>
-            <li>Maintain design consistency while innovating with new approaches.</li>
-            <li>Design for accessibility and inclusivity to meet diverse user needs.</li>
-            <li>Document design processes and maintain a component library.</li>
-            <li>Stay updated with industry trends and best practices.</li>
-            <li>Present design concepts and justify decisions to stakeholders.</li>
-          </ul>
+      {/* SKILLS & QUALIFICATIONS */}
+      {job?.skillsRequired && job.skillsRequired.length > 0 && (
+        <div className="mt-8 border-t pt-6">
+          <h3 className="font-semibold mb-3 text-xl">Skills & Qualifications</h3>
+          <div className="flex flex-wrap gap-2">
+            {job.skillsRequired.map((skill, index) => (
+              <span
+                key={index}
+                className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
         </div>
-
-        {/* SKILLS */}
-        <div>
-          <h3 className="font-semibold mb-3 text">
-            Skills & Qualifications
-          </h3>
-
-          <ul className="list-disc pl-5 space-y-3 text-gray-600 text leading-6">
-            <li>Bachelor’s degree in UX Design, Interaction Design, or related field.</li>
-            <li>5+ years of experience in UX design, preferably in mobile applications.</li>
-            <li>Proficiency in design tools like Figma, Sketch, or Adobe XD.</li>
-            <li>Strong understanding of user-centered design principles and methodologies.</li>
-            <li>Excellent communication and presentation skills.</li>
-            <li>Ability to manage multiple projects and meet deadlines.</li>
-          </ul>
-        </div>
-        </div>
-      </div>
-
-      {/* SALARY + SHARE */}
-<div className="mt-10">
-
-  {/* SALARY */}
-  <div className="mb-6">
-    <h3 className="font-semibold mb-2">Salary Range</h3>
-    <p className="text-gray-600 text">
-      ₹6,00,000 per annum (₹50,000 per month)
-    </p>
-  </div>
-
-  {/* SHARE */}
-  <div className="flex items-center gap-3">
-    <p className="text mb-2">Share this job:</p>
-
-    <div className="flex gap-3">
-      
-      {/* Facebook */}
-      <button className="w-9 h-9 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200">
-        <ThumbsUp className="text-purple-600 font-bold">f</ThumbsUp>
-      </button>
-
-      {/* Twitter */}
-      <button className="w-9 h-9 flex items-center justify-center rounded-md bg-purple-200 hover:bg-purple-300">
-        <Share2 className="text-white font-bold">t</Share2>
-      </button>
-
-      {/* Instagram */}
-      <button className="w-9 h-9 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200">
-        <Camera className="text-purple-600 font-bold">📷</Camera>
-      </button>
-
+      )}
     </div>
-  </div>
-
-  </div>
-</div>
   );
 }
 

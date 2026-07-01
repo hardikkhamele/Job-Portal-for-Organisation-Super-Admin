@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   ResponsiveContainer,
   Line,
@@ -303,6 +304,33 @@ function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState("Mar");
   const [viewType, setViewType] = useState("yearly"); // "yearly" or "monthly"
 
+  // Dashboard API integration state
+  const [dashboardData, setDashboardData] = useState(null);
+  const [apiLoading, setApiLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const response = await axios.get(`${BASE_URL}/api/admin/dashboard`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Super Admin Dashboard API raw response:", response.data);
+        if (response.data) {
+          setDashboardData(response.data.data || response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setApiLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+
   // Get available years
   const availableYears = Object.keys(revenueDataByYear).map(Number);
   const months = [
@@ -357,8 +385,8 @@ function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card
             title="Total Revenue"
-            value="₹96,780"
-            growth="+1.8%"
+            value={apiLoading ? "Loading..." : (dashboardData?.totalRevenue ? `₹${Number(dashboardData.totalRevenue).toLocaleString()}` : "₹96,780")}
+            growth={dashboardData?.revenueGrowth ?? "+1.8%"}
             subtitle="Job Seekers + Employers"
             icon={<Wallet size={28} className="text-purple-600" />}
             bg="bg-gradient-to-br from-purple-500 to-indigo-200 "
@@ -366,8 +394,8 @@ function Dashboard() {
 
           <Card
             title="Total User"
-            value="1,24,630"
-            growth="+15.2%"
+            value={apiLoading ? "Loading..." : (dashboardData?.totalUsers ? Number(dashboardData.totalUsers).toLocaleString() : "1,24,630")}
+            growth={dashboardData?.userGrowth ?? "+15.2%"}
             subtitle="Job Seekers + Employers"
             icon={<Users size={28} className="text-green-600" />}
             bg="bg-gradient-to-br from-emerald-100 to-emerald-300"
@@ -375,8 +403,8 @@ function Dashboard() {
 
           <Card
             title="Active User"
-            value="94,630"
-            growth="+5.2%"
+            value={apiLoading ? "Loading..." : (dashboardData?.activeUsers ? Number(dashboardData.activeUsers).toLocaleString() : "94,630")}
+            growth={dashboardData?.activeUserGrowth ?? "+5.2%"}
             subtitle="Job Seekers + Employers"
             icon={<UserCheck size={28} className="text-yellow-600" />}
             bg="bg-gradient-to-br from-amber-200 to-amber-300"
@@ -384,23 +412,23 @@ function Dashboard() {
 
           <Card
             title="Active Job Listing"
-            value="32,630"
-            growth="+12.8%"
+            value={apiLoading ? "Loading..." : (dashboardData?.activeJobListing ?? dashboardData?.activeJobs ?? dashboardData?.activeJobsCount ?? dashboardData?.activeJobCount ? Number(dashboardData?.activeJobListing ?? dashboardData?.activeJobs ?? dashboardData?.activeJobsCount ?? dashboardData?.activeJobCount).toLocaleString() : "32,630")}
+            growth={dashboardData?.jobListingGrowth ?? "+12.8%"}
             icon={<Briefcase size={28} className="text-orange-500" />}
             bg="bg-gradient-to-br from-rose-300 to-rose-200"
           />
 
           <Card
             title="Shortlisted Candidates"
-            value="12,630"
-            growth="+2.8%"
+            value={apiLoading ? "Loading..." : (dashboardData?.shortlistedCandidates ?? dashboardData?.shortlisted ? Number(dashboardData.shortlistedCandidates ?? dashboardData.shortlisted).toLocaleString() : "12,630")}
+            growth={dashboardData?.shortlistedGrowth ?? "+2.8%"}
             icon={<User size={28} className="text-purple-500" />}
             bg="bg-gradient-to-br from-violet-500 to-violet-200"
           />
           <Card
             title="Successful Hires"
-            value="6,780"
-            growth="+1.8%"
+            value={apiLoading ? "Loading..." : (dashboardData?.successfulHires ?? dashboardData?.hired ? Number(dashboardData.successfulHires ?? dashboardData.hired).toLocaleString() : "6,780")}
+            growth={dashboardData?.hiresGrowth ?? "+1.8%"}
             icon={<CheckCircle size={28} className="text-green-600" />}
             bg="bg-gradient-to-br from-sky-300 to-sky-200"
           />

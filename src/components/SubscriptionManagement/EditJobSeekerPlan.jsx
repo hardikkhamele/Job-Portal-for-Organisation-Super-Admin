@@ -3,10 +3,14 @@ import { CircleChevronLeft } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { updateJobSeekerPlan } from "../../redux/slice/subscriptions/jobseekerPlans/jobseekerPlansSlice";
+import { addNotification } from "../../utils/notificationHelper";
 
 const EditJobSeekerPlan = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const planData = location.state || {};
 
   // ✅ Validation Schema
@@ -32,58 +36,56 @@ const EditJobSeekerPlan = () => {
       .typeError("Must be a number")
       .required("Apply limit is required"),
   });
-
   // ✅ Formik Setup
   const formik = useFormik({
     initialValues: {
-      name: planData.name || "",
-      tag: planData.tag || "",
-      validity: planData.validity || "1 Month",
-      price: planData.price && typeof planData.price === "string" ? planData.price.replace("₹", "") : (planData.price || ""),
-      discount: planData.discount && typeof planData.discount === "string" ? planData.discount.replace("%", "") : (planData.discount || ""),
-      applyLimit: planData.applyLimit || "",
-      profileBoost: planData.profileBoost || "Yes",
-      jobAlert: planData.jobAlert || "Yes",
-      support: planData.support || "Yes",
+      name: planData.planName || planData.name || "",
+      tag: planData.planTag || planData.tag || "",
+      validity: planData.validity ? `${planData.validity} Month${planData.validity > 1 ? "s" : ""}` : "1 Month",
+      price: planData.planPrice !== undefined ? String(planData.planPrice).replace("₹", "") : (planData.price || ""),
+      discount: planData.discount !== undefined ? String(planData.discount).replace("%", "") : (planData.discount || ""),
+      applyLimit: planData.canApplyJobsPerMonth !== undefined ? planData.canApplyJobsPerMonth : (planData.applyLimit || ""),
+      profileBoost: planData.profileBoost === true ? "Yes" : (planData.profileBoost === false ? "No" : "Yes"),
+      jobAlert: planData.jobAlert === true ? "Yes" : (planData.jobAlert === false ? "No" : "Yes"),
+      support: planData.support === true ? "Yes" : (planData.support === false ? "No" : "Yes"),
     },
     enableReinitialize: true,
     validationSchema,
     onSubmit: (values) => {
-      console.log("Form Data:", values);
-      try {
-        const stored = localStorage.getItem("jobSeekerPlans");
-        if (stored) {
-          let currentPlans = JSON.parse(stored);
-          currentPlans = currentPlans.map((plan) => {
-            if (plan.id === planData.id) {
-              return {
-                ...plan,
-                name: values.name,
-                tag: values.tag,
-                validity: values.validity,
-                price: Number(values.price),
-                discount: Number(values.discount),
-                applyLimit: Number(values.applyLimit),
-                profileBoost: values.profileBoost,
-                jobAlert: values.jobAlert,
-                support: values.support,
-              };
-            }
-            return plan;
-          });
-          localStorage.setItem("jobSeekerPlans", JSON.stringify(currentPlans));
-        }
-      } catch (err) {
-        console.error("Failed to update plan in localStorage:", err);
-      }
-
-      toast.success("Job Seeker Plan Updated Successfully!", { autoClose: 1000 });
-      setTimeout(() => {
-        navigate("/job-seeker-plans");
-      }, 1000);
+      const numericValidity = parseInt(values.validity) || 1;
+      dispatch(
+        updateJobSeekerPlan({
+          id: planData._id,
+          planData: {
+            planName: values.name,
+            planTag: values.tag,
+            validity: numericValidity,
+            planPrice: Number(values.price),
+            discount: Number(values.discount),
+            canApplyJobsPerMonth: Number(values.applyLimit),
+            profileBoost: values.profileBoost === "Yes",
+            jobAlert: values.jobAlert === "Yes",
+            support: values.support === "Yes",
+          },
+        })
+      )
+        .unwrap()
+        .then(() => {
+          addNotification(
+            "Plan Created Successfully",
+            `Job Seeker Plan "${formik.values.name}" has been updated successfully.`,
+            "success"
+          );
+          toast.success("Job Seeker Plan Updated Successfully!", { autoClose: 1000 });
+          setTimeout(() => {
+            navigate("/job-seeker-plans");
+          }, 1000);
+        })
+        .catch((err) => {
+          toast.error(err || "Failed to update plan");
+        });
     },
   });
-
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="bg-white p-6 rounded-xl shadow">

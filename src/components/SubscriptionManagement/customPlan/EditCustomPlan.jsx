@@ -15,6 +15,7 @@ import {
   fetchPlanTypesDropdown 
 } from "../../../redux/slice/subscriptions/employerPlans/getAllEmployerDropdown";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 
 const EditCustomPlan = () => {
   const { id } = useParams();
@@ -75,6 +76,11 @@ const EditCustomPlan = () => {
       };
       const resultAction = await dispatch(updateCustomPlan({ id, updateData: formattedValues }));
       if (updateCustomPlan.fulfilled.match(resultAction)) {
+        addNotification(
+          "Plan Created Successfully",
+          `Custom Plan has been updated successfully.`,
+          "success"
+        );
         toast.success("Custom plan updated successfully!");
         navigate("/custom-plans");
       } else {

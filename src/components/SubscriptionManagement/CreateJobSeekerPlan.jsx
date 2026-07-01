@@ -3,9 +3,13 @@ import { CircleChevronLeft } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { createJobSeekerPlan } from "../../redux/slice/subscriptions/jobseekerPlans/jobseekerPlansSlice";
+import { addNotification } from "../../utils/notificationHelper";
 
 const CreateJobSeekerPlan = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // ✅ Validation Schema
   const validationSchema = Yup.object({
@@ -44,102 +48,36 @@ const CreateJobSeekerPlan = () => {
       jobAlert: "Yes",
       support: "Yes",
     },
-    validationSchema,
     onSubmit: (values) => {
-      console.log("Form Data:", values);
-      try {
-        const stored = localStorage.getItem("jobSeekerPlans");
-        let currentPlans = [];
-        if (stored) {
-          currentPlans = JSON.parse(stored);
-        } else {
-          currentPlans = [
-            {
-              id: 1,
-              name: "Basic",
-              tag: "For Active Job Seekers",
-              validity: "1 Month",
-              price: 199,
-              discount: 35,
-              applyLimit: 10,
-              profileBoost: "Yes",
-              jobAlert: "Yes",
-              support: "Yes",
-            },
-            {
-              id: 2,
-              name: "Premium",
-              tag: "Most Popular",
-              validity: "1 Month",
-              price: 299,
-              discount: 35,
-              applyLimit: 20,
-              profileBoost: "Yes",
-              jobAlert: "Yes",
-              support: "Yes",
-            },
-            {
-              id: 3,
-              name: "Premium",
-              tag: "Most Popular",
-              validity: "1 Month",
-              price: 399,
-              discount: 35,
-              applyLimit: 30,
-              profileBoost: "Yes",
-              jobAlert: "Yes",
-              support: "Yes",
-            },
-            {
-              id: 4,
-              name: "Premium",
-              tag: "Most Popular",
-              validity: "1 Month",
-              price: 499,
-              discount: 35,
-              applyLimit: 40,
-              profileBoost: "Yes",
-              jobAlert: "Yes",
-              support: "Yes",
-            },
-            {
-              id: 5,
-              name: "Premium",
-              tag: "Most Popular",
-              validity: "1 Month",
-              price: 599,
-              discount: 35,
-              applyLimit: 50,
-              profileBoost: "Yes",
-              jobAlert: "Yes",
-              support: "Yes",
-            },
-          ];
-        }
-
-        const newPlan = {
-          id: Date.now(),
-          name: values.name,
-          tag: values.tag,
-          validity: values.validity,
-          price: Number(values.price),
+      const numericValidity = parseInt(values.validity) || 1;
+      dispatch(
+        createJobSeekerPlan({
+          planName: values.name,
+          planTag: values.tag,
+          validity: numericValidity,
+          planPrice: Number(values.price),
           discount: Number(values.discount),
-          applyLimit: Number(values.applyLimit),
-          profileBoost: values.profileBoost,
-          jobAlert: values.jobAlert,
-          support: values.support,
-        };
-
-        currentPlans.push(newPlan);
-        localStorage.setItem("jobSeekerPlans", JSON.stringify(currentPlans));
-      } catch (err) {
-        console.error("Failed to save plan to localStorage:", err);
-      }
-
-      toast.success("Job Seeker Plan Created Successfully!", { autoClose: 1000 });
-      setTimeout(() => {
-        navigate("/job-seeker-plans");
-      }, 1000);
+          canApplyJobsPerMonth: Number(values.applyLimit),
+          profileBoost: values.profileBoost === "Yes",
+          jobAlert: values.jobAlert === "Yes",
+          support: values.support === "Yes",
+        })
+      )
+        .unwrap()
+        .then(() => {
+          addNotification(
+            "Plan Created Successfully",
+            `Job Seeker Plan "${formik.values.name}" has been created successfully.`,
+            "success"
+          );
+          toast.success("Job Seeker Plan Created Successfully!", { autoClose: 1000 });
+          setTimeout(() => {
+            navigate("/job-seeker-plans");
+          }, 1000);
+        })
+        .catch((err) => {
+          toast.error(err || "Failed to create plan");
+        });
     },
   });
 

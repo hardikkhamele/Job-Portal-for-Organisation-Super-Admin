@@ -155,6 +155,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { resetPasswordApi, clearResetState } from "../../../redux/slice/auth/resetSlice";
 import { toast } from "react-toastify";
 import { Eye, EyeOff } from "lucide-react"; // Icons import ki gayi hain
+import { addNotification } from "../../../utils/notificationHelper";
 
 import resetIllustration from "../../../assets/ResetIllustration.png"; 
 import gradientOverlay from "../../../assets/PurpleShadeBg.png"; 
@@ -195,6 +196,11 @@ export default function ResetPassword() {
 
   useEffect(() => {
     if (success) {
+      addNotification(
+        "Password Reset Successful",
+        "Password reset has been completed successfully via OTP verification.",
+        "success"
+      );
       navigate("/reset-success");
       dispatch(clearResetState());
     }

@@ -18,6 +18,7 @@ import { fetchAllJobs } from "../../redux/slice/jobManagement/getAllJob";
 import { getAllCategories, getSubCategoriesByCategoryId } from "../../redux/slice/category/categorySlice";
 import defaultLogo from "../../assets/Technokreat.svg";
 import Footer from "../Footer";
+import { addNotification } from "../../utils/notificationHelper";
 
 const JobManagement = () => {
   const navigate = useNavigate();
@@ -42,6 +43,11 @@ const JobManagement = () => {
   // Fetch all jobs on mount (higher limit to fetch all)
   useEffect(() => {
     dispatch(fetchAllJobs({ page: 1, limit: 150 }));
+    addNotification(
+      "Job Posted Successfully",
+      "A new Senior React Developer job listing has been published successfully.",
+      "success"
+    );
   }, [dispatch]);
 
   // Fetch subcategories when category filter changes
