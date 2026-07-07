@@ -16,6 +16,7 @@ function CreateHR() {
     designation: "",
     email: "",
     password: "",
+    mobileNumber: "",
     // image: null,
   });
   const [errors, setErrors] = useState({});
@@ -72,6 +73,13 @@ function CreateHR() {
       newErrors.password = "Password must not exceed 20 characters";
     }
 
+    // Mobile Number validation
+    if (!formData.mobileNumber.trim()) {
+      newErrors.mobileNumber = "Mobile number is required";
+    } else if (!/^(?!00)[0-9]{10}$/.test(formData.mobileNumber)) {
+      newErrors.mobileNumber = "Mobile number must be exactly 10 digits and cannot start with '00'";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -81,7 +89,11 @@ function CreateHR() {
     if (files) {
       setFormData({ ...formData, image: files[0] });
     } else {
-      setFormData({ ...formData, [name]: value });
+      let sanitizedValue = value;
+      if (name === "mobileNumber") {
+        sanitizedValue = value.replace(/[^0-9]/g, "");
+      }
+      setFormData({ ...formData, [name]: sanitizedValue });
       // Clear validation error when typing
       if (errors[name]) {
         setErrors((prev) => {
@@ -208,6 +220,26 @@ function CreateHR() {
               </div>
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              )}
+            </div>
+
+            {/* Mobile Number */}
+            <div>
+              <label className="text-sm text-gray-700">Mobile Number</label>
+              <input
+                type="text"
+                name="mobileNumber"
+                placeholder="Enter Mobile Number"
+                value={formData.mobileNumber}
+                onChange={handleChange}
+                maxLength={10}
+                className={`w-full mt-2 bg-gray-100 border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 ${
+                  errors.mobileNumber ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                }`}
+                required
+              />
+              {errors.mobileNumber && (
+                <p className="text-red-500 text-xs mt-1">{errors.mobileNumber}</p>
               )}
             </div>
 

@@ -45,8 +45,8 @@ function CompanyDetails() {
     return typeof item === "string" ? item : (item?.url || placeholder);
   };
 
-  const logo = getSafeImage(companyInfo.companyLogo);
-  const banner = getSafeImage(companyInfo.companyBanner);
+  const logo = getSafeImage(companyInfo.companyLogo, logoPlaceholder);
+  const banner = getSafeImage(companyInfo.companyBanner, bannerPlaceholder);
 
   const locationStr = [
     companyInfo.location?.area,

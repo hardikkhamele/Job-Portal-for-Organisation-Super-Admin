@@ -12,6 +12,7 @@ export const createHRAction = createAsyncThunk(
       data.append("designation", formData.designation);
       data.append("email", formData.email);
       data.append("password", formData.password);
+      data.append("mobileNumber", formData.mobileNumber);
       // if (formData.image) {
       //   data.append("image", formData.image);
       // }

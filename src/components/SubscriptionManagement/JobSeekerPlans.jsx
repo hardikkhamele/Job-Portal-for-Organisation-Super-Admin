@@ -11,6 +11,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchJobSeekerPlans, deleteJobSeekerPlan } from "../../redux/slice/subscriptions/jobseekerPlans/jobseekerPlansSlice";
 import JobSeekerValidityModal from "../common/JobSeekerValidityModal";
 import DeleteModal from "../common/DeleteModal";
+import { toast } from "react-toastify";
+import { addNotification } from "../../utils/notificationHelper";
 
 const JobSeekerPlans = () => {
   const [globalFilter, setGlobalFilter] = useState("");
@@ -25,7 +27,7 @@ const JobSeekerPlans = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { plans, loading } = useSelector((state) => state.jobseekerPlans);
+  const { plans, loading, isDeleting } = useSelector((state) => state.jobseekerPlans);
 
   // ✅ Load real-time plans from API
   useEffect(() => {
@@ -241,11 +243,27 @@ const JobSeekerPlans = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={() => {
           if (selectedRow) {
-            dispatch(deleteJobSeekerPlan(selectedRow._id));
+            const planName = selectedRow.planName;
+            dispatch(deleteJobSeekerPlan(selectedRow._id))
+              .unwrap()
+              .then(() => {
+                addNotification(
+                  "Plan Deleted Successfully",
+                  `Job Seeker Plan "${planName}" has been deleted successfully.`,
+                  "success"
+                );
+                toast.success("Job Seeker Plan Deleted Successfully!", { autoClose: 1000 });
+              })
+              .catch((err) => {
+                toast.error(err || "Failed to delete plan");
+              })
+              .finally(() => {
+                setDeleteModalOpen(false);
+                setSelectedRow(null);
+              });
           }
-          setDeleteModalOpen(false);
-          setSelectedRow(null);
         }}
+        loading={isDeleting}
       />
     </div>
   );

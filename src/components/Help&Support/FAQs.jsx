@@ -7,81 +7,84 @@ import {
 } from "@tanstack/react-table";
 import { Eye, SquarePen , Trash2, X, ChevronDown } from "lucide-react";
 
+
 import DeleteModal from "../common/DeleteModal";
 import Footer from "../Footer";
 
+
+
 const FAQs = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState("All Jobs");
-  const options = ["All Jobs", "Job Seeker", "Employer"];
-  const [openDelete, setOpenDelete] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [openCreateModal, setOpenCreateModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  // Create FAQ states
-  const [newQuestion, setNewQuestion] = useState("");
-  const [newAnswer, setNewAnswer] = useState("");
-  const [modalDropdownOpen, setModalDropdownOpen] = useState(false);
-  const [modalSelected, setModalSelected] = useState("Job Seeker");
-  const modalOptions = ["Job Seeker", "Employer"];
+const [dropdownOpen, setDropdownOpen] = useState(false);
+const [selectedType, setSelectedType] = useState("All Jobs");
+const options = ["All Jobs", "Job Seeker", "Employer"];
+const [openDelete, setOpenDelete] = useState(false);
+const [selectedRow, setSelectedRow] = useState(null);
+const [openCreateModal, setOpenCreateModal] = useState(false);
+const [searchTerm, setSearchTerm] = useState("");
 
-  // Edit FAQ states
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [editData, setEditData] = useState(null);
-  const [editDropdownOpen, setEditDropdownOpen] = useState(false);
-  const editOptions = ["Job Seeker", "Employer"];
 
-  // View FAQ states
-  const [openViewModal, setOpenViewModal] = useState(false);
-  const [viewData, setViewData] = useState(null);
+const [modalDropdownOpen, setModalDropdownOpen] = useState(false);
+const [modalSelected, setModalSelected] = useState("Job Seeker");
+const modalOptions = ["Job Seeker", "Employer"];
 
-  // Dynamic state for FAQs dataset
-  const [faqs, setFaqs] = useState(() => {
-    return Array.from({ length: 20 }, (_, i) => ({
-      id: i + 1,
-      userType: i % 2 === 0 ? "Job Seeker" : "Employer",
-      question: `Question ${i + 1}: How do I update my profile?`,
-      answer: "Go to settings, select account info, update the details and click save.",
-    }));
-  });
+const [openEditModal, setOpenEditModal] = useState(false);
+const [editData, setEditData] = useState(null);
 
-  // Dynamic filtering and search logic
-  const filteredData = useMemo(() => {
-    let result = faqs;
 
-    // Filter by User Type dropdown selection
-    if (selectedType !== "All Jobs") {
-      result = result.filter((item) => item.userType === selectedType);
-    }
+const [createDropdownOpen, setCreateDropdownOpen] = useState(false);
+const [createSelectedType, setCreateSelectedType] = useState("Job Seeker");
+const createOptions = ["Job Seeker", "Employer"];
 
-    // Filter by search query input
-    if (searchTerm.trim() !== "") {
-      const searchLower = searchTerm.toLowerCase();
-      result = result.filter(
-        (item) =>
-          item.question.toLowerCase().includes(searchLower) ||
-          item.answer.toLowerCase().includes(searchLower) ||
-          item.userType.toLowerCase().includes(searchLower)
-      );
-    }
+const [openViewModal, setOpenViewModal] = useState(false);
+const [viewData, setViewData] = useState(null);
 
-    // Re-index Sr.No for filtered results
-    return result.map((item, idx) => ({
-      ...item,
-      sr: idx + 1,
-    }));
-  }, [faqs, selectedType, searchTerm]);
+ const rawData = useMemo(() => {
+  return Array.from({ length: 20 }, (_, i) => ({
+    sr: i + 1,
+    userType: i % 2 === 0 ? "Job Seeker" : "Employer",
+    question: "This is a question?",
+    answer:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+  }));
+}, []);
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 5,
-  });
+// Dynamic filtering and search logic
+const filteredData = useMemo(() => {
+  let result = rawData;
 
-  // Reset pagination when filter/search changes
-  useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, [selectedType, searchTerm]);
+  // Filter by User Type dropdown selectionz
+  if (selectedType !== "All Jobs") {
+    result = result.filter((item) => item.userType === selectedType);
+  }
+
+  // Filter by search query input
+  if (searchTerm.trim() !== "") {
+    const searchLower = searchTerm.toLowerCase();
+    result = result.filter(
+      (item) =>
+        item.question.toLowerCase().includes(searchLower) ||
+        item.answer.toLowerCase().includes(searchLower) ||
+        item.userType.toLowerCase().includes(searchLower)
+    );
+  }
+
+  // Re-index Sr.No for filtered results
+  return result.map((item, idx) => ({
+    ...item,
+    sr: idx + 1,
+  }));
+}, [rawData, selectedType, searchTerm]);
+
+const [pagination, setPagination] = useState({
+  pageIndex: 0,
+  pageSize: 5,
+});
+
+// Reset pagination when filter/search changes
+useEffect(() => {
+  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+}, [selectedType, searchTerm]);
 
   const columns = useMemo(
     () => [
@@ -109,6 +112,7 @@ const FAQs = () => {
                 setOpenEditModal(true);
               }}
             />
+            {/* DELETE */}
             <Trash2
               size={20}
               className="cursor-pointer text-red-500"
@@ -124,51 +128,20 @@ const FAQs = () => {
     []
   );
 
-  const table = useReactTable({
-    data: filteredData,
-    columns,
-    state: {
-      pagination,
-    },
-    onPaginationChange: setPagination, 
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  });
-
-  // Action Handlers
-  const handleCreateFAQ = () => {
-    if (!newQuestion.trim() || !newAnswer.trim()) {
-      alert("Please fill in both the Question and the Answer fields.");
-      return;
-    }
-    const newFaq = {
-      id: Date.now(),
-      userType: modalSelected,
-      question: newQuestion,
-      answer: newAnswer,
-    };
-    setFaqs([newFaq, ...faqs]);
-    setOpenCreateModal(false);
-    // Reset states
-    setNewQuestion("");
-    setNewAnswer("");
-    setModalSelected("Job Seeker");
-  };
-
-  const handleEditSave = () => {
-    if (!editData.question.trim() || !editData.answer.trim()) {
-      alert("Question and Answer fields cannot be empty.");
-      return;
-    }
-    setFaqs(faqs.map((faq) => (faq.id === editData.id ? editData : faq)));
-    setOpenEditModal(false);
-    setEditData(null);
-  };
+ const table = useReactTable({
+  data: filteredData,
+  columns,
+  state: {
+    pagination,
+  },
+  onPaginationChange: setPagination, 
+  getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+});
 
   const handleDeleteConfirm = () => {
-    setFaqs(faqs.filter((faq) => faq.id !== selectedRow.id));
+    console.log("Deleted:", selectedRow);
     setOpenDelete(false);
-    setSelectedRow(null);
   };
 
   return (
@@ -194,6 +167,7 @@ const FAQs = () => {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="border border-gray-200 px-3 py-2 rounded-md bg-white flex justify-between items-center cursor-pointer"
               >
+               
                 {selectedType}
                 <ChevronDown size={18} className="text-gray-500" />
               </div>
@@ -328,243 +302,239 @@ const FAQs = () => {
         onConfirm={handleDeleteConfirm} 
       />
 
-      {/* CREATE MODAL */}
       {openCreateModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50 ">
-          {/* Modal Box */}
-          <div className="bg-white rounded-xl p-6 w-[490px] shadow-[0px_8px_30px_rgba(0,0,0,0.15)]">
-            {/* Title */}
-            <h2 className="text-center text-xl font-semibold text-purple-600 mb-4">
-              Add FAQ
-            </h2>
+          <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50 ">
 
-            {/* User Type */}
-            <div className="mb-4">
-              <label className="text-lg text-gray-900 font-medium">User Type</label>
-              <div className="relative mt-1">
-                {/* Selected */}
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setModalDropdownOpen(!modalDropdownOpen);
-                  }}
-                  className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer text-base h-[42px]"
-                >
-                  {modalSelected}
-                  <span>⌄</span>
-                </div>
-                
-                {/* Dropdown */}
-                {modalDropdownOpen && (
-                  <div className="absolute w-full bg-white rounded-md mt-1 shadow z-50 border border-gray-150">
-                    {modalOptions.map((item, i) => (
-                      <div
-                        key={i}
-                        onClick={() => {
-                          setModalSelected(item);
-                          setModalDropdownOpen(false);
-                        }}
-                        className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                          modalSelected === item ? "bg-gray-200" : ""
-                        }`}
-                      >
-                        {item}
+            {/* Modal Box */}
+            <div className="bg-white rounded-xl p-6 w-[490px] shadow-[0px_8px_30px_rgba(0,0,0,0.15)]">
+
+              {/* Title */}
+              <h2 className="text-center text-xl font-semibold text-purple-600 mb-4">
+                Add FAQ
+              </h2>
+
+              {/* User Type */}
+             
+                <div className="mb-4">
+                  <label className="text-lg text-gray-900">User Type</label>
+
+                  <div className="relative mt-1">
+
+                    {/* Selected */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setModalDropdownOpen(!modalDropdownOpen);
+                      }}
+                      className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer text-base h-[42px]"
+                    >
+                      {modalSelected}
+                      <span>⌄</span>
+                    </div>
+                    
+                    {/* Dropdown */}
+                    {modalDropdownOpen && (
+                      <div className="absolute w-full bg-white  rounded-md mt-1 shadow z-50">
+                        {modalOptions.map((item, i) => (
+                          <div
+                            key={i}
+                            onClick={() => {
+                              setModalSelected(item);
+                              setModalDropdownOpen(false);
+                            }}
+                            className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
+                              modalSelected === item ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            {item}
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
+                </div>
+            
+
+              {/* Question */}
+              <div className="mb-4">
+                <label className="text-lg text-gray-900">Question</label>
+                <input
+                  type="text"
+                  placeholder="This is a question?"
+                  className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base h-[42px]"
+                />
+              </div>
+
+              {/* Answer */}
+              <div className="mb-4">
+                <label className="text-lg text-gray-900">Answer</label>
+                <textarea
+                  rows="3"
+                  placeholder="Write Answer Here....."
+                  className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base"
+                ></textarea>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-center gap-6 mt-6">
+                <button
+                  onClick={() => setOpenCreateModal(false)}
+                  className="px-15 py-2 rounded-md bg-purple-200 text-purple-700 cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button 
+                onClick={() => setOpenCreateModal(false)}
+                className="px-15 py-2 rounded-md bg-purple-600 text-white cursor-pointer">
+                  Create
+                </button>
               </div>
             </div>
-
-            {/* Question */}
-            <div className="mb-4">
-              <label className="text-lg text-gray-900 font-medium">Question</label>
-              <input
-                type="text"
-                placeholder="Enter FAQ Question..."
-                value={newQuestion}
-                onChange={(e) => setNewQuestion(e.target.value)}
-                className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base h-[42px]"
-              />
-            </div>
-
-            {/* Answer */}
-            <div className="mb-4">
-              <label className="text-lg text-gray-900 font-medium">Answer</label>
-              <textarea
-                rows="3"
-                placeholder="Write Answer Here....."
-                value={newAnswer}
-                onChange={(e) => setNewAnswer(e.target.value)}
-                className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base"
-              ></textarea>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex justify-center gap-6 mt-6">
-              <button
-                onClick={() => {
-                  setOpenCreateModal(false);
-                  setNewQuestion("");
-                  setNewAnswer("");
-                }}
-                className="px-15 py-2 rounded-md bg-purple-200 text-purple-700 cursor-pointer hover:bg-purple-300 transition"
-              >
-                Cancel
-              </button>
-
-              <button 
-                onClick={handleCreateFAQ}
-                className="px-15 py-2 rounded-md bg-purple-600 text-white cursor-pointer hover:bg-purple-700 transition"
-              >
-                Create
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* EDIT MODAL */}
-      {openEditModal && editData && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50 ">
-          <div
-            className="bg-white rounded-xl p-6 w-[490px] shadow-[0px_10px_40px_rgba(0,0,0,0.2)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Title */}
-            <h2 className="text-center text-xl font-semibold text-purple-600 mb-4">
-              Edit FAQ
-            </h2>
 
-            {/* User Type */}
-            <div className="mb-4">
-              <label className="text-lg text-gray-900 font-medium">User Type</label>
-              <div className="relative mt-1">
-                {/* Selected */}
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditDropdownOpen(!editDropdownOpen);
-                  }}
-                  className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer text-base h-[42px]"
-                >
-                  {editData.userType}
-                  <span>⌄</span>
-                </div>
-                
-                {/* Dropdown */}
-                {editDropdownOpen && (
-                  <div className="absolute w-full bg-white rounded-md mt-1 shadow z-50 border border-gray-150">
-                    {editOptions.map((item, i) => (
-                      <div
-                        key={i}
-                        onClick={() => {
-                          setEditData({ ...editData, userType: item });
-                          setEditDropdownOpen(false);
-                        }}
-                        className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                          editData.userType === item ? "bg-gray-200" : ""
-                        }`}
-                      >
-                        {item}
+        {openEditModal && editData && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50 ">
+
+              <div
+                className="bg-white rounded-xl p-6 w-[490px] shadow-[0px_10px_40px_rgba(0,0,0,0.2)]"
+                onClick={(e) => e.stopPropagation()}
+              >
+
+                {/* Title */}
+                <h2 className="text-center text-xl font-semibold text-purple-600 mb-4">
+                  Edit FAQ
+                </h2>
+
+                {/* User Type */}
+                <div className="mb-4">
+                  <label className="text-lg text-gray-900">User Type</label>
+
+                  <div className="relative mt-1">
+
+                    {/* Selected */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCreateDropdownOpen(!createDropdownOpen);
+                      }}
+                      className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer text-base h-[42px]"
+                    >
+                      {createSelectedType}
+                      <span>⌄</span>
+                    </div>
+                    
+                    {/* Dropdown */}
+                    {createDropdownOpen && (
+                      <div className="absolute w-full bg-white  rounded-md mt-1 shadow z-50">
+                        {createOptions.map((item, i) => (
+                          <div
+                            key={i}
+                            onClick={() => {
+                              setCreateSelectedType(item);
+                              setCreateDropdownOpen(false);
+                            }}
+                            className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
+                              createSelectedType === item ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            {item}
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
+                </div>
+                  
+                {/* Question */}
+                <div className="mb-4">
+                  <label className="text-lg text-gray-900">Question</label>
+                  <input
+                    
+                     placeholder="This is a question?"
+                    onChange={(e) =>
+                      setEditData({ ...editData, question: e.target.value })
+                    }
+                    className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base h-[42px]"
+                  />
+                </div>
+                  
+                {/* Answer */}
+                <div className="mb-4">
+                  <label className="text-lg text-gray-900">Answer</label>
+                  <textarea
+                    rows="3"
+                    placeholder="Write Answer Here...."
+                    onChange={(e) =>
+                      setEditData({ ...editData, answer: e.target.value })
+                    }
+                    className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base"
+                  />
+                </div>
+                  
+                {/* Buttons */}
+                <div className="flex justify-center gap-6 mt-6">
+                  <button
+                    onClick={() => setOpenEditModal(false)}
+                    className="px-15 py-2 rounded-md bg-purple-200 text-purple-700"
+                  >
+                    Cancel
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      console.log("Updated Data:", editData);
+                      setOpenEditModal(false);
+                    }}
+                    className="px-15 py-2 rounded-md bg-purple-600 text-white"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             </div>
-              
-            {/* Question */}
-            <div className="mb-4">
-              <label className="text-lg text-gray-900 font-medium">Question</label>
-              <input
-                type="text"
-                placeholder="Enter FAQ Question..."
-                value={editData.question}
-                onChange={(e) =>
-                  setEditData({ ...editData, question: e.target.value })
-                }
-                className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base h-[42px]"
-              />
-            </div>
-              
-            {/* Answer */}
-            <div className="mb-4">
-              <label className="text-lg text-gray-900 font-medium">Answer</label>
-              <textarea
-                rows="3"
-                placeholder="Write Answer Here...."
-                value={editData.answer}
-                onChange={(e) =>
-                  setEditData({ ...editData, answer: e.target.value })
-                }
-                className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base"
-              />
-            </div>
-              
-            {/* Buttons */}
-            <div className="flex justify-center gap-6 mt-6">
-              <button
-                onClick={() => {
-                  setOpenEditModal(false);
-                  setEditData(null);
-                }}
-                className="px-15 py-2 rounded-md bg-purple-200 text-purple-700 hover:bg-purple-300 transition"
+          )}
+
+
+          {openViewModal && viewData && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+
+              <div
+                className="bg-white rounded-xl p-6 w-[490px] shadow-[0px_10px_40px_rgba(0,0,0,0.2)] relative"
+                onClick={(e) => e.stopPropagation()}
               >
-                Cancel
-              </button>
               
-              <button
-                onClick={handleEditSave}
-                className="px-15 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition"
-              >
-                Save
-              </button>
+                {/* Close Button */}
+                <div
+                  onClick={() => setOpenViewModal(false)}
+                  className="absolute -top-3 -right-3 bg-purple-200 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center cursor-pointer hover:bg-purple-300"
+                >
+                  <X size={16} />
+                </div>
+
+                {/* Title */}
+                <h2 className="text-lg font-semibold text-purple-600 mb-4">FAQ</h2>
+
+                {/* Question */}
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-600">Question</p>
+                  <p className="text-gray-800 mt-1">{viewData.question}</p>
+                </div>
+
+                {/* Answer */}
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Answer</p>
+                  <p className="text-gray-800 mt-1">{viewData.answer}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* VIEW MODAL */}
-      {openViewModal && viewData && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <div
-            className="bg-white rounded-xl p-6 w-[490px] shadow-[0px_10px_40px_rgba(0,0,0,0.2)] relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <div
-              onClick={() => setOpenViewModal(false)}
-              className="absolute -top-3 -right-3 bg-purple-200 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center cursor-pointer hover:bg-purple-300 transition"
-            >
-              <X size={16} />
-            </div>
 
-            {/* Title */}
-            <h2 className="text-lg font-semibold text-purple-600 mb-4">FAQ Detail</h2>
-
-            {/* User Type */}
-            <div className="mb-4">
-              <p className="text-sm font-medium text-gray-500">User Type</p>
-              <p className="text-gray-800 mt-1 font-semibold">{viewData.userType}</p>
-            </div>
-
-            {/* Question */}
-            <div className="mb-4">
-              <p className="text-sm font-medium text-gray-500">Question</p>
-              <p className="text-gray-800 mt-1">{viewData.question}</p>
-            </div>
-
-            {/* Answer */}
-            <div>
-              <p className="text-sm font-medium text-gray-500">Answer</p>
-              <p className="text-gray-800 mt-1 leading-relaxed">{viewData.answer}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <Footer/>
+   <Footer/>
+   
     </div>
   );
 };

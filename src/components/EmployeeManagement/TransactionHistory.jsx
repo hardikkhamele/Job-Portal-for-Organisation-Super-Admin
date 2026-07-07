@@ -28,10 +28,26 @@ function TransactionHistory({ employerId, employer }) {
   //  TABLE DATA
   const data = useMemo(
     () => {
+      console.log("All transactions in Redux:", transactions);
+      console.log("Current employer details:", employer);
       const employerName = employer?.name?.toLowerCase() || "";
-      const filtered = (transactions || []).filter(
-        (item) => item.employerName?.toLowerCase() === employerName || item.companyName?.toLowerCase() === employerName
-      );
+      const companyName = employer?.companyDetail?.companyName?.toLowerCase() || "";
+      const filtered = (transactions || []).filter((item) => {
+        const itemEmployerName = item.employerName?.toLowerCase() || "";
+        const itemCompanyName = item.companyName?.toLowerCase() || "";
+        const matchName = 
+          (employerName && itemEmployerName === employerName) || 
+          (companyName && itemEmployerName === companyName) || 
+          (employerName && itemCompanyName === employerName) || 
+          (companyName && itemCompanyName === companyName);
+        
+        const matchId = 
+          (item.employerId && item.employerId === employerId) ||
+          (item.userId && item.userId === employerId) ||
+          (item.employer?._id && item.employer?._id === employerId);
+
+        return matchName || matchId;
+      });
 
       return filtered.map((item, idx) => ({
         sr: idx + 1,
@@ -45,7 +61,7 @@ function TransactionHistory({ employerId, employer }) {
         originalItem: item
       }));
     },
-    [transactions, employer]
+    [transactions, employer, employerId]
   );
 
 
@@ -369,12 +385,12 @@ function TransactionHistory({ employerId, employer }) {
       
               <div className="flex justify-between text-gray-600">
                 <span>Company Name</span>
-                <span className="text-black">Technokrate</span>
+                <span className="text-black">{selectedRow?.originalItem?.companyName || employer?.name || "N/A"}</span>
               </div>
       
               <div className="flex justify-between text-gray-600">
                 <span>GSTIN / ISD -GSTIN</span>
-                <span className="text-black">07AAACC1206D1ZI</span>
+                <span className="text-black">{selectedRow?.originalItem?.gstin || "N/A"}</span>
               </div>
       
               <div className="flex justify-between text-gray-600">
@@ -384,7 +400,7 @@ function TransactionHistory({ employerId, employer }) {
       
               <div className="flex justify-between text-gray-600">
                 <span>Payment Method</span>
-                <span className="text-black">GPay</span>
+                <span className="text-black capitalize">{selectedRow?.originalItem?.paymentMethod || "N/A"}</span>
               </div>
             </div>
       
@@ -401,12 +417,20 @@ function TransactionHistory({ employerId, employer }) {
       
               <div className="flex justify-between text-gray-600">
                 <span>Plan Charges</span>
-                <span className="text-black">₹2330.00</span>
+                <span className="text-black">
+                  {selectedRow?.originalItem?.planCharges !== undefined
+                    ? `₹ ${selectedRow.originalItem.planCharges.toLocaleString()}`
+                    : selectedRow?.price}
+                </span>
               </div>
       
               <div className="flex justify-between text-gray-600">
-                <span>Discount (16%)</span>
-                <span className="text-black">-₹381</span>
+                <span>Discount</span>
+                <span className="text-black">
+                  {selectedRow?.originalItem?.discount !== undefined
+                    ? `${selectedRow.originalItem.discount}%`
+                    : "0%"}
+                </span>
               </div>
             </div>
       

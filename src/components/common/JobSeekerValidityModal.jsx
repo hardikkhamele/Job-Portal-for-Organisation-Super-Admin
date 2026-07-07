@@ -14,18 +14,39 @@ const JobSeekerValidityModal = ({ isOpen, onClose, data }) => {
           <p className="text-center py-4">Loading details...</p>
         ) : (
           <div className="space-y-2">
-            <p><strong>Title:</strong> {data.title || data.name}</p>
-            <p><strong>Price:</strong> {data.price ? (String(data.price).startsWith("₹") ? data.price : `₹${data.price}`) : "N/A"}</p>
+            <p><strong>Plan Name:</strong> {data.title || data.name || data.planName}</p>
+            {(data.planTag || data.tag) && <p><strong>Tag:</strong> {data.planTag || data.tag}</p>}
+            <p>
+              <strong>Plan Price:</strong>{" "}
+              {(() => {
+                const priceVal = data.price !== undefined ? data.price : data.planPrice;
+                return priceVal !== undefined && priceVal !== null ? (String(priceVal).startsWith("₹") ? priceVal : `₹${priceVal}`) : "N/A";
+              })()}
+            </p>
             {data.discountedPrice !== undefined && <p><strong>Discounted Price:</strong> ₹{data.discountedPrice}</p>}
             {data.discount !== undefined && <p><strong>Discount:</strong> {String(data.discount).endsWith("%") ? data.discount : `${data.discount}%`}</p>}
             {data.planType && <p><strong>Type:</strong> {data.planType}</p>}
-            <p><strong>Validity:</strong> {data.durationText || data.validity}</p>
+            <p>
+              <strong>Validity:</strong>{" "}
+              {data.durationText || 
+               (typeof data.validity === "number" || (typeof data.validity === "string" && String(data.validity).trim() !== "") 
+                 ? `${data.validity} Month${data.validity > 1 ? "s" : ""}` 
+                 : "N/A")}
+            </p>
             {data.jobCredits !== undefined && <p><strong>Job-Credit:</strong> {data.jobCredits}</p>}
             {data.databaseCredits !== undefined && <p><strong>Database Credit:</strong> {data.databaseCredits}</p>}
-            {data.applyLimit !== undefined && <p><strong>Apply Limit:</strong> {data.applyLimit} Jobs/Month</p>}
-            {data.profileBoost && <p><strong>Profile Boost:</strong> {data.profileBoost}</p>}
-            {data.jobAlert && <p><strong>Job Alert:</strong> {data.jobAlert}</p>}
-            {data.support && <p><strong>Support:</strong> {data.support}</p>}
+            {(data.applyLimit !== undefined || data.canApplyJobsPerMonth !== undefined) && (
+              <p><strong>Apply Limit:</strong> {data.applyLimit ?? data.canApplyJobsPerMonth} Jobs/Month</p>
+            )}
+            {data.profileBoost !== undefined && (
+              <p><strong>Profile Boost:</strong> {typeof data.profileBoost === "boolean" ? (data.profileBoost ? "Yes" : "No") : data.profileBoost}</p>
+            )}
+            {data.jobAlert !== undefined && (
+              <p><strong>Job Alert:</strong> {typeof data.jobAlert === "boolean" ? (data.jobAlert ? "Yes" : "No") : data.jobAlert}</p>
+            )}
+            {data.support !== undefined && (
+              <p><strong>Support:</strong> {typeof data.support === "boolean" ? (data.support ? "Yes" : "No") : data.support}</p>
+            )}
           </div>
         )}
 

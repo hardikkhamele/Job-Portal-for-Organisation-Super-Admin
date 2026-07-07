@@ -65,6 +65,7 @@ import EditBlog from "../components/blogManagement/UpdateBlog";
 import CustomPlans from "../components/SubscriptionManagement/customPlan/CustomPlans";
 import CustomPlanDetail from "../components/SubscriptionManagement/customPlan/CustomPlanDetail";
 import EditCreditModel from "../components/CreditManagement/EditCreditModel";
+import MyProfile from "../components/auth/MyProfile";
 
 function DashboardLayout() {
   return (
@@ -211,6 +212,8 @@ function DashboardLayout() {
               path="/job-seeker/candidate-profile/:userId"
               element={<CandidateDetail />}
             />
+            {/* My Profile */}
+            <Route path="/my-profile" element={<MyProfile />} />
             {/* Fallback */}
             {/* <Route path="*" element={<Dashboard />} /> */}
           </Routes>

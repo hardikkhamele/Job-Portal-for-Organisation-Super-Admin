@@ -5,6 +5,7 @@ import loginReducer from "../slice/auth/loginSlice";
 import forgotPassReducer from "../slice/auth/forgotPassSlice";
 import verifyReducer from "../slice/auth/verifySlice";
 import resetReducer from "../slice/auth/resetSlice";
+import adminProfileReducer from "../slice/auth/adminProfileSlice";
 
 // ─── HR Management ───────────────────────────────────────────
 import createHrReducer from "../slice/hrManagement/createHr";
@@ -31,8 +32,6 @@ import jobByIdReducer from "../slice/jobManagement/getJobId";
 // ─── Job Seeker ───────────────────────────────────────────────
 import jobseekerReducer from "../slice/jobseeker/jobseekerSlice";
 
-
-
 // ─── Category (Job Seeker Management) ────────────────────────
 import categoryReducer from "../slice/category/categorySlice";
 
@@ -42,7 +41,6 @@ import acceptRejectReducer from "../slice/databaseManagement/getAcceptRejectSlic
 import acceptCandidateReducer from "../slice/databaseManagement/acceptCandidate"
 import rejectCandidateReducer from "../slice/databaseManagement/rejectCandidate"
 import dropdownReducer from "../slice/databaseManagement/dropdownSlice"
-
 
 // subscriptions management
 import employerPlansReducer from "../slice/subscriptions/employerPlans/getEmployerPlans"
@@ -65,6 +63,7 @@ import creditManagementReducer from "../slice/creditManagement/creditSlice";
 import revenueReducer from "../slice/RevenueManagement/revenueSlice"
 
 import allDropdownReducer from "../slice/databaseManagement/acceptRejUploadDatabase/acceptRejectSlice"
+
 export const store = configureStore({
   reducer: {
     // Auth
@@ -72,6 +71,7 @@ export const store = configureStore({
     forgotPass: forgotPassReducer,
     verify: verifyReducer,
     reset: resetReducer,
+    adminProfile: adminProfileReducer,
 
     // HR Management
     hr: createHrReducer,
@@ -91,11 +91,9 @@ export const store = configureStore({
     deleteEmployee: deleteEmployeeReducer,
     updateEmployee: updateEmployeeReducer,
 
-
     // Job Management
     allJobs: getAllJobReducer,
     jobDetail: jobByIdReducer,
-
 
     // Category (Job Seeker Management)
     category: categoryReducer,
@@ -115,7 +113,7 @@ export const store = configureStore({
     // subscriptions management
     employerPlans: employerPlansReducer,
     planTypeDropdown: planTypeDropdownReducer,
-    durationDropdown:durationDropdownReducer,
+    durationDropdown: durationDropdownReducer,
     jobseekerPlans: jobseekerPlansReducer,
 
     //customPlan
