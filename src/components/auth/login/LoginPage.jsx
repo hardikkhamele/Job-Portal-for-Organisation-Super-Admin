@@ -272,15 +272,7 @@ export default function Login1() {
               }
             </button>
             
-            <div className="text-center mt-4 text-sm">
-              <span className="font-bold text-black">Don't Have An Account? </span>
-              <span 
-                onClick={() => navigate("/signup")} 
-                className="text-[#D4A017] font-semibold cursor-pointer hover:underline"
-              >
-                Sign Up
-              </span>
-            </div>
+
           </form>
         </div>
       </div>
