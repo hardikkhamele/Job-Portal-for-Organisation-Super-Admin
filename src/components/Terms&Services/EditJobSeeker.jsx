@@ -1,12 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { ArrowLeft } from "lucide-react";
 import Footer from "../Footer";
+import { useDispatch, useSelector } from "react-redux";
+import { updateTermsAndService, clearTermsState } from "../../redux/slice/terms/termsSlice";
+import { toast } from "react-toastify";
+
+// ─── JobSeeker Terms & Service document ID ────────────────────────────────────
+// Replace with the actual document ID from your backend for the JobSeeker T&S
+const JOBSEEKER_TERMS_ID = "jobseeker";
 
 const EditJobSeeker = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, success, error } = useSelector((state) => state.terms);
 
   const [value, setValue] = useState(`
     <p>1) Users must be at least 18 years old or the minimum age required for employment in their jurisdiction.</p>
@@ -25,40 +34,61 @@ const EditJobSeeker = () => {
 
   //  MODULES
   const modules = {
-  toolbar: [
-    // Row 1
-    [{ font: [] }, { size: [] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ color: [] }, { background: [] }],
-    [{ script: "sub" }, { script: "super" }],
-    ["blockquote", "code-block"],
+    toolbar: [
+      // Row 1
+      [{ font: [] }, { size: [] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ color: [] }, { background: [] }],
+      [{ script: "sub" }, { script: "super" }],
+      ["blockquote", "code-block"],
 
-    // Row 2
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ indent: "-1" }, { indent: "+1" }],
-    [{ align: [] }],
+      // Row 2
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ indent: "-1" }, { indent: "+1" }],
+      [{ align: [] }],
 
-    // Row 3
-    ["link", "image", "video"],
-    ["clean"],
-  ],
-};
+      // Row 3
+      ["link", "image", "video"],
+      ["clean"],
+    ],
+  };
 
   //  FORMATS
   const formats = [
-  "font", "size",
-  "bold", "italic", "underline", "strike",
-  "color", "background",
-  "script",
-  "blockquote", "code-block",
-  "header",
-  "list", "bullet",
-  "indent",
-  "align",
-  "link", "image", "video",
-];
+    "font", "size",
+    "bold", "italic", "underline", "strike",
+    "color", "background",
+    "script",
+    "blockquote", "code-block",
+    "header",
+    "list", "bullet",
+    "indent",
+    "align",
+    "link", "image", "video",
+  ];
 
+  // ─── Handle success / error toasts ───────────────────────────────────────────
+  useEffect(() => {
+    if (success) {
+      toast.success("Terms And Service updated successfully!");
+      dispatch(clearTermsState());
+      navigate(-1);
+    }
+    if (error) {
+      toast.error(error || "Failed to update Terms And Service");
+      dispatch(clearTermsState());
+    }
+  }, [success, error, dispatch, navigate]);
+
+  // ─── Handle Save ─────────────────────────────────────────────────────────────
+  const handleSave = () => {
+    if (!value || value === "<p><br></p>") {
+      toast.warning("Content cannot be empty.");
+      return;
+    }
+    dispatch(updateTermsAndService({ id: JOBSEEKER_TERMS_ID, content: value }));
+  };
 
   return (
     <div className="p-10 bg-gray-100 min-h-screen">
@@ -79,7 +109,7 @@ const EditJobSeeker = () => {
 
               {/* TEXT */}
               <h1 className="text-2xl font-bold">
-                Edit Terms & Service For Job Seeker
+                Edit Terms &amp; Service For Job Seeker
               </h1>
 
             </div>
@@ -102,15 +132,25 @@ const EditJobSeeker = () => {
         <div className="flex justify-center gap-4 mt-6">
           <button
             onClick={() => navigate(-1)}
-            className="bg-purple-200 text-purple-700 px-15 py-2 rounded-md cursor-pointer"
+            disabled={loading}
+            className="bg-purple-200 text-purple-700 px-15 py-2 rounded-md cursor-pointer disabled:opacity-50"
           >
             Cancel
           </button>
 
-          <button 
-          onClick={() => navigate(-1)}
-          className="bg-purple-700 text-white px-15 py-2 rounded-md cursor-pointer">
-            Save
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="bg-purple-700 text-white px-15 py-2 rounded-md cursor-pointer disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block"></span>
+                Saving...
+              </>
+            ) : (
+              "Save"
+            )}
           </button>
         </div>
 

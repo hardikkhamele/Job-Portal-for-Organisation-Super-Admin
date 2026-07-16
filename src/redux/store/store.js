@@ -64,6 +64,9 @@ import revenueReducer from "../slice/RevenueManagement/revenueSlice"
 
 import allDropdownReducer from "../slice/databaseManagement/acceptRejUploadDatabase/acceptRejectSlice"
 
+// terms and service
+import termsReducer from "../slice/terms/termsSlice";
+
 export const store = configureStore({
   reducer: {
     // Auth
@@ -129,5 +132,8 @@ export const store = configureStore({
 
     // revenue management 
     revenue: revenueReducer,
+
+    // terms and service
+    terms: termsReducer,
   },
 });

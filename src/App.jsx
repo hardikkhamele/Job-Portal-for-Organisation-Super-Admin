@@ -2,7 +2,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate,
+  Navigate,  
 } from "react-router-dom";
 
 import LoginPage from "./components/auth/login/LoginPage";

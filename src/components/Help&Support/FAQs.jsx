@@ -33,25 +33,27 @@ const [editData, setEditData] = useState(null);
 
 
 const [createDropdownOpen, setCreateDropdownOpen] = useState(false);
-const [createSelectedType, setCreateSelectedType] = useState("Job Seeker");
 const createOptions = ["Job Seeker", "Employer"];
 
 const [openViewModal, setOpenViewModal] = useState(false);
 const [viewData, setViewData] = useState(null);
 
- const rawData = useMemo(() => {
+const [createQuestion, setCreateQuestion] = useState("");
+const [createAnswer, setCreateAnswer] = useState("");
+
+const [faqsData, setFaqsData] = useState(() => {
   return Array.from({ length: 20 }, (_, i) => ({
-    sr: i + 1,
+    id: i + 1,
     userType: i % 2 === 0 ? "Job Seeker" : "Employer",
-    question: "This is a question?",
+    question: `This is a question ${i + 1}?`,
     answer:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
   }));
-}, []);
+});
 
 // Dynamic filtering and search logic
 const filteredData = useMemo(() => {
-  let result = rawData;
+  let result = faqsData;
 
   // Filter by User Type dropdown selectionz
   if (selectedType !== "All Jobs") {
@@ -74,7 +76,7 @@ const filteredData = useMemo(() => {
     ...item,
     sr: idx + 1,
   }));
-}, [rawData, selectedType, searchTerm]);
+}, [faqsData, selectedType, searchTerm]);
 
 const [pagination, setPagination] = useState({
   pageIndex: 0,
@@ -140,8 +142,31 @@ useEffect(() => {
 });
 
   const handleDeleteConfirm = () => {
-    console.log("Deleted:", selectedRow);
+    if (selectedRow) {
+      setFaqsData((prev) => prev.filter((item) => item.id !== selectedRow.id));
+    }
     setOpenDelete(false);
+    setSelectedRow(null);
+  };
+
+  const handleCreateFAQ = () => {
+    if (!createQuestion.trim() || !createAnswer.trim()) return;
+    const newFaq = {
+      id: Date.now(),
+      userType: modalSelected,
+      question: createQuestion,
+      answer: createAnswer,
+    };
+    setFaqsData((prev) => [newFaq, ...prev]);
+    setOpenCreateModal(false);
+    setCreateQuestion("");
+    setCreateAnswer("");
+  };
+
+  const handleCloseCreateModal = () => {
+    setOpenCreateModal(false);
+    setCreateQuestion("");
+    setCreateAnswer("");
   };
 
   return (
@@ -360,6 +385,8 @@ useEffect(() => {
                 <label className="text-lg text-gray-900">Question</label>
                 <input
                   type="text"
+                  value={createQuestion}
+                  onChange={(e) => setCreateQuestion(e.target.value)}
                   placeholder="This is a question?"
                   className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base h-[42px]"
                 />
@@ -370,6 +397,8 @@ useEffect(() => {
                 <label className="text-lg text-gray-900">Answer</label>
                 <textarea
                   rows="3"
+                  value={createAnswer}
+                  onChange={(e) => setCreateAnswer(e.target.value)}
                   placeholder="Write Answer Here....."
                   className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 outline-none text-base"
                 ></textarea>
@@ -378,15 +407,16 @@ useEffect(() => {
               {/* Buttons */}
               <div className="flex justify-center gap-6 mt-6">
                 <button
-                  onClick={() => setOpenCreateModal(false)}
+                  onClick={handleCloseCreateModal}
                   className="px-15 py-2 rounded-md bg-purple-200 text-purple-700 cursor-pointer"
                 >
                   Cancel
                 </button>
 
                 <button 
-                onClick={() => setOpenCreateModal(false)}
-                className="px-15 py-2 rounded-md bg-purple-600 text-white cursor-pointer">
+                  onClick={handleCreateFAQ}
+                  className="px-15 py-2 rounded-md bg-purple-600 text-white cursor-pointer"
+                >
                   Create
                 </button>
               </div>
@@ -422,7 +452,7 @@ useEffect(() => {
                       }}
                       className="w-full border border-gray-200 mt-1 p-2 rounded-md bg-gray-100 flex justify-between items-center cursor-pointer text-base h-[42px]"
                     >
-                      {createSelectedType}
+                      {editData.userType}
                       <span>⌄</span>
                     </div>
                     
@@ -433,11 +463,11 @@ useEffect(() => {
                           <div
                             key={i}
                             onClick={() => {
-                              setCreateSelectedType(item);
+                              setEditData({ ...editData, userType: item });
                               setCreateDropdownOpen(false);
                             }}
                             className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                              createSelectedType === item ? "bg-gray-200" : ""
+                              editData.userType === item ? "bg-gray-200" : ""
                             }`}
                           >
                             {item}
@@ -452,8 +482,8 @@ useEffect(() => {
                 <div className="mb-4">
                   <label className="text-lg text-gray-900">Question</label>
                   <input
-                    
-                     placeholder="This is a question?"
+                    value={editData.question}
+                    placeholder="This is a question?"
                     onChange={(e) =>
                       setEditData({ ...editData, question: e.target.value })
                     }
@@ -466,6 +496,7 @@ useEffect(() => {
                   <label className="text-lg text-gray-900">Answer</label>
                   <textarea
                     rows="3"
+                    value={editData.answer}
                     placeholder="Write Answer Here...."
                     onChange={(e) =>
                       setEditData({ ...editData, answer: e.target.value })
@@ -478,17 +509,21 @@ useEffect(() => {
                 <div className="flex justify-center gap-6 mt-6">
                   <button
                     onClick={() => setOpenEditModal(false)}
-                    className="px-15 py-2 rounded-md bg-purple-200 text-purple-700"
+                    className="px-15 py-2 rounded-md bg-purple-200 text-purple-700 cursor-pointer"
                   >
                     Cancel
                   </button>
                   
                   <button
                     onClick={() => {
-                      console.log("Updated Data:", editData);
+                      setFaqsData((prev) =>
+                        prev.map((item) =>
+                          item.id === editData.id ? editData : item
+                        )
+                      );
                       setOpenEditModal(false);
                     }}
-                    className="px-15 py-2 rounded-md bg-purple-600 text-white"
+                    className="px-15 py-2 rounded-md bg-purple-600 text-white cursor-pointer"
                   >
                     Save
                   </button>

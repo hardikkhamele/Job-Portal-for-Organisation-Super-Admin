@@ -73,7 +73,7 @@ function DashboardLayout() {
       <Sidebar />
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        <SearchBar />
+        <SearchBar />    
 
         <div className="flex-1 overflow-y-auto no-scrollbar">
           <Routes>
@@ -133,7 +133,7 @@ function DashboardLayout() {
             />
             <Route
               path="/hr-management/daily-work-update"
-              element={<DailyWorkUpdate />}
+              element={<DailyWorkUpdate />}                                 
             />
             <Route
               path="/hr-management/candidate-profile/:id"

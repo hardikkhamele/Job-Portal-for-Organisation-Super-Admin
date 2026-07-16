@@ -164,7 +164,7 @@ const AddEmployee = () => {
     formData.append("name", values.name);
     formData.append("email", values.email);
     formData.append("password", values.password);
-    formData.append("mobileNumber", values.mobile);
+    formData.append("mobileNumber", "+91" + values.mobile);
     formData.append("state", stateData.name);
     formData.append("city", cityData.name);
 
@@ -429,27 +429,32 @@ const AddEmployee = () => {
                     <label className="text-sm font-semibold text-gray-700">
                       Mobile *
                     </label>
-                    <Field
-                      name="mobile"
-                      type="text"
-                      inputMode="numeric" // Mobile par number pad dikhayega
-                      className={
+                    <div className={`flex items-center mt-2 bg-gray-50 border rounded-md transition-all focus-within:ring-1 ${
+                      touched.mobile && errors.mobile
+                        ? "border-red-400 focus-within:ring-red-400"
+                        : "border-gray-300 focus-within:ring-purple-400"
+                    }`}>
+                      <span className={`pl-4 text-sm font-semibold select-none border-r pr-3 py-2 bg-gray-100 rounded-l-md ${
                         touched.mobile && errors.mobile
-                          ? inputErrorClass
-                          : inputClass
-                      }
-                      // Is logic ko add karein:
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        // Sirf numbers allow karein (Regex: \D matlab non-digits ko remove karo)
-                        const onlyNums = val.replace(/\D/g, "");
-
-                        // Max 10 digits ki limit set karein
-                        if (onlyNums.length <= 10) {
-                          setFieldValue("mobile", onlyNums);
-                        }
-                      }}
-                    />
+                          ? "text-red-500 border-red-400"
+                          : "text-gray-500 border-gray-300"
+                      }`}>
+                        +91
+                      </span>
+                      <Field
+                        name="mobile"
+                        type="text"
+                        inputMode="numeric"
+                        className="w-full bg-transparent px-4 py-2 text-sm focus:outline-none text-gray-800"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const onlyNums = val.replace(/\D/g, "");
+                          if (onlyNums.length <= 10) {
+                            setFieldValue("mobile", onlyNums);
+                          }
+                        }}
+                      />
+                    </div>
                     <ErrorMessage
                       name="mobile"
                       component="p"

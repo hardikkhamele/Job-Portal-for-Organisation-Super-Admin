@@ -132,7 +132,7 @@
 //         <Formik initialValues={initialValues} onSubmit={handleSubmit}>
 //           {({ setFieldValue }) => (
 //             <Form className="space-y-12">
-              
+
 //               {/* Section: Basic Info & Logo/Banner */}
 //               <div className="bg-white border border-gray-200 p-4 rounded-2xl">
 //                 <h2 className={sectionHeading}><Building2 size={20} /> Basic Info</h2>
@@ -271,7 +271,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateEmployer, resetUpdateState } from "../../redux/slice/employer/updateEmployeeSlice";
-import { fetchEmployerById } from "../../redux/slice/employer/getEmployeeById"; 
+import { fetchEmployerById } from "../../redux/slice/employer/getEmployeeById";
 import { CountrySelect, StateSelect, CitySelect } from "react-country-state-city";
 import "react-country-state-city/dist/react-country-state-city.css";
 import { toast } from "react-toastify";
@@ -385,7 +385,7 @@ const EditEmployee = () => {
     name: employer?.name || "",
     email: employer?.email || "",
     password: "",
-    mobileNumber: employer?.mobileNumber || "", // Fixed field name
+    mobileNumber: employer?.mobileNumber ? employer.mobileNumber.replace(/^\+91/, "").replace(/^91/, "") : "", // Fixed field name
     tagline: employer?.companyDetail?.companyTagline || "",
     website: employer?.companyDetail?.companyWebsite || "",
     area: employer?.companyDetail?.location?.area || "",
@@ -417,7 +417,7 @@ const EditEmployee = () => {
     formData.append("name", values.name);
     formData.append("email", values.email);
     if (values.password) formData.append("password", values.password);
-    formData.append("mobileNumber", values.mobileNumber); // Using mobileNumber key
+    formData.append("mobileNumber", "+91" + values.mobileNumber); // Using mobileNumber key
 
     if (stateData.name) formData.append("state", stateData.name);
     if (cityData.name) formData.append("city", cityData.name);
@@ -463,10 +463,10 @@ const EditEmployee = () => {
         <Formik initialValues={initialValues} enableReinitialize={true} validationSchema={validationSchema} onSubmit={handleSubmit}>
           {({ errors, touched, setFieldValue }) => (
             <Form className="space-y-12">
-              
+
               <div className="bg-white border border-gray-200 p-4 rounded-2xl">
                 <h2 className={sectionHeading}><Building2 size={20} /> Basic Info</h2>
-                
+
                 {/* Logo & Banner Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   <div className="flex flex-col items-center justify-center border-2 border-dashed border-purple-200 rounded-xl p-6 relative hover:border-purple-400 transition cursor-pointer">
@@ -571,19 +571,30 @@ const EditEmployee = () => {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700">Mobile Number *</label>
-                    <Field
-                      name="mobileNumber"
-                      type="text"
-                      inputMode="numeric"
-                      className={touched.mobileNumber && errors.mobileNumber ? inputErrorClass : inputClass}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const onlyNums = val.replace(/\D/g, "");
-                        if (onlyNums.length <= 10) {
-                          setFieldValue("mobileNumber", onlyNums);
-                        }
-                      }}
-                    />
+                    <div className={`flex items-center mt-2 bg-gray-50 border rounded-md transition-all focus-within:ring-1 ${touched.mobileNumber && errors.mobileNumber
+                        ? "border-red-400 focus-within:ring-red-400"
+                        : "border-gray-300 focus-within:ring-purple-400"
+                      }`}>
+                      <span className={`pl-4 text-sm font-semibold select-none border-r pr-3 py-2 bg-gray-100 rounded-l-md ${touched.mobileNumber && errors.mobileNumber
+                          ? "text-red-500 border-red-400"
+                          : "text-gray-500 border-gray-300"
+                        }`}>
+                        +91
+                      </span>
+                      <Field
+                        name="mobileNumber"
+                        type="text"
+                        inputMode="numeric"
+                        className="w-full bg-transparent px-4 py-2 text-sm focus:outline-none text-gray-800"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const onlyNums = val.replace(/\D/g, "");
+                          if (onlyNums.length <= 10) {
+                            setFieldValue("mobileNumber", onlyNums);
+                          }
+                        }}
+                      />
+                    </div>
                     <ErrorMessage name="mobileNumber" component="p" className="text-red-500 text-xs mt-1" />
                   </div>
                   <div className="relative">

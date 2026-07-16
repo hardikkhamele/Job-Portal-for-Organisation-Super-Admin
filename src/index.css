@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 .blog-view-content ul {
-  list-style-type: disc !important;
+  list-style-type: disc !important;  
   margin-left: 1.5rem !important;
   margin-top: 1rem !important;
   margin-bottom: 1rem !important;

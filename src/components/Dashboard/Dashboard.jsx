@@ -318,6 +318,7 @@ function Dashboard() {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("Token:", token);
         console.log("Super Admin Dashboard API raw response:", response.data);
         if (response.data) {
           setDashboardData(response.data.data || response.data);

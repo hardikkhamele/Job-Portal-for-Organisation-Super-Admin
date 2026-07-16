@@ -160,23 +160,24 @@ import gradientOverlay from "../../../assets/PurpleShadeBg.png";
 import TechnoHireLogo from "../../../assets/TalentHire.png";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { adminLogin, clearError } from "../../../redux/slice/auth/loginSlice";
-import { Eye, EyeOff } from "lucide-react"; // Icons import ki gayi hain
+import { adminLogin, adminSendOtp, clearError, resetOtpState } from "../../../redux/slice/auth/loginSlice";
 
 export default function Login1() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // Password visibility state
-  const [isChecked, setIsChecked] = useState(false);
+  const [mobile, setMobile] = useState("");
+  const [otp, setOtp] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { loading, error, success } = useSelector((state) => state.login);
+  const { loading, error, success, otpSent } = useSelector((state) => state.login);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(adminLogin({ email, password }));
+    if (!otpSent) {
+      dispatch(adminSendOtp({ mobile }));
+    } else {
+      dispatch(adminLogin({ mobile, otp }));
+    }
   };
 
   useEffect(() => {
@@ -185,6 +186,7 @@ export default function Login1() {
     }
     return () => {
       dispatch(clearError());
+      dispatch(resetOtpState());
     };
   }, [success, navigate, dispatch]);
 
@@ -208,7 +210,7 @@ export default function Login1() {
           </h2>
           <h2 className="text-gray-600 font-bold text-center">Dashboard</h2>
 
-          <h2 className="mt-3 mb-6 leading-relaxed text-center">
+          <h2 className="mt-3 mb-6 leading-relaxed text-center text-sm text-gray-500">
             Log in to Unlock your super admin tools, control jobs, track
             opportunities, and optimize platform performance
           </h2>
@@ -220,76 +222,65 @@ export default function Login1() {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-             
-              <label className="text-xs text-gray-600">
-                Email 
-              </label>
-              <input
-                type="email"
-                placeholder="example@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full mt-1 px-3 py-2 text-sm border border-gray-300 rounded-md 
-                           focus:outline-none focus:ring-1 focus:ring-purple-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-600">Password</label>
-              <div className="relative">
+            {!otpSent ? (
+              <div>
+                <label className="text-sm font-semibold text-gray-800 mb-1 block">
+                  Enter Mobile Number
+                </label>
                 <input
-                  type={showPassword ? "text" : "password"} // Type toggle logic
-                  placeholder="********"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-gray-300 rounded-md 
-                             focus:outline-none focus:ring-1 focus:ring-purple-500 pr-10" // pr-10 added for icon space
+                  type="tel"
+                  placeholder="+919876543210"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  className="w-full mt-1 px-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-md 
+                             focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-700"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 focus:outline-none"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
               </div>
-            </div>
-
-            <div className="flex justify-between items-center text-xs mt-2">
-              <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
+            ) : (
+              <div>
+                <label className="text-sm font-semibold text-gray-800 mb-1 block">
+                  Enter OTP
+                </label>
                 <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => setIsChecked(!isChecked)}
-                  className="w-3 h-3"
+                  type="text"
+                  placeholder="Enter 4-digit OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full mt-1 px-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-md 
+                             focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-700"
+                  required
                 />
-                Remember me
-              </label>
-
-              <span
-                onClick={() => {
-                  navigate("/forgot-password");
-                }}
-                className="text-purple-600 font-medium cursor-pointer hover:underline"
-              >
-                Forgot Password?
-              </span>
-            </div>
+                <p className="text-xs text-gray-500 mt-2 text-right">
+                  OTP sent to {mobile}
+                </p>
+              </div>
+            )}
 
             <button
               disabled={loading}
               type="submit"
-              className={`mt-4 py-2 text-sm text-white rounded-md 
-              bg-gradient-to-r from-purple-600 to-purple-800 
-              hover:opacity-90 transition duration-300 w-full flex items-center justify-center ${
+              className={`mt-2 py-3 text-base font-semibold text-white rounded-md 
+              bg-[#7900BA] hover:bg-purple-800 
+              transition duration-300 w-full flex items-center justify-center ${
                 loading ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
-              {loading ? "Logging in..." : "Sign In"}
+              {!otpSent 
+                ? (loading ? "Requesting..." : "Request OTP")
+                : (loading ? "Logging in..." : "Login")
+              }
             </button>
+            
+            <div className="text-center mt-4 text-sm">
+              <span className="font-bold text-black">Don't Have An Account? </span>
+              <span 
+                onClick={() => navigate("/signup")} 
+                className="text-[#D4A017] font-semibold cursor-pointer hover:underline"
+              >
+                Sign Up
+              </span>
+            </div>
           </form>
         </div>
       </div>
