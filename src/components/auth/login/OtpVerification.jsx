@@ -140,7 +140,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyOtp, resetVerifyState } from "../../../redux/slice/auth/verifySlice";
+import { adminLogin, clearError, resetOtpState } from "../../../redux/slice/auth/loginSlice";
 
 import otpIllustration from "../../../assets/OtpIllustration.png";
 import gradientOverlay from "../../../assets/PurpleShadeBg.png";
@@ -153,50 +153,65 @@ export default function OtpVerification() {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  // Forgot Password se email autofill ho jayega
-  const email = location.state?.email || "";
+  // Mobile number passed from LoginPage
+  const mobile = location.state?.mobile || "";
 
-  const { loading, success } = useSelector((state) => state.verify);
+  const { loading, error, success, otpFromServer } = useSelector((state) => state.login);
 
-  // Email check: Agar user direct page par aaye bina email ke toh wapas bhej dein
+  // If user lands here without a mobile number, send them back
   useEffect(() => {
-    if (!email) {
-      navigate("/forgot-password");
+    if (!mobile) {
+      navigate("/login");
     }
-  }, [email, navigate]);
+  }, [mobile, navigate]);
+
+  // Auto-fill OTP boxes if the server returns the OTP (dev/test mode)
+  useEffect(() => {
+    if (otpFromServer) {
+      const otpStr = String(otpFromServer).padStart(4, "0").slice(0, 4);
+      setOtp(otpStr.split(""));
+    }
+  }, [otpFromServer]);
 
   const handleChange = (value, index) => {
-    // Sirf Numbers allow karne ke liye validation
     if (/^[0-9]?$/.test(value)) {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
-
-      // Auto focus next box
+      // Auto-focus next box
       if (value && index < otp.length - 1) {
         inputsRef.current[index + 1].focus();
       }
     }
   };
 
+  // Handle backspace to go to previous box
+  const handleKeyDown = (e, index) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputsRef.current[index - 1].focus();
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const otpValue = otp.join("");
-
     if (otpValue.length !== 4) return;
-
-    // API Call
-    dispatch(verifyOtp({ email, otp: otpValue }));
+    dispatch(adminLogin({ mobile, otp: otpValue }));
   };
 
   useEffect(() => {
     if (success) {
-      navigate("/reset-password", {
-        state: { email },
-      });
-      dispatch(resetVerifyState());
+      navigate("/dashboard", { replace: true });
+      dispatch(resetOtpState());
     }
-  }, [success, navigate, dispatch, email]);
+  }, [success, navigate, dispatch]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   return (
     <div className="w-screen h-screen flex font-sans">
@@ -208,17 +223,33 @@ export default function OtpVerification() {
           className="w-[400px] mb-6"
         />
 
-        <div className="bg-white w-[400px] h-[500px] p-8 rounded-sm shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-purple-300">
-          <h2 className="text-3xl font-extrabold text-[#7900BA] mb-2 text-center mt-7">
-            Enter OTP
+        <div className="bg-white w-[400px] p-8 rounded-sm shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-purple-300">
+          <h2 className="text-3xl font-extrabold text-[#7900BA] mb-2 text-center mt-3">
+            Verify OTP
           </h2>
 
-          <p className="text-gray-700 text-sm text-center">
+          <p className="text-gray-700 text-sm text-center mb-2">
             We've sent a verification code to{" "}
-            <span className="font-medium">{email || "your email"}</span>
+            <span className="font-semibold text-[#7900BA]">{mobile || "your mobile"}</span>
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6 mt-6">
+          {/* Show OTP from server for dev/testing */}
+          {otpFromServer && (
+            <div className="bg-purple-50 border border-purple-200 rounded-md px-4 py-2 mb-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">Your OTP (for testing)</p>
+              <p className="text-2xl font-bold tracking-widest text-[#7900BA]">
+                {otpFromServer}
+              </p>
+            </div>
+          )}
+
+          {error && (
+            <p className="text-red-600 bg-red-50 p-2 rounded text-center text-sm mb-4">
+              {error}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6 mt-4">
             <div className="flex justify-center gap-3">
               {otp.map((digit, index) => (
                 <input
@@ -228,41 +259,45 @@ export default function OtpVerification() {
                   maxLength="1"
                   value={digit}
                   onChange={(e) => handleChange(e.target.value, index)}
-                  className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md 
-                             focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  className="w-12 h-12 text-center text-xl font-bold border border-gray-300 rounded-md 
+                             focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500
+                             transition-all duration-200"
                 />
               ))}
             </div>
 
-            <div className="flex flex-col items-center text-xs text-gray-500 mt-2">
+            <div className="flex flex-col items-center text-xs text-gray-500">
               <div>
-                Didn't receive any code?
-                <span className="cursor-pointer text-purple-600 hover:underline ml-1">
-                  Resend Code
+                Didn't receive the code?{" "}
+                <span
+                  className="cursor-pointer text-purple-600 hover:underline"
+                  onClick={() => navigate("/login")}
+                >
+                  Go back &amp; resend
                 </span>
               </div>
-              <div className="mt-1">00:120 Sec</div>
             </div>
 
-            <div className="flex justify-center text-xs mt-2">
+            <div className="flex justify-center text-xs">
               <span
-                onClick={() => navigate("/")}
-                className="text-purple-600 font-medium cursor-pointer "
+                onClick={() => navigate("/login")}
+                className="text-purple-600 font-medium cursor-pointer hover:underline"
               >
-                Go back to <span className="text-orange-300">Login</span>
+                Go back to <span className="text-orange-400">Login</span>
               </span>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className={`mt-4 py-2 text-sm text-white rounded-md 
-                         bg-gradient-to-r from-purple-600 to-purple-800 
-                         hover:opacity-90 transition duration-300 w-full flex items-center justify-center ${
+              className={`py-3 text-base font-semibold text-white rounded-md 
+                         bg-[#7900BA] hover:bg-purple-800
+                         transition duration-300 w-full flex items-center justify-center ${
                            loading ? "opacity-70 cursor-not-allowed" : ""
                          }`}
             >
-              {loading ? "Verifying..." : "Verify OTP"}
+              {loading ? "Verifying..." : "Verify & Login"}
             </button>
           </form>
         </div>

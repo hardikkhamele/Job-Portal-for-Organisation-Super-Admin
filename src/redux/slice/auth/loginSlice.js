@@ -67,6 +67,7 @@ const loginSlice = createSlice({
     error: null,
     success: false,
     otpSent: false,
+    otpFromServer: null, // OTP returned by the backend (for dev/display)
   },
   reducers: {
     logout: (state) => {
@@ -85,6 +86,7 @@ const loginSlice = createSlice({
       state.otpSent = false;
       state.error = null;
       state.success = false;
+      state.otpFromServer = null;
     }
   },
   extraReducers: (builder) => {
@@ -114,6 +116,11 @@ const loginSlice = createSlice({
       .addCase(adminSendOtp.fulfilled, (state, action) => {
         state.loading = false;
         state.otpSent = true;
+        // Store OTP if backend returns it (common in dev/test environments)
+        state.otpFromServer =
+          action.payload.otp ??
+          action.payload.data?.otp ??
+          null;
         toast.success(action.payload.message || "OTP Sent Successfully!", {
           autoClose: 1500
         })

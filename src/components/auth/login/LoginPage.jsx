@@ -160,35 +160,27 @@ import gradientOverlay from "../../../assets/PurpleShadeBg.png";
 import TechnoHireLogo from "../../../assets/TalentHire.png";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { adminLogin, adminSendOtp, clearError, resetOtpState } from "../../../redux/slice/auth/loginSlice";
+import { adminSendOtp, clearError } from "../../../redux/slice/auth/loginSlice";
+
 
 export default function Login1() {
   const [mobile, setMobile] = useState("");
-  const [otp, setOtp] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { loading, error, success, otpSent } = useSelector((state) => state.login);
+  const { loading, error, otpSent } = useSelector((state) => state.login);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!otpSent) {
-      dispatch(adminSendOtp({ mobile }));
-    } else {
-      dispatch(adminLogin({ mobile, otp }));
-    }
+    dispatch(adminSendOtp({ mobile }));
   };
 
   useEffect(() => {
-    if (success) {
-      navigate("/dashboard", { replace: true });
+    if (otpSent) {
+      navigate("/verify-otp", { state: { mobile } });
     }
-    return () => {
-      dispatch(clearError());
-      dispatch(resetOtpState());
-    };
-  }, [success, navigate, dispatch]);
+  }, [otpSent, mobile, navigate]);
 
   return (
     <div className="w-screen h-screen flex font-sans">
@@ -222,40 +214,20 @@ export default function Login1() {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {!otpSent ? (
-              <div>
-                <label className="text-sm font-semibold text-gray-800 mb-1 block">
-                  Enter Mobile Number
-                </label>
-                <input
-                  type="tel"
-                  placeholder="+919876543210"
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
-                  className="w-full mt-1 px-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-md 
-                             focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-700"
-                  required
-                />
-              </div>
-            ) : (
-              <div>
-                <label className="text-sm font-semibold text-gray-800 mb-1 block">
-                  Enter OTP
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter 4-digit OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="w-full mt-1 px-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-md 
-                             focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-700"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-2 text-right">
-                  OTP sent to {mobile}
-                </p>
-              </div>
-            )}
+            <div>
+              <label className="text-sm font-semibold text-gray-800 mb-1 block">
+                Enter Mobile Number
+              </label>
+              <input
+                type="tel"
+                placeholder="+919876543210"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                className="w-full mt-1 px-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-md 
+                           focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-700"
+                required
+              />
+            </div>
 
             <button
               disabled={loading}
@@ -266,13 +238,8 @@ export default function Login1() {
                 loading ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
-              {!otpSent 
-                ? (loading ? "Requesting..." : "Request OTP")
-                : (loading ? "Logging in..." : "Login")
-              }
+              {loading ? "Requesting..." : "Request OTP"}
             </button>
-            
-
           </form>
         </div>
       </div>
