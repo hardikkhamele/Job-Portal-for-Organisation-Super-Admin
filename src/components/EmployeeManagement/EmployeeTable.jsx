@@ -25,6 +25,10 @@ import {
   updateEmployerStatus,
   resetUpdateStatus,
 } from "../../redux/slice/employer/updateStatusSlice";
+import {
+  updateCompanyType,
+  resetCompanyTypeState,
+} from "../../redux/slice/employer/updateCompanyTypeSlice";
 // import { deleteEmployer, resetDeleteState } from "../../redux/slice/employer/deleteEmployeeSlice";
 
 function EmployeeTable() {
@@ -36,6 +40,9 @@ function EmployeeTable() {
   );
   const { success: updateSuccess, loading: updateLoading } = useSelector(
     (state) => state.updateStatus,
+  );
+  const { loading: companyTypeLoading } = useSelector(
+    (state) => state.updateCompanyType,
   );
   // const { success: deleteSuccess, loading: deleteLoading } = useSelector((state) => state.deleteEmployee);
 
@@ -65,6 +72,19 @@ function EmployeeTable() {
       // if (deleteSuccess) dispatch(resetDeleteState());
     }
   }, [updateSuccess, dispatch, page, searchTerm, pageSize]);
+
+  const handleCompanyTypeChange = (id, newType) => {
+    if (!newType) return;
+    if (
+      window.confirm(
+        `Are you sure you want to set this company as "${newType}"?`,
+      )
+    ) {
+      dispatch(updateCompanyType({ id, companyType: newType })).then(() => {
+        dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
+      });
+    }
+  };
 
   // const handleDeleteConfirm = () => {
   //   if (selectedRow) {
@@ -162,51 +182,66 @@ function EmployeeTable() {
     },
     {
       header: "Action",
-      cell: ({ row }) => (
-        <div className="flex gap-4 items-center">
-          <Eye
-            size={20}
-            className="text-purple-500 cursor-pointer"
-            onClick={() =>
-              navigate(`/employee/company-details/${row.original._id}`)
-            }
-            title="View Details"
-          />
-          <Edit
-            size={20}
-            className="text-purple-500 cursor-pointer"
-            onClick={() =>
-              navigate(`/employee/edit-employee//${row.original._id}`)
-            }
-            title="Edit Details"
-          />
-          <div
-            className="cursor-pointer"
-            onClick={() => {
-              setSelectedRow(row.original);
-              setOpenBlockModal(true);
-            }}
-          >
-            {row.original.status === "active" ? (
-              <Ban size={20} className="text-red-500" title="Block Employer" />
-            ) : (
-              <CheckCircle
-                size={20}
-                className="text-green-600"
-                title="Unblock Employer"
-              />
-            )}
+      cell: ({ row }) => {
+        const currentType = row.original.companyType;
+        const normalizedType =
+          currentType === "Internal" || currentType === "External"
+            ? currentType
+            : "";
+        return (
+          <div className="flex gap-3 items-center flex-wrap justify-center ">
+            {/* Company Type Dropdown */}
+            <select
+              value={normalizedType}
+              onChange={(e) =>
+                handleCompanyTypeChange(row.original._id, e.target.value)
+              }
+              disabled={companyTypeLoading}
+              title="Set Company Type"
+              className="text-xs border border-purple-300 rounded-md px-2 py-1.5 bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed min-w-[110px]"
+            >
+              <option value="">Company Type</option>
+              <option value="Internal">Internal</option>
+              <option value="External">External</option>
+            </select>
+
+            {/* Action Icons */}
+            <Eye
+              size={20}
+              className="text-purple-500 cursor-pointer"
+              onClick={() =>
+                navigate(`/employee/company-details/${row.original._id}`)
+              }
+              title="View Details"
+            />
+            <Edit
+              size={20}
+              className="text-purple-500 cursor-pointer"
+              onClick={() =>
+                navigate(`/employee/edit-employee//${row.original._id}`)
+              }
+              title="Edit Details"
+            />
+            <div
+              className="cursor-pointer"
+              onClick={() => {
+                setSelectedRow(row.original);
+                setOpenBlockModal(true);
+              }}
+            >
+              {row.original.status === "active" ? (
+                <Ban size={20} className="text-red-500" title="Block Employer" />
+              ) : (
+                <CheckCircle
+                  size={20}
+                  className="text-green-600"
+                  title="Unblock Employer"
+                />
+              )}
+            </div>
           </div>
-          {/* <Trash2
-            size={22}
-            className="text-red-500 cursor-pointer"
-            onClick={() => {
-              setSelectedRow(row.original._id);
-              setOpenModal(true);
-            }}
-          /> */}
-        </div>
-      ),
+        );
+      },
     },
   ];
 

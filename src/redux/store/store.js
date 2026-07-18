@@ -24,6 +24,7 @@ import getAllEmployerReducer from "../slice/employer/getAllEmployer";
 import updateEmployeeReducer from "../slice/employer/updateEmployeeSlice"
 import addEmployeeReducer from "../slice/employer/addEmployeeSlice"
 import getEmployeeByIdReducer from "../slice/employer/getEmployeeById";
+import updateCompanyTypeReducer from "../slice/employer/updateCompanyTypeSlice";
 
 // ─── Job Management ──────────────────────────────────────────
 import getAllJobReducer from "../slice/jobManagement/getAllJob";
@@ -93,6 +94,7 @@ export const store = configureStore({
     updateEmpStatus: updateempStatusReducer,
     deleteEmployee: deleteEmployeeReducer,
     updateEmployee: updateEmployeeReducer,
+    updateCompanyType: updateCompanyTypeReducer,
 
     // Job Management
     allJobs: getAllJobReducer,
