@@ -272,6 +272,7 @@
 // export default AcceptReject;
 
 import React, { useState, useEffect, Fragment } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Check,
   X,
@@ -282,6 +283,8 @@ import {
   Loader2,
   UploadCloud,
   UploadIcon,
+  Eye,
+  Trash2,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAcceptRejectData } from "../../redux/slice/databaseManagement/getAcceptRejectSlice";
@@ -300,12 +303,22 @@ import {
   uploadCandidateDatabase,
   resetUploadState,
 } from "../../redux/slice/databaseManagement/acceptRejUploadDatabase/acceptRejectSlice";
+import DeleteModal from "../common/DeleteModal";
+import {
+  deleteCandidateDatabase,
+  resetDeleteState,
+} from "../../redux/slice/databaseManagement/deleteCandidateDatabase";
 const AcceptReject = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [selectedDesignation, setSelectedDesignation] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+
+  // Delete modal state
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
 
   const dispatch = useDispatch();
 
@@ -318,6 +331,9 @@ const AcceptReject = () => {
   );
   const { success: rejectSuccess, loading: rejectLoading } = useSelector(
     (state) => state.rejectCandidate,
+  );
+  const { success: deleteSuccess, loading: deleteLoading } = useSelector(
+    (state) => state.deleteCandidateDatabase,
   );
 
   // Dropdown Selectors
@@ -338,14 +354,19 @@ const AcceptReject = () => {
     dispatch(fetchAcceptRejectData(1));
   }, [dispatch]);
 
-  // Success hone par list refresh karein (Approve & Reject dono ke liye)
+  // Success hone par list refresh karein (Approve, Reject & Delete ke liye)
   useEffect(() => {
-    if (approveSuccess || rejectSuccess) {
+    if (approveSuccess || rejectSuccess || deleteSuccess) {
       dispatch(fetchAcceptRejectData(pagination.current || 1));
       if (approveSuccess) dispatch(resetAcceptState());
       if (rejectSuccess) dispatch(resetRejectState());
+      if (deleteSuccess) {
+        dispatch(resetDeleteState());
+        setOpenDeleteModal(false);
+        setSelectedRow(null);
+      }
     }
-  }, [approveSuccess, rejectSuccess, dispatch, pagination.current]);
+  }, [approveSuccess, rejectSuccess, deleteSuccess, dispatch, pagination.current]);
 
   // Upload success handling
   useEffect(() => {
@@ -376,6 +397,12 @@ const AcceptReject = () => {
   const handleReject = (id) => {
     if (window.confirm("Are you sure you want to reject this candidate?")) {
       dispatch(rejectCandidate(id));
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedRow) {
+      dispatch(deleteCandidateDatabase(selectedRow._id));
     }
   };
 
@@ -459,21 +486,22 @@ const AcceptReject = () => {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
-                  <th className="p-3 text-sm ">Sr.No.</th>
-                  <th className="p-3 text-sm ">Hr Name</th>
-                  <th className="p-3 text-sm ">Category</th>
-                  <th className="p-3 text-sm ">Subcategory</th>
-                  <th className="p-3 text-sm">Designation</th>
-                  <th className="p-3 text-sm">Upload Date</th>
-                  <th className="p-3 text-sm">Excel File</th>
-                  <th className="p-3 text-sm ">Accept / Reject</th>
+                  <th className="p-3 text-sm text-center">Sr.No.</th>
+                  <th className="p-3 text-sm text-center">Hr Name</th>
+                  <th className="p-3 text-sm text-center">Category</th>
+                  <th className="p-3 text-sm text-center">Subcategory</th>
+                  <th className="p-3 text-sm text-center">Designation</th>
+                  <th className="p-3 text-sm text-center">Upload Date</th>
+                  <th className="p-3 text-sm text-center">Excel File</th>
+                  <th className="p-3 text-sm text-center">Accept / Reject</th>
+                  <th className="p-3 text-sm text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
                 <Fragment>
                   {loading ? (
                     <tr>
-                      <td colSpan="8" className="p-10 text-center">
+                      <td colSpan="9" className="p-10 text-center">
                         <div className="flex flex-col justify-center items-center gap-3">
                           <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
                           <span className="text-purple-600 font-medium text-sm">
@@ -485,7 +513,7 @@ const AcceptReject = () => {
                   ) : error ? (
                     <tr>
                       <td
-                        colSpan="8"
+                        colSpan="9"
                         className="p-10 text-center text-red-500 font-medium"
                       >
                         {error}
@@ -571,12 +599,38 @@ const AcceptReject = () => {
                             )}
                           </div>
                         </td>
+                        <td className="p-3">
+                          <div className="flex justify-center items-center gap-3">
+                            <Eye
+                              size={20}
+                              className="text-purple-500 cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() =>
+                                navigate("/candidates", {
+                                  state: {
+                                    category: item.category,
+                                    designation: item.designation,
+                                  },
+                                })
+                              }
+                              title="View Candidates"
+                            />
+                            <Trash2
+                              size={20}
+                              className="text-red-500 cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() => {
+                                setSelectedRow(item);
+                                setOpenDeleteModal(true);
+                              }}
+                              title="Delete Database"
+                            />
+                          </div>
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td
-                        colSpan="8"
+                        colSpan="9"
                         className="p-10 text-gray-400 italic text-center"
                       >
                         No records available for this page.
@@ -749,6 +803,18 @@ const AcceptReject = () => {
           </div>
         </div>
       )}
+      {/* Delete Modal */}
+      <DeleteModal
+        isOpen={openDeleteModal}
+        onClose={() => {
+          if (!deleteLoading) {
+            setOpenDeleteModal(false);
+            setSelectedRow(null);
+          }
+        }}
+        onConfirm={handleDeleteConfirm}
+        loading={deleteLoading}
+      />
     </div>
   );
 };

@@ -42,6 +42,7 @@ import acceptRejectReducer from "../slice/databaseManagement/getAcceptRejectSlic
 import acceptCandidateReducer from "../slice/databaseManagement/acceptCandidate"
 import rejectCandidateReducer from "../slice/databaseManagement/rejectCandidate"
 import dropdownReducer from "../slice/databaseManagement/dropdownSlice"
+import deleteCandidateDatabaseReducer from "../slice/databaseManagement/deleteCandidateDatabase"
 
 // subscriptions management
 import employerPlansReducer from "../slice/subscriptions/employerPlans/getEmployerPlans"
@@ -113,6 +114,7 @@ export const store = configureStore({
     acceptCandidate: acceptCandidateReducer, 
     rejectCandidate: rejectCandidateReducer,
     dropdown: dropdownReducer,
+    deleteCandidateDatabase: deleteCandidateDatabaseReducer,
     allDropdown: allDropdownReducer,
 
     // subscriptions management

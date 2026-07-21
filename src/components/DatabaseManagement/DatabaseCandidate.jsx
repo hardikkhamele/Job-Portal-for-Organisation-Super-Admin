@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchCandidates } from "../../redux/slice/databaseManagement/getAllCandidate";
@@ -11,6 +11,7 @@ import {
 
 const DatabaseCandidate = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
 
   // Selectors
@@ -31,6 +32,16 @@ const DatabaseCandidate = () => {
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (location.state?.category) {
+      setSelectedCategory(location.state.category);
+      if (location.state.designation) {
+        dispatch(fetchDesignations(location.state.category));
+        setSelectedDesignation(location.state.designation);
+      }
+    }
+  }, [location.state, dispatch]);
 
   useEffect(() => {
     dispatch(

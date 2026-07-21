@@ -29,7 +29,7 @@ import {
   updateCompanyType,
   resetCompanyTypeState,
 } from "../../redux/slice/employer/updateCompanyTypeSlice";
-// import { deleteEmployer, resetDeleteState } from "../../redux/slice/employer/deleteEmployeeSlice";
+import { deleteEmployer, resetDeleteState } from "../../redux/slice/employer/deleteEmployeeSlice";
 
 function EmployeeTable() {
   const navigate = useNavigate();
@@ -44,9 +44,9 @@ function EmployeeTable() {
   const { loading: companyTypeLoading } = useSelector(
     (state) => state.updateCompanyType,
   );
-  // const { success: deleteSuccess, loading: deleteLoading } = useSelector((state) => state.deleteEmployee);
+  const { success: deleteSuccess, loading: deleteLoading } = useSelector((state) => state.deleteEmployee);
 
-  // const [openModal, setOpenModal] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   const [openBlockModal, setOpenBlockModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -64,14 +64,18 @@ function EmployeeTable() {
 
   // ✅ Refresh data automatically when update or delete is successful
   useEffect(() => {
-    if (updateSuccess) {
+    if (updateSuccess || deleteSuccess) {
       dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
 
       // Cleanup states
       if (updateSuccess) dispatch(resetUpdateStatus());
-      // if (deleteSuccess) dispatch(resetDeleteState());
+      if (deleteSuccess) {
+        dispatch(resetDeleteState());
+        setOpenModal(false);
+        setSelectedRow(null);
+      }
     }
-  }, [updateSuccess, dispatch, page, searchTerm, pageSize]);
+  }, [updateSuccess, deleteSuccess, dispatch, page, searchTerm, pageSize]);
 
   const handleCompanyTypeChange = (id, newType) => {
     if (!newType) return;
@@ -86,13 +90,11 @@ function EmployeeTable() {
     }
   };
 
-  // const handleDeleteConfirm = () => {
-  //   if (selectedRow) {
-  //     dispatch(deleteEmployer(selectedRow));
-  //   }
-  //   setOpenModal(false);
-  //   setSelectedRow(null);
-  // };
+  const handleDeleteConfirm = () => {
+    if (selectedRow) {
+      dispatch(deleteEmployer(selectedRow._id));
+    }
+  };
 
   const handleBlock = () => {
     if (selectedRow) {
@@ -115,6 +117,7 @@ function EmployeeTable() {
       cell: ({ row }) => (page - 1) * pageSize + row.index + 1,
     },
     {
+      id: "company",
       header: "Company",
       cell: ({ row }) => {
         const logo = row.original.companyLogo?.[0];
@@ -145,14 +148,37 @@ function EmployeeTable() {
     },
     {
       accessorKey: "companyType",
-      header: "Company Type",
-      cell: ({ getValue }) => (getValue() === "N/A" ? "N/A" : getValue()),
+      header: "Type",
+      cell: ({ row }) => {
+        const currentType = row.original.companyType;
+        const normalizedType =
+          currentType === "Internal" || currentType === "External"
+            ? currentType
+            : "";
+        return (
+          <div className="flex justify-center">
+            <select
+              value={normalizedType}
+              onChange={(e) =>
+                handleCompanyTypeChange(row.original._id, e.target.value)
+              }
+              disabled={companyTypeLoading}
+              title="Set Company Type"
+              className="text-xs border border-purple-300 rounded-md px-2 py-1.5 bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed min-w-[110px]"
+            >
+              <option value="">Company Type</option>
+              <option value="Internal">Internal</option>
+              <option value="External">External</option>
+            </select>
+          </div>
+        );
+      },
     },
     { accessorKey: "totalJobs", header: "Posted Jobs" },
     {
       header: "Credits Left",
       cell: ({ row }) => (
-        <div className="text-base leading-5">
+        <div className="text-base leading-5 text-center">
           <p>Job Credits {row.original.creditsLeft || 0}</p>
           <p className="text-gray-500">Database Credits 0</p>
         </div>
@@ -161,7 +187,7 @@ function EmployeeTable() {
     {
       header: "Status",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center justify-center gap-2 text-sm">
           {row.original.status === "active" ? (
             <>
               <CheckCircle size={20} className="text-green-500" />
@@ -183,28 +209,8 @@ function EmployeeTable() {
     {
       header: "Action",
       cell: ({ row }) => {
-        const currentType = row.original.companyType;
-        const normalizedType =
-          currentType === "Internal" || currentType === "External"
-            ? currentType
-            : "";
         return (
           <div className="flex gap-3 items-center flex-wrap justify-center ">
-            {/* Company Type Dropdown */}
-            <select
-              value={normalizedType}
-              onChange={(e) =>
-                handleCompanyTypeChange(row.original._id, e.target.value)
-              }
-              disabled={companyTypeLoading}
-              title="Set Company Type"
-              className="text-xs border border-purple-300 rounded-md px-2 py-1.5 bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed min-w-[110px]"
-            >
-              <option value="">Company Type</option>
-              <option value="Internal">Internal</option>
-              <option value="External">External</option>
-            </select>
-
             {/* Action Icons */}
             <Eye
               size={20}
@@ -239,6 +245,15 @@ function EmployeeTable() {
                 />
               )}
             </div>
+            <Trash2
+              size={20}
+              className="text-red-500 cursor-pointer"
+              onClick={() => {
+                setSelectedRow(row.original);
+                setOpenModal(true);
+              }}
+              title="Delete Employer"
+            />
           </div>
         );
       },
@@ -270,8 +285,8 @@ function EmployeeTable() {
         {/* <div className="border-b border-gray-500 mb-5"></div> */}
         <hr className="border-gray-300  mb-5" />
 
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center w-[240px] h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-lg">
+        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center sm:justify-between">
+          <div className="flex items-center w-full sm:w-[240px] h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-lg">
             <Search size={16} className="text-gray-500 mr-2" />
             <input
               type="text"
@@ -287,21 +302,23 @@ function EmployeeTable() {
 
           <button
             onClick={() => navigate("/employee/add-employee")}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-center"
           >
             + Add Employee
           </button>
         </div>
 
-        <div className=" rounded-lg overflow-hidden min-h-[400px]">
-          <table className="w-full text-sm border-collapse">
+        <div className="rounded-lg overflow-x-auto min-h-[400px] w-full">
+          <table className="w-full text-sm border-collapse min-w-[1000px]">
             <thead className="bg-[#F1F1F1] text-gray-700">
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id} className="bg-gray-100 text-gray-600">
                   {hg.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="py-4 px-4 text-left font-semibold text-[15px]"
+                      className={`py-4 px-4 font-semibold text-[15px] ${
+                        header.id === "company" ? "text-left" : "text-center"
+                      }`}
                     >
                       {flexRender(
                         header.column.columnDef.header,
@@ -335,7 +352,12 @@ function EmployeeTable() {
                     className="border-b border-gray-200 h-21 hover:bg-gray-50 transition"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="py-4 px-4 align-middle text-left">
+                      <td
+                        key={cell.id}
+                        className={`py-4 px-4 align-middle ${
+                          cell.column.id === "company" ? "text-left" : "text-center"
+                        }`}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -358,8 +380,8 @@ function EmployeeTable() {
           </table>
         </div>
 
-        <div className="flex justify-between mt-6 font-bold text-purple-600">
-          <span>
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mt-6 font-bold text-purple-600">
+          <span className="text-center sm:text-left">
             Showing {total === 0 ? 0 : (page - 1) * pageSize + 1} to{" "}
             {Math.min(page * pageSize, total)} of {total}
           </span>
@@ -415,11 +437,17 @@ function EmployeeTable() {
           variant={selectedRow?.status === "active" ? "danger" : undefined}
         />
 
-        {/* <DeleteModal
+        <DeleteModal
           isOpen={openModal}
-          onClose={() => { if(!isActionLoading) setOpenModal(false); }}
+          onClose={() => {
+            if (!deleteLoading) {
+              setOpenModal(false);
+              setSelectedRow(null);
+            }
+          }}
           onConfirm={handleDeleteConfirm}
-        /> */}
+          loading={deleteLoading}
+        />
       </div>
       <Footer />
     </div>
