@@ -273,6 +273,7 @@
 
 import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 import {
   Check,
   X,
@@ -455,13 +456,30 @@ const AcceptReject = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("category", selectedCategory);
-    formData.append("subCategory", selectedSubCategory);
-    formData.append("designation", selectedDesignation);
-    formData.append("excelFile", selectedFile);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // Convert sheet data to JSON array
+        const jsonRows = XLSX.utils.sheet_to_json(worksheet);
 
-    dispatch(uploadCandidateDatabase(formData));
+        const payload = {
+          category: selectedCategory,
+          subCategory: selectedSubCategory,
+          designation: selectedDesignation,
+          excelData: jsonRows,
+        };
+
+        dispatch(uploadCandidateDatabase(payload));
+      } catch (err) {
+        alert("Failed to parse Excel file. Please check if the file format is valid.");
+      }
+    };
+    reader.readAsArrayBuffer(selectedFile);
   };
 
   return (
@@ -604,15 +622,8 @@ const AcceptReject = () => {
                             <Eye
                               size={20}
                               className="text-purple-500 cursor-pointer hover:scale-110 transition-transform"
-                              onClick={() =>
-                                navigate("/candidates", {
-                                  state: {
-                                    category: item.category,
-                                    designation: item.designation,
-                                  },
-                                })
-                              }
-                              title="View Candidates"
+                              onClick={() => navigate(`/accept-reject/view/${item._id}`, { state: { item } })}
+                              title="View Excel Database Details"
                             />
                             <Trash2
                               size={20}

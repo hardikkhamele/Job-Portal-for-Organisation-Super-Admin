@@ -10,10 +10,14 @@ import { Eye, SquarePen , Trash2, X, ChevronDown } from "lucide-react";
 
 import DeleteModal from "../common/DeleteModal";
 import Footer from "../Footer";
+import { useDispatch, useSelector } from "react-redux";
+import { createFAQ, resetFaqState } from "../../redux/slice/helpAndSupport/faqSlice";
 
 
 
 const FAQs = () => {
+const dispatch = useDispatch();
+const { loading: createLoading, success: createSuccess, createdFaq } = useSelector((state) => state.faqs);
 
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const [selectedType, setSelectedType] = useState("All Jobs");
@@ -88,6 +92,23 @@ useEffect(() => {
   setPagination((prev) => ({ ...prev, pageIndex: 0 }));
 }, [selectedType, searchTerm]);
 
+// On successful FAQ creation from API, add to local list and close modal
+useEffect(() => {
+  if (createSuccess && createdFaq) {
+    const newFaq = {
+      id: createdFaq._id || Date.now(),
+      userType: createdFaq.userType === "job_seeker" ? "Job Seeker" : "Employer",
+      question: createdFaq.question,
+      answer: createdFaq.answer,
+    };
+    setFaqsData((prev) => [newFaq, ...prev]);
+    setOpenCreateModal(false);
+    setCreateQuestion("");
+    setCreateAnswer("");
+    dispatch(resetFaqState());
+  }
+}, [createSuccess, createdFaq, dispatch]);
+
   const columns = useMemo(
     () => [
       { header: "Sr.No.", accessorKey: "sr" },
@@ -151,16 +172,13 @@ useEffect(() => {
 
   const handleCreateFAQ = () => {
     if (!createQuestion.trim() || !createAnswer.trim()) return;
-    const newFaq = {
-      id: Date.now(),
-      userType: modalSelected,
-      question: createQuestion,
-      answer: createAnswer,
-    };
-    setFaqsData((prev) => [newFaq, ...prev]);
-    setOpenCreateModal(false);
-    setCreateQuestion("");
-    setCreateAnswer("");
+    // Map display label to backend userType value
+    const userTypeMap = { "Job Seeker": "job_seeker", "Employer": "employer" };
+    dispatch(createFAQ({
+      question: createQuestion.trim(),
+      answer: createAnswer.trim(),
+      userType: userTypeMap[modalSelected] || "job_seeker",
+    }));
   };
 
   const handleCloseCreateModal = () => {
@@ -415,9 +433,17 @@ useEffect(() => {
 
                 <button 
                   onClick={handleCreateFAQ}
-                  className="px-15 py-2 rounded-md bg-purple-600 text-white cursor-pointer"
+                  disabled={createLoading}
+                  className="px-15 py-2 rounded-md bg-purple-600 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2"
                 >
-                  Create
+                  {createLoading ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block"></span>
+                      Creating...
+                    </>
+                  ) : (
+                    "Create"
+                  )}
                 </button>
               </div>
             </div>

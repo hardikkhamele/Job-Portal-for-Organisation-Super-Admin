@@ -39,7 +39,6 @@ export const uploadCandidateDatabase = createAsyncThunk(
       const response = await axios.post(`${BASE_URL}/api/admin/candidate-database/uploadCandidateDatabase`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data",
         },
       });
       return response.data;

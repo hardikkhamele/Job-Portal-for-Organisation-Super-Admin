@@ -43,6 +43,7 @@ import acceptCandidateReducer from "../slice/databaseManagement/acceptCandidate"
 import rejectCandidateReducer from "../slice/databaseManagement/rejectCandidate"
 import dropdownReducer from "../slice/databaseManagement/dropdownSlice"
 import deleteCandidateDatabaseReducer from "../slice/databaseManagement/deleteCandidateDatabase"
+import getExcelDataReducer from "../slice/databaseManagement/getExcelDataSlice"
 
 // subscriptions management
 import employerPlansReducer from "../slice/subscriptions/employerPlans/getEmployerPlans"
@@ -68,6 +69,12 @@ import allDropdownReducer from "../slice/databaseManagement/acceptRejUploadDatab
 
 // terms and service
 import termsReducer from "../slice/terms/termsSlice";
+
+// help & support - FAQs
+import faqReducer from "../slice/helpAndSupport/faqSlice";
+
+// help & support - Social Links
+import socialLinksReducer from "../slice/helpAndSupport/socialLinksSlice";
 
 export const store = configureStore({
   reducer: {
@@ -116,6 +123,7 @@ export const store = configureStore({
     dropdown: dropdownReducer,
     deleteCandidateDatabase: deleteCandidateDatabaseReducer,
     allDropdown: allDropdownReducer,
+    excelData: getExcelDataReducer,
 
     // subscriptions management
     employerPlans: employerPlansReducer,
@@ -139,5 +147,9 @@ export const store = configureStore({
 
     // terms and service
     terms: termsReducer,
+
+    // help & support
+    faqs: faqReducer,
+    socialLinks: socialLinksReducer,
   },
 });
