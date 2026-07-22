@@ -152,7 +152,7 @@ function EmployeeTable() {
       cell: ({ row }) => {
         const currentType = row.original.companyType;
         const normalizedType =
-          currentType === "Internal" || currentType === "External"
+          currentType === "internal" || currentType === "external"
             ? currentType
             : "";
         return (
@@ -167,8 +167,8 @@ function EmployeeTable() {
               className="text-xs border border-purple-300 rounded-md px-2 py-1.5 bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed min-w-[110px]"
             >
               <option value="">Company Type</option>
-              <option value="Internal">Internal</option>
-              <option value="External">External</option>
+              <option value="internal">Internal</option>
+              <option value="external">External</option>
             </select>
           </div>
         );

@@ -9,16 +9,13 @@ export const updateCompanyType = createAsyncThunk(
   async ({ id, companyType }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const formData = new FormData();
-      formData.append("businessDetail[typeOfCompany]", companyType);
-
-      const response = await axios.put(
-        `${BASE_URL}/api/admin/employer/updateEmployer/${id}`,
-        formData,
+      const response = await axios.patch(
+        `${BASE_URL}/api/admin/employer/${id}/approve`,
+        { companyType },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
         }
       );

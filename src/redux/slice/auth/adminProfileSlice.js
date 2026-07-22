@@ -9,6 +9,7 @@ export const fetchAdminProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
+      console.log(token, "token");
       const response = await axios.get(`${BASE_URL}/api/auth/admin/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
