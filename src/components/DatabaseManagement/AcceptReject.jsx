@@ -274,6 +274,7 @@
 import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
+import axios from "axios";
 import {
   Check,
   X,
@@ -406,12 +407,104 @@ const AcceptReject = () => {
       dispatch(deleteCandidateDatabase(selectedRow._id));
     }
   };
+ 
+  const handleDownloadExcelFile = async (item) => {
+    if (!item || !item._id) {
+      alert("Invalid database record");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("token");
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+      
+      const response = await axios.get(
+        `${BASE_URL}/api/admin/candidate-database/getexcelData/${item._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      const responseData = response.data?.data || response.data || {};
+      const databaseRecord =
+        responseData?.candidateDatabase ||
+        responseData?.database ||
+        responseData?.record ||
+        (responseData._id ? responseData : item);
 
-  const handleDownload = (fileUrl) => {
-    if (fileUrl && fileUrl.startsWith("http")) {
-      window.open(fileUrl, "_blank");
-    } else {
-      alert("Invalid file link or file not available");
+      let rows = [];
+      if (Array.isArray(responseData)) rows = responseData;
+      else if (Array.isArray(responseData.excelData)) rows = responseData.excelData;
+      else if (Array.isArray(responseData.data)) rows = responseData.data;
+      else if (Array.isArray(responseData.candidates)) rows = responseData.candidates;
+      else if (Array.isArray(responseData.excel_data)) rows = responseData.excel_data;
+      else if (Array.isArray(databaseRecord?.excelData)) rows = databaseRecord.excelData;
+      else if (Array.isArray(databaseRecord?.candidates)) rows = databaseRecord.candidates;
+      
+      if (rows.length === 0) {
+        for (const key of Object.keys(responseData)) {
+          if (Array.isArray(responseData[key]) && responseData[key].length > 0) {
+            if (typeof responseData[key][0] === "object" && responseData[key][0] !== null) {
+              rows = responseData[key];
+              break;
+            }
+          }
+        }
+      }
+
+      if (rows.length === 0 && databaseRecord) {
+        for (const key of Object.keys(databaseRecord)) {
+          if (Array.isArray(databaseRecord[key]) && databaseRecord[key].length > 0) {
+            if (typeof databaseRecord[key][0] === "object" && databaseRecord[key][0] !== null) {
+              rows = databaseRecord[key];
+              break;
+            }
+          }
+        }
+      }
+
+      if (rows && rows.length > 0) {
+        const cleanedRows = rows.map(row => {
+          const newRow = { ...row };
+          delete newRow._id;
+          delete newRow.__v;
+          delete newRow.candidateDatabaseId;
+          delete newRow.createdAt;
+          delete newRow.updatedAt;
+          return newRow;
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(cleanedRows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
+        
+        const categoryName = item.CategoryName || "Database";
+        const designationName = item.DesignationName || "Candidates";
+        XLSX.writeFile(workbook, `${categoryName}_${designationName}_Database.xlsx`);
+      } else {
+        const fileUrl = databaseRecord?.File || databaseRecord?.fileUrl || databaseRecord?.file || item.File || item.fileUrl || item.file;
+        if (fileUrl) {
+          const resolvedUrl = fileUrl.startsWith("http")
+            ? fileUrl
+            : `${BASE_URL}${fileUrl.startsWith("/") ? "" : "/"}${fileUrl}`;
+          window.open(resolvedUrl, "_blank");
+        } else {
+          alert("Excel file link or data not available.");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to download excel database:", error);
+      const fileUrl = item.File || item.fileUrl || item.file;
+      if (fileUrl) {
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+        const resolvedUrl = fileUrl.startsWith("http")
+          ? fileUrl
+          : `${BASE_URL}${fileUrl.startsWith("/") ? "" : "/"}${fileUrl}`;
+        window.open(resolvedUrl, "_blank");
+      } else {
+        alert("Failed to download excel database.");
+      }
     }
   };
 
@@ -565,7 +658,7 @@ const AcceptReject = () => {
                         <td className="p-3">
                           <div className="flex justify-center">
                             <button
-                              onClick={() => handleDownload(item.File)}
+                              onClick={() => handleDownloadExcelFile(item)}
                               className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium transition-colors cursor-pointer"
                             >
                               <Download size={18} />

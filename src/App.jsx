@@ -21,6 +21,19 @@ import ResetSuccess from "./components/auth/login/ResetSuccess";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
+import axios from "axios";
+
+// Global interceptor for unauthorized requests (401/403)
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 export default function App() {
   function PublicRoute({ children }) {
     const token = localStorage.getItem("token");

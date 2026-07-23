@@ -185,6 +185,16 @@ const ViewExcelData = () => {
         }
       }
     }
+
+    if (databaseRecord) {
+      for (const key of Object.keys(databaseRecord)) {
+        if (Array.isArray(databaseRecord[key]) && databaseRecord[key].length > 0) {
+          if (typeof databaseRecord[key][0] === "object" && databaseRecord[key][0] !== null) {
+            return databaseRecord[key];
+          }
+        }
+      }
+    }
     return [];
   }, [responseData, databaseRecord]);
 
@@ -271,10 +281,35 @@ const ViewExcelData = () => {
   }, [filteredRows, currentPage]);
 
   const handleDownload = () => {
-    if (hrInfo.fileUrl && hrInfo.fileUrl.startsWith("http")) {
-      window.open(hrInfo.fileUrl, "_blank");
+    if (rawRows && rawRows.length > 0) {
+      const cleanedRows = rawRows.map(row => {
+        const newRow = { ...row };
+        delete newRow._id;
+        delete newRow.__v;
+        delete newRow.candidateDatabaseId;
+        delete newRow.createdAt;
+        delete newRow.updatedAt;
+        return newRow;
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(cleanedRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
+      
+      const categoryName = hrInfo.category || "Database";
+      const designationName = hrInfo.designation || "Candidates";
+      XLSX.writeFile(workbook, `${categoryName}_${designationName}_Database.xlsx`);
     } else {
-      alert("Excel file link not available.");
+      const fileUrl = hrInfo.fileUrl;
+      if (fileUrl) {
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+        const resolvedUrl = fileUrl.startsWith("http")
+          ? fileUrl
+          : `${BASE_URL}${fileUrl.startsWith("/") ? "" : "/"}${fileUrl}`;
+        window.open(resolvedUrl, "_blank");
+      } else {
+        alert("Excel file link or data not available.");
+      }
     }
   };
 
