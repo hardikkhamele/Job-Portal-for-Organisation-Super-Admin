@@ -667,46 +667,19 @@ const AcceptReject = () => {
                           </div>
                         </td>
                         <td className="p-3">
-                          <div className="flex justify-center items-center gap-4">
-                            {item.isApproved ? (
-                              <span className="text-green-600 text-sm border border-purple-200 p-2 rounded-2xl tracking-wider">
-                                Accepted Already
+                          <div className="flex justify-center items-center font-medium text-xs">
+                            {item.isApproved || item.status === "Approved" || item.status === "Accepted" ? (
+                              <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 border border-green-300 shadow-sm">
+                                Accepted
+                              </span>
+                            ) : item.isRejected || item.status === "Rejected" ? (
+                              <span className="px-3 py-1 rounded-full bg-red-100 text-red-700 border border-red-300 shadow-sm">
+                                Rejected
                               </span>
                             ) : (
-                              <>
-                                <span
-                                  className={`border-2 border-purple-200 rounded-full h-7 w-7 flex justify-center items-center ${
-                                    approveLoading
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : "cursor-pointer"
-                                  }`}
-                                  onClick={() =>
-                                    !approveLoading && handleApprove(item._id)
-                                  }
-                                >
-                                  <Check
-                                    size={18}
-                                    className="text-green-600 hover:scale-125 transition-transform"
-                                    title="Accept"
-                                  />
-                                </span>
-                                <span
-                                  className={`border-2 border-purple-200 rounded-full h-7 w-7 flex justify-center items-center ${
-                                    rejectLoading
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : "cursor-pointer"
-                                  }`}
-                                  onClick={() =>
-                                    !rejectLoading && handleReject(item._id)
-                                  }
-                                >
-                                  <X
-                                    size={18}
-                                    className="text-red-600 hover:scale-125 transition-transform"
-                                    title="Reject"
-                                  />
-                                </span>
-                              </>
+                              <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-300 shadow-sm">
+                                Pending
+                              </span>
                             )}
                           </div>
                         </td>

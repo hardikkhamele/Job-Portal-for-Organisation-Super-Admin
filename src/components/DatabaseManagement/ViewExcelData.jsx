@@ -10,11 +10,13 @@ import {
   Briefcase,
   Check,
   X,
+  Trash2,
 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 import {
   fetchExcelData,
   clearExcelData,
@@ -56,7 +58,23 @@ const ViewExcelData = () => {
   const [fileParsingLoading, setFileParsingLoading] = useState(false);
   const [fileParsingError, setFileParsingError] = useState(null);
   const [parsedFileRows, setParsedFileRows] = useState([]);
+  const [acceptedCandidateKeys, setAcceptedCandidateKeys] = useState([]);
+  const [deletedCandidateKeys, setDeletedCandidateKeys] = useState([]);
   const itemsPerPage = 10;
+
+  const handleAcceptIndividualCandidate = (row, key) => {
+    setAcceptedCandidateKeys((prev) => [...prev, key]);
+    const name = row["FULL NAME"] || row.name || row["Name"] || row["Candidate Name"] || "Candidate";
+    toast.success(`${name} accepted successfully!`);
+  };
+
+  const handleDeleteIndividualCandidate = (row, key) => {
+    const name = row["FULL NAME"] || row.name || row["Name"] || row["Candidate Name"] || "this candidate";
+    if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+      setDeletedCandidateKeys((prev) => [...prev, key]);
+      toast.success(`${name} deleted successfully!`);
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -236,8 +254,12 @@ const ViewExcelData = () => {
 
   // Determine final rows to display
   const rawRows = useMemo(() => {
-    return apiExtractedRows.length > 0 ? apiExtractedRows : parsedFileRows;
-  }, [apiExtractedRows, parsedFileRows]);
+    const list = apiExtractedRows.length > 0 ? apiExtractedRows : parsedFileRows;
+    return list.filter((row, idx) => {
+      const key = row._id || idx;
+      return !deletedCandidateKeys.includes(key);
+    });
+  }, [apiExtractedRows, parsedFileRows, deletedCandidateKeys]);
 
   const loading = apiLoading || fileParsingLoading;
   const error = apiError || fileParsingError;
@@ -463,44 +485,16 @@ const ViewExcelData = () => {
             </div>
           </div>
 
-          {/* Accept / Reject Quick Buttons in Meta Card */}
-          <div className="flex items-center justify-center sm:justify-start gap-3 pl-2 sm:border-l sm:border-gray-200">
+          {/* Accept / Reject Status in Meta Card */}
+          <div className="flex items-center justify-center sm:justify-start gap-3 pl-2 sm:border-l sm:border-gray-200 text-xs font-medium">
             {hrInfo.isApproved ? (
-              <span className="text-green-600 text-xs font-semibold border border-purple-200 bg-purple-50 px-3 py-1.5 rounded-full tracking-wider">
+              <span className="px-3 py-1.5 rounded-full bg-green-100 text-green-700 border border-green-300 shadow-sm">
                 Accepted
               </span>
             ) : (
-              <div className="flex items-center gap-2">
-                <span
-                  className={`border-2 border-purple-200 rounded-full h-8 w-8 flex justify-center items-center ${
-                    approveLoading
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer hover:bg-green-50"
-                  }`}
-                  onClick={() => !approveLoading && handleApprove()}
-                  title="Accept Database"
-                >
-                  <Check
-                    size={18}
-                    className="text-green-600 hover:scale-125 transition-transform"
-                  />
-                </span>
-
-                <span
-                  className={`border-2 border-purple-200 rounded-full h-8 w-8 flex justify-center items-center ${
-                    rejectLoading
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer hover:bg-red-50"
-                  }`}
-                  onClick={() => !rejectLoading && handleReject()}
-                  title="Reject Database"
-                >
-                  <X
-                    size={18}
-                    className="text-red-600 hover:scale-125 transition-transform"
-                  />
-                </span>
-              </div>
+              <span className="px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300 shadow-sm">
+                Pending
+              </span>
             )}
           </div>
         </div>
@@ -564,36 +558,67 @@ const ViewExcelData = () => {
                           {colKey}
                         </th>
                       ))}
+                      <th className="p-3 text-center w-36 whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
                     {paginatedRows.length > 0 ? (
-                      paginatedRows.map((row, idx) => (
-                        <tr
-                          key={row._id || idx}
-                          className="hover:bg-purple-50/50 transition-colors"
-                        >
-                          <td className="p-3 text-center text-gray-500 font-medium">
-                            {(currentPage - 1) * itemsPerPage + idx + 1}
-                          </td>
-                          {columns.map((colKey) => (
-                            <td
-                              key={colKey}
-                              className="p-3 whitespace-nowrap max-w-xs truncate"
-                              title={String(row[colKey] ?? "")}
-                            >
-                              {typeof row[colKey] === "object" &&
-                              row[colKey] !== null
-                                ? JSON.stringify(row[colKey])
-                                : String(row[colKey] ?? "-")}
+                      paginatedRows.map((row, idx) => {
+                        const rowKey = row._id || (currentPage - 1) * itemsPerPage + idx;
+                        const isAccepted = acceptedCandidateKeys.includes(rowKey) || row.status === "Accepted" || row.isAccepted;
+
+                        return (
+                          <tr
+                            key={rowKey}
+                            className="hover:bg-purple-50/50 transition-colors"
+                          >
+                            <td className="p-3 text-center text-gray-500 font-medium">
+                              {(currentPage - 1) * itemsPerPage + idx + 1}
                             </td>
-                          ))}
-                        </tr>
-                      ))
+                            {columns.map((colKey) => (
+                              <td
+                                key={colKey}
+                                className="p-3 whitespace-nowrap max-w-xs truncate"
+                                title={String(row[colKey] ?? "")}
+                              >
+                                {typeof row[colKey] === "object" &&
+                                row[colKey] !== null
+                                  ? JSON.stringify(row[colKey])
+                                  : String(row[colKey] ?? "-")}
+                              </td>
+                            ))}
+                            <td className="p-3 text-center whitespace-nowrap">
+                              <div className="flex items-center justify-center gap-2">
+                                {isAccepted ? (
+                                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300">
+                                    Accepted
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleAcceptIndividualCandidate(row, rowKey)}
+                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded text-xs font-semibold shadow-sm transition flex items-center gap-1 cursor-pointer"
+                                    title="Accept Candidate"
+                                  >
+                                    <Check size={14} />
+                                    Accept
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDeleteIndividualCandidate(row, rowKey)}
+                                  className="p-1.5 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-600 rounded transition cursor-pointer"
+                                  title="Delete Candidate"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td
-                          colSpan={columns.length + 1}
+                          colSpan={columns.length + 2}
                           className="p-8 text-center text-gray-400 italic"
                         >
                           No matching candidate records found for "{searchTerm}".
