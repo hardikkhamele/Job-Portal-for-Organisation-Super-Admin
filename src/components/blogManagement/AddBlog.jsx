@@ -32,9 +32,6 @@ const AddBlog = () => {
     if (!strippedDescription) {
       newErrors.description = "Description is required";
       valid = false;
-    } else if (!/^[A-Za-z\s]+$/.test(strippedDescription)) {
-      newErrors.description = "Only alphabets are allowed";
-      valid = false;
     }
 
     setErrors(newErrors);
@@ -129,7 +126,6 @@ const AddBlog = () => {
                   const stripped = content.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
                   let err = "";
                   if (!stripped) err = "Description is required";
-                  else if (!/^[A-Za-z\s]+$/.test(stripped)) err = "Only alphabets are allowed";
                   setErrors((prev) => ({ ...prev, description: err }));
                 }}
                 modules={modules}

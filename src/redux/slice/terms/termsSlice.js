@@ -17,13 +17,13 @@ const getAuthHeaders = () => {
 // ─── ASYNC THUNKS ────────────────────────────────────────────────────────────
 
 // ✅ Fetch Terms And Service by userType (GET)
-// userType: "employer" | "jobseeker"
+// userType: "employer" | "job_seeker"
 export const fetchTermsAndService = createAsyncThunk(
   "terms/fetchTermsAndService",
   async (userType, { rejectWithValue }) => {
     try {
       const response = await API.get(
-        `/api/admin/termsAndService/getTermsAndService/${userType}`,
+        `/api/admin/termsAndService/${userType}`,
         {
           headers: getAuthHeaders(),
         }
@@ -37,14 +37,35 @@ export const fetchTermsAndService = createAsyncThunk(
   }
 );
 
+// ✅ Create Terms And Service (POST)
+export const postTermsAndService = createAsyncThunk(
+  "terms/postTermsAndService",
+  async ({ userType, title, content }, { rejectWithValue }) => {
+    try {
+      const response = await API.post(
+        `/api/admin/termsAndService/terms`,
+        { userType, title, content },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create Terms And Service"
+      );
+    }
+  }
+);
+
 // ✅ Update Terms And Service by real MongoDB _id (PUT)
 export const updateTermsAndService = createAsyncThunk(
   "terms/updateTermsAndService",
-  async ({ id, content }, { rejectWithValue }) => {
+  async ({ id, title, content }, { rejectWithValue }) => {
     try {
       const response = await API.put(
-        `/api/admin/termsAndService/updateTermsAndService/${id}`,
-        { content },
+        `/api/admin/termsAndService/terms/${id}`,
+        { title, content },
         {
           headers: getAuthHeaders(),
         }
@@ -64,7 +85,7 @@ const termsSlice = createSlice({
   name: "terms",
   initialState: {
     termsData: null,   // Holds fetched terms { _id, content, userType }
-    loading: false,    // PUT loading
+    loading: false,    // POST/PUT loading
     fetchLoading: false, // GET loading
     success: false,
     error: null,
@@ -83,15 +104,30 @@ const termsSlice = createSlice({
       .addCase(fetchTermsAndService.pending, (state) => {
         state.fetchLoading = true;
         state.error = null;
-        state.termsData = null;
       })
       .addCase(fetchTermsAndService.fulfilled, (state, action) => {
         state.fetchLoading = false;
-        // Handle both { data: {...} } and direct object responses
         state.termsData = action.payload?.data || action.payload;
       })
       .addCase(fetchTermsAndService.rejected, (state, action) => {
         state.fetchLoading = false;
+        state.error = action.payload;
+      })
+
+      // ─── Post Terms ───
+      .addCase(postTermsAndService.pending, (state) => {
+        state.loading = true;
+        state.success = false;
+        state.error = null;
+      })
+      .addCase(postTermsAndService.fulfilled, (state) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(postTermsAndService.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
         state.error = action.payload;
       })
 

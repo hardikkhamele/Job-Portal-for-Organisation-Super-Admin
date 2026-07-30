@@ -12,7 +12,7 @@ const Employer = () => {
 
         {/* Heading */}
         <h1 className="text-2xl font-bold mb-2">
-          Terms & Service For Employer
+          Terms &amp; Service For Employer
         </h1>
 
         <hr className="mb-6 border-gray-300" />

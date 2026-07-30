@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../Footer";
 
 const JobSeeker = () => {
-  
   const navigate = useNavigate();
+
   return (
     <div className="p-10 bg-gray-100 min-h-screen">
       
@@ -12,7 +12,7 @@ const JobSeeker = () => {
 
         {/* Heading */}        
         <h1 className="text-2xl font-bold mb-4">
-          Terms & Service For Job Seeker
+          Terms &amp; Service For Job Seeker
         </h1>
         <hr className="mb-4" />
 
@@ -40,7 +40,7 @@ const JobSeeker = () => {
         {/* Button */}
         <div className="flex justify-center mt-6 ">
           <button
-            onClick={() => navigate("/jobseeker/edit")}
+            onClick={() => navigate("/job-seeker/edit")}
             className="bg-purple-700 text-white px-25 py-2 rounded-md cursor-pointer"
           >
             Edit
@@ -49,8 +49,7 @@ const JobSeeker = () => {
 
       </div>
 
-     
-<Footer/>
+      <Footer/>
     </div>
   );
 };

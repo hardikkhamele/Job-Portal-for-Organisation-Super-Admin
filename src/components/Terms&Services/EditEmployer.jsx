@@ -5,27 +5,42 @@ import "react-quill/dist/quill.snow.css";
 import { ArrowLeft } from "lucide-react";
 import Footer from "../Footer";
 import { useDispatch, useSelector } from "react-redux";
-import { updateTermsAndService, clearTermsState } from "../../redux/slice/terms/termsSlice";
+import {
+  fetchTermsAndService,
+  postTermsAndService,
+  updateTermsAndService,
+  clearTermsState,
+} from "../../redux/slice/terms/termsSlice";
 import { toast } from "react-toastify";
 
-// ─── Employer Terms & Service document ID ─────────────────────────────────────
-// Replace with the actual document ID from your backend for the Employer T&S
-const EMPLOYER_TERMS_ID = "employer";
+const DEFAULT_EMPLOYER_TERMS = `<p>1) Employers must be legally authorized to hire and operate in their jurisdiction.</p>
+<p>2) Employers must provide accurate, complete, and up-to-date company information during registration and usage of the platform.</p>
+<p>3) Employers must not post misleading, discriminatory, or fraudulent job listings.</p>
+<p>4) The platform is not responsible for hiring decisions, candidate performance, or employment outcomes.</p>
+<p>5) Job credits and subscription plans are non-transferable and subject to the platform's billing policy.</p>
+<p>6) Employers agree to use candidate data solely for recruitment purposes and handle it confidentially.</p>
+<p>7) Any misuse of the platform, including spamming candidates or unethical hiring practices, may result in account suspension.</p>`;
 
 const EditEmployer = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, success, error } = useSelector((state) => state.terms);
+  const { loading, fetchLoading, termsData, success, error } = useSelector(
+    (state) => state.terms
+  );
 
-  const [value, setValue] = useState(`
-    <p>1) Employers must be legally authorized to hire and operate in their jurisdiction.</p>
-    <p>2) Employers must provide accurate, complete, and up-to-date company information during registration and usage of the platform.</p>
-    <p>3) Employers must not post misleading, discriminatory, or fraudulent job listings.</p>
-    <p>4) The platform is not responsible for hiring decisions, candidate performance, or employment outcomes.</p>
-    <p>5) Job credits and subscription plans are non-transferable and subject to the platform's billing policy.</p>
-    <p>6) Employers agree to use candidate data solely for recruitment purposes and handle it confidentially.</p>
-    <p>7) Any misuse of the platform, including spamming candidates or unethical hiring practices, may result in account suspension.</p>
-  `);
+  const [value, setValue] = useState(DEFAULT_EMPLOYER_TERMS);
+
+  // Fetch on mount
+  useEffect(() => {
+    dispatch(fetchTermsAndService("employer"));
+  }, [dispatch]);
+
+  // Update editor value if backend returns custom content
+  useEffect(() => {
+    if (termsData && termsData.content) {
+      setValue(termsData.content);
+    }
+  }, [termsData]);
 
   const modules = {
     toolbar: [
@@ -44,22 +59,36 @@ const EditEmployer = () => {
   };
 
   const formats = [
-    "font","size","bold","italic","underline","strike",
-    "color","background","script",
-    "blockquote","code-block","header",
-    "list","bullet","indent","align",
-    "link","image","video"
+    "font",
+    "size",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "color",
+    "background",
+    "script",
+    "blockquote",
+    "code-block",
+    "header",
+    "list",
+    "bullet",
+    "indent",
+    "align",
+    "link",
+    "image",
+    "video",
   ];
 
   // ─── Handle success / error toasts ───────────────────────────────────────────
   useEffect(() => {
     if (success) {
-      toast.success("Terms And Service updated successfully!");
+      toast.success("Terms And Service saved successfully!");
       dispatch(clearTermsState());
       navigate(-1);
     }
     if (error) {
-      toast.error(error || "Failed to update Terms And Service");
+      toast.error(error || "Failed to save Terms And Service");
       dispatch(clearTermsState());
     }
   }, [success, error, dispatch, navigate]);
@@ -70,14 +99,21 @@ const EditEmployer = () => {
       toast.warning("Content cannot be empty.");
       return;
     }
-    dispatch(updateTermsAndService({ id: EMPLOYER_TERMS_ID, content: value }));
+
+    const title = "Terms And Service For Employer";
+
+    if (termsData && termsData._id) {
+      // Document exists -> UPDATE via PUT
+      dispatch(updateTermsAndService({ id: termsData._id, title, content: value }));
+    } else {
+      // Document does NOT exist yet -> CREATE via POST
+      dispatch(postTermsAndService({ userType: "employer", title, content: value }));
+    }
   };
 
   return (
     <div className="p-10 bg-gray-100 min-h-screen">
-
       <div className="bg-white rounded-xl shadow-md p-6">
-
         {/* HEADER */}
         <div className="flex items-center gap-3 mb-4">
           <div
@@ -95,7 +131,12 @@ const EditEmployer = () => {
         <hr className="mb-5 " />
 
         {/* EDITOR */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden min-h-[450px] ">
+        <div className="border border-gray-200 rounded-lg overflow-hidden min-h-[450px] relative">
+          {fetchLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
+              <span className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
+            </div>
+          )}
           <ReactQuill
             theme="snow"
             value={value}
@@ -108,6 +149,14 @@ const EditEmployer = () => {
 
         {/* BUTTONS */}
         <div className="flex justify-center gap-4 mt-6">
+          <button
+            onClick={() => setValue(DEFAULT_EMPLOYER_TERMS)}
+            disabled={loading}
+            className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md cursor-pointer disabled:opacity-50"
+          >
+            Default Terms
+          </button>
+
           <button
             onClick={() => navigate(-1)}
             disabled={loading}
@@ -131,9 +180,8 @@ const EditEmployer = () => {
             )}
           </button>
         </div>
-
       </div>
-      <Footer/>
+      <Footer />
     </div>
   );
 };
