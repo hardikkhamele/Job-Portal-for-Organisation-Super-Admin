@@ -9,11 +9,15 @@ import {
 import {
   Search,
   Eye,
+  Edit,
+  Trash2,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-// import DeleteModal from "../common/DeleteModal";
+import { toast } from "react-toastify";
+import axios from "axios";
+import DeleteModal from "../common/DeleteModal";
 import { fetchAllJobs } from "../../redux/slice/jobManagement/getAllJob";
 import { getAllCategories, getSubCategoriesByCategoryId } from "../../redux/slice/category/categorySlice";
 import defaultLogo from "../../assets/Technokreat.svg";
@@ -29,6 +33,10 @@ const JobManagement = () => {
 
   const [globalFilter, setGlobalFilter] = useState("");
   const [category, setCategory] = useState("All");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [pagination, setPagination] = useState({
     pageIndex: 0, 
@@ -93,16 +101,40 @@ const JobManagement = () => {
     return result;
   }, [jobs, category, subCategories, globalFilter]);
 
+  const handleDeleteClick = (row) => {
+    setSelectedRow(row);
+    setIsModalOpen(true);
+  };
 
-  // const handleConfirmDelete = () => {
-  //   setIsModalOpen(false);
-  //   setSelectedRow(null);
-  // };
+  const handleConfirmDelete = async () => {
+    if (!selectedRow) return;
+    setDeleteLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+      const jobId = selectedRow._id || selectedRow.id;
 
-  // const handleDeleteClick = (row) => {
-  //   setSelectedRow(row);
-  //   setIsModalOpen(true);
-  // };
+      try {
+        await axios.delete(`${BASE_URL}/api/admin/employer/deleteJob/${jobId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (err) {
+        await axios.delete(`${BASE_URL}/api/admin/job/deleteJob/${jobId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+
+      toast.success("Job deleted successfully!");
+      dispatch(fetchAllJobs({ page: 1, limit: 150 }));
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast.error(error.response?.data?.message || "Failed to delete job");
+    } finally {
+      setDeleteLoading(false);
+      setIsModalOpen(false);
+      setSelectedRow(null);
+    }
+  };
 
   const columns = [
     {
@@ -161,9 +193,33 @@ const JobManagement = () => {
     {
       header: "Action",
       cell: ({ row }) => (
-        <div className="flex gap-3 justify-center">
-          <Eye className="text-purple-600 cursor-pointer hover:scale-110 transition" size={18} onClick={() => navigate(`/job-management/job-view-details/${row.original._id}`, { state: row.original })} />
-          {/* <Trash2 className="text-red-500 cursor-pointer hover:scale-110 transition" size={18} onClick={() => handleDeleteClick(row.original)} /> */}
+        <div className="flex gap-3 justify-center items-center">
+          <Eye
+            className="text-purple-600 cursor-pointer hover:scale-110 transition"
+            size={18}
+            title="View Job Details"
+            onClick={() =>
+              navigate(`/job-management/job-view-details/${row.original._id}`, {
+                state: row.original,
+              })
+            }
+          />
+          <Edit
+            className="text-purple-600 cursor-pointer hover:scale-110 transition"
+            size={18}
+            title="Edit Job Details"
+            onClick={() =>
+              navigate(`/job-management/job-view-details/${row.original._id}`, {
+                state: { ...row.original, isEditMode: true },
+              })
+            }
+          />
+          <Trash2
+            className="text-red-500 cursor-pointer hover:scale-110 transition"
+            size={18}
+            title="Delete Job"
+            onClick={() => handleDeleteClick(row.original)}
+          />
         </div>
       ),
       meta: { align: "text-center" },
@@ -315,7 +371,15 @@ const JobManagement = () => {
         </div>
       </div>
       <Footer/>
-      {/* <DeleteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmDelete} /> */}
+      <DeleteModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedRow(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        loading={deleteLoading}
+      />
     </div>
   );
 };

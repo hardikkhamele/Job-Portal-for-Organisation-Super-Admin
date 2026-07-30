@@ -799,7 +799,7 @@ const DatabaseCandidate = () => {
     }
   }, [isTransferModalOpen, transferTarget, dispatch]);
 
-  const handleConfirmTransfer = () => {
+  const handleConfirmTransfer = async () => {
     if (!transferTarget) {
       toast.error("Please select a destination module");
       return;
@@ -827,14 +827,48 @@ const DatabaseCandidate = () => {
       targetPersonName = foundEmp?.name || selectedPersonId;
     }
 
-    toast.success(
-      `${selectedCandidates.length} candidate(s) transferred to ${targetPersonName} successfully! (Original database records preserved)`
-    );
+    try {
+      const token = localStorage.getItem("token");
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
-    setSelectedCandidates([]);
-    setTransferTarget("");
-    setSelectedPersonId("");
-    setIsTransferModalOpen(false);
+      const payload = {
+        candidateIds: selectedCandidates,
+      };
+
+      if (transferTarget === "hr_management") {
+        payload.hrId = selectedPersonId;
+      } else if (transferTarget === "employee_management") {
+        payload.employeeId = selectedPersonId;
+        payload.employerId = selectedPersonId; 
+      }
+
+      const response = await axios.post(
+        `${BASE_URL}/api/admin/candidate-database/transfer`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success || response.status === 200 || response.status === 201) {
+        toast.success(
+          `${selectedCandidates.length} candidate(s) transferred to ${targetPersonName} successfully!`
+        );
+        setSelectedCandidates([]);
+        setTransferTarget("");
+        setSelectedPersonId("");
+        setIsTransferModalOpen(false);
+      } else {
+        toast.error(response.data.message || "Failed to transfer candidates");
+      }
+    } catch (error) {
+      console.error("Error transferring candidates:", error);
+      toast.error(
+        error.response?.data?.message || "An error occurred while transferring candidates"
+      );
+    }
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;

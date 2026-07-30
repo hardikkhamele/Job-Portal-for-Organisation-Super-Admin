@@ -117,13 +117,17 @@ function JobSeekerManagement() {
                 )}
                 <div className="flex gap-3 justify-center mt-3">
                   <button
-                    className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-1 w-28 rounded"
-                    onClick={() => { setCategoryToDelete(cat); setDeleteOpen(true); }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-1 w-28 rounded transition cursor-pointer"
+                    onClick={() => {
+                      setMode("edit");
+                      setSelectedCategory(cat);
+                      setOpen(true);
+                    }}
                   >
-                    Delete
+                    Edit
                   </button>
                   <button
-                    className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-1 w-28 rounded"
+                    className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-1 w-28 rounded transition cursor-pointer"
                     onClick={() => {
                       dispatch(setActiveCategoryId(cat.id));
                       navigate(`/job-seeker/view-job-seeker/${cat.id}`);
