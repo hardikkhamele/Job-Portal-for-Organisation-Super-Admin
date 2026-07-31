@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Search, Edit, Code, Briefcase, Loader2 } from "lucide-react";
+import { Search, Code, Briefcase, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import CreateCategoryModal from "../common/CreateCategoryModal";
 import DeleteModal from "../common/DeleteModal";
@@ -87,15 +87,6 @@ function JobSeekerManagement() {
                 key={cat.id}
                 className="bg-white border border-[#D3D3D3] shadow-[0px_4px_4px_0px_#00000040] rounded-lg p-5 relative"
               >
-                <Edit
-                  size={18}
-                  className="absolute top-3 right-3 text-purple-600 cursor-pointer"
-                  onClick={() => {
-                    setMode("edit");
-                    setSelectedCategory(cat);
-                    setOpen(true);
-                  }}
-                />
                 <div className="flex justify-center mb-3">
                   {cat.image ? (
                     <img

@@ -11,7 +11,7 @@ export const updateCompanyType = createAsyncThunk(
       const token = localStorage.getItem("token");
       const response = await axios.patch(
         `${BASE_URL}/api/admin/employer/${id}/approve`,
-        { companyType },
+        { companyType, typeOfCompany: companyType },
         {
           headers: {
             Authorization: `Bearer ${token}`,

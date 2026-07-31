@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect } from "react";
+/* eslint-disable react/prop-types */
+import { useMemo, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllTransactions } from "../../redux/slice/RevenueManagement/revenueSlice";
 import {
@@ -8,7 +9,8 @@ import {
   flexRender,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { Users, Zap, Clock, Eye,  TrendingUp, ArrowLeftRight, X} from "lucide-react";
+import { Users, Zap, Clock, Eye, Download, TrendingUp, ArrowLeftRight, X} from "lucide-react";
+import { exportInvoice } from "../../utils/exportInvoice";
 
 function TransactionHistory({ employerId, employer }) {
   const dispatch = useDispatch();
@@ -106,8 +108,9 @@ function TransactionHistory({ employerId, employer }) {
          cell: ({row}) => (
            <div className="flex justify-center items-center w-full">
             <Eye
-              className="cursor-pointer text-purple-800"
+              className="cursor-pointer text-purple-800 hover:text-purple-600 transition"
               size={20}
+              title="View Details"
               onClick={() => {
                 setSelectedRow(row.original);
                 setIsModalOpen(true);
@@ -435,11 +438,22 @@ function TransactionHistory({ employerId, employer }) {
             </div>
       
             {/* TOTAL */}
-            <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between font-semibold">
+            <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center font-semibold">
               <span>Total Amount Paid</span>
-              <span className="text-green-600">{selectedRow?.price}</span>
+              <span className="text-green-600 text-lg">{selectedRow?.price}</span>
             </div>
-      
+
+            {/* EXPORT INVOICE BUTTON */}
+            <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => exportInvoice(selectedRow?.originalItem || selectedRow)}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer"
+              >
+                <Download size={16} />
+                <span>Export Invoice</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

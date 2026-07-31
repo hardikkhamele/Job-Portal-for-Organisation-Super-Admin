@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Eye, ChevronLeft, ChevronRight, Send, X, ChevronDown } from "lucide-react";
@@ -19,7 +19,7 @@ const DatabaseCandidate = () => {
   const dispatch = useDispatch();  
 
   // Selectors
-  const { candidates, total, totalPages, loading, error } = useSelector(
+  const { candidates, total, totalPages, loading } = useSelector(
     (state) => state.allCandidate,
   );
   const { categories, designations } = useSelector((state) => state.dropdown);
@@ -696,7 +696,7 @@ const DatabaseCandidate = () => {
                   allHrs = epList;
                   break;
                 }
-              } catch (e) {
+              } catch {
                 // ignore
               }
             }
@@ -727,7 +727,7 @@ const DatabaseCandidate = () => {
             if (Array.isArray(dropList) && dropList.length > 0) {
               allEmps = [...dropList];
             }
-          } catch (e) {
+          } catch {
             // fallback
           }
 
@@ -833,11 +833,14 @@ const DatabaseCandidate = () => {
 
       const payload = {
         candidateIds: selectedCandidates,
+        assignedTo: selectedPersonId,
       };
 
       if (transferTarget === "hr_management") {
+        payload.transferTo = "HR";
         payload.hrId = selectedPersonId;
       } else if (transferTarget === "employee_management") {
+        payload.transferTo = "Employer";
         payload.employeeId = selectedPersonId;
         payload.employerId = selectedPersonId; 
       }

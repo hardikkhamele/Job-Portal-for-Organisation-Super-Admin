@@ -7,7 +7,7 @@ export const fetchCategories = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${BASE_URL}/api/admin/candidate-database/getallCategory`,
+        `${BASE_URL}/api/admin/jobSeeker/getAllCategory`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       return response.data.data;

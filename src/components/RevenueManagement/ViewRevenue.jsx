@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTransactionById,clearSelectedTransaction } from "../../redux/slice/RevenueManagement/revenueSlice";
 import BannerTwo from "../../assets/BannerTwo.svg";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Download } from "lucide-react";
+import { exportInvoice } from "../../utils/exportInvoice";
 
 const ViewRevenue = () => {
   const { id } = useParams();
@@ -54,16 +55,25 @@ const ViewRevenue = () => {
   return (
     <div className="p-5 bg-gray-100 min-h-[90vh]">
       <div className="bg-white p-6 rounded-xl shadow-md max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div
               onClick={() => navigate(-1)}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-900 cursor-pointer"
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-900 cursor-pointer hover:bg-gray-100 transition"
             >
               <ArrowLeft size={25} />
             </div>
             <h1 className="text-2xl font-bold">View Revenue</h1>
           </div>
+
+          <button
+            type="button"
+            onClick={() => exportInvoice(selectedTransaction)}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition text-sm cursor-pointer"
+          >
+            <Download size={18} />
+            <span>Export Invoice</span>
+          </button>
         </div>
         <hr className="mb-6 border-gray-200" />
 

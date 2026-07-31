@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -27,7 +27,6 @@ import {
 } from "../../redux/slice/employer/updateStatusSlice";
 import {
   updateCompanyType,
-  resetCompanyTypeState,
 } from "../../redux/slice/employer/updateCompanyTypeSlice";
 import { deleteEmployer, resetDeleteState } from "../../redux/slice/employer/deleteEmployeeSlice";
 
@@ -46,6 +45,7 @@ function EmployeeTable() {
   );
   const { success: deleteSuccess, loading: deleteLoading } = useSelector((state) => state.deleteEmployee);
 
+  const [selectedCompanyTypes, setSelectedCompanyTypes] = useState({});
   const [openModal, setOpenModal] = useState(false);
   const [openBlockModal, setOpenBlockModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -84,6 +84,7 @@ function EmployeeTable() {
         `Are you sure you want to set this company as "${newType}"?`,
       )
     ) {
+      setSelectedCompanyTypes((prev) => ({ ...prev, [id]: newType }));
       dispatch(updateCompanyType({ id, companyType: newType })).then(() => {
         dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
       });
@@ -150,11 +151,21 @@ function EmployeeTable() {
       accessorKey: "companyType",
       header: "Type",
       cell: ({ row }) => {
-        const currentType = row.original.companyType;
-        const normalizedType =
-          currentType === "internal" || currentType === "external"
-            ? currentType
-            : "";
+        const rawType =
+          selectedCompanyTypes[row.original._id] ||
+          row.original.companyType ||
+          row.original.typeOfCompany ||
+          row.original.businessDetail?.typeOfCompany ||
+          row.original.businessDetail?.companyType ||
+          row.original.type ||
+          "";
+        const lowerType = String(rawType).toLowerCase();
+        const normalizedType = lowerType.includes("internal")
+          ? "internal"
+          : lowerType.includes("external")
+          ? "external"
+          : "";
+
         return (
           <div className="flex justify-center">
             <select
@@ -164,7 +175,11 @@ function EmployeeTable() {
               }
               disabled={companyTypeLoading}
               title="Set Company Type"
-              className="text-xs border border-purple-300 rounded-md px-2 py-1.5 bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed min-w-[110px]"
+              className={`text-xs border rounded-md px-2 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed min-w-[110px] font-medium capitalize ${
+                normalizedType
+                  ? "bg-purple-50 text-purple-700 border-purple-400 shadow-sm"
+                  : "bg-white text-gray-700 border-purple-300"
+              }`}
             >
               <option value="">Company Type</option>
               <option value="internal">Internal</option>

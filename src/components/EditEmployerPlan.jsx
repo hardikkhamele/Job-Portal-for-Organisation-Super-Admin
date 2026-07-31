@@ -137,11 +137,16 @@ const EditEmployerPlan = () => {
 
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">Plan Tag</label>
-                <input
+                <select
                   name="tag"
                   className="bg-[#F7F8F9] border border-[#D3D3D3] p-3 rounded-md w-full"
                   {...formik.getFieldProps("tag")}
-                />
+                >
+                  <option value="" disabled>Select Plan Tag</option>
+                  <option value="job credit">Job Credit</option>
+                  <option value="database credit">Database Credit</option>
+                  <option value="database + job credit">Database + Job Credit</option>
+                </select>
                 {formik.touched.tag && formik.errors.tag && (
                   <p className="text-red-500 text-xs mt-1">{formik.errors.tag}</p>
                 )}
@@ -153,6 +158,7 @@ const EditEmployerPlan = () => {
                   <option value="30">1 Month</option>
                   <option value="90">3 Months</option>
                   <option value="180">6 Months</option>
+                  <option value="365">12 Months</option>
                 </select>
                 {formik.touched.validity && formik.errors.validity && (
                   <p className="text-red-500 text-xs mt-1">{formik.errors.validity}</p>

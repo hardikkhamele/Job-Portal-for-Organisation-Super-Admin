@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, Download, CircleChevronLeft, Gem } from "lucide-react";
+import { CircleChevronLeft, Gem, ArrowLeft, AlertCircle } from "lucide-react";
 import {
   fetchCandidateProfile,
   clearProfile,
@@ -14,7 +14,7 @@ function CandidateProfile() {
   const dispatch = useDispatch();
   const { id } = useParams();
 
-  const { data, loading } = useSelector((state) => state.candidateProfile);
+  const { data, loading, error } = useSelector((state) => state.candidateProfile);
 
   useEffect(() => {
     if (id) {
@@ -31,7 +31,26 @@ function CandidateProfile() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="w-full bg-[#F4F6FA] p-6 min-h-screen flex flex-col items-center justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md">
+          <AlertCircle size={48} className="text-purple-600 mx-auto mb-3" />
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Candidate Not Found</h2>
+          <p className="text-gray-500 text-sm mb-5">
+            {error || "The requested candidate profile details could not be loaded."}
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium mx-auto hover:bg-purple-700 transition cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            <span>Go Back</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#F4F6FA] p-4 min-h-screen">

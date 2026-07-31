@@ -10,12 +10,10 @@ import {
   Phone,
   Link2,
   Wallet,
-CheckCircle,
-Camera, Share2, ThumbsUp, Users 
-  
+  CheckCircle,
+  Camera, Share2, ThumbsUp, Users,
+  Building2
 } from "lucide-react";
-
-import bannertwo from "../../assets/BannerTwo.svg";
 
 const decodeHtml = (html) => {
   if (!html) return "";
@@ -27,13 +25,12 @@ const decodeHtml = (html) => {
 function JobDetails({ job, onBack }) {
   const { employer } = useSelector((state) => state.employeeDetails);
   
-  const getSafeImage = (imgArray, placeholder) => {
-    if (!imgArray || imgArray.length === 0) return placeholder;
-    const item = imgArray[0];
-    return typeof item === "string" ? item : (item?.url || placeholder);
-  };
-
-  const logo = getSafeImage(employer?.companyDetail?.companyLogo, bannertwo);
+  const logoUrl =
+    Array.isArray(employer?.companyDetail?.companyLogo) && employer.companyDetail.companyLogo.length > 0
+      ? typeof employer.companyDetail.companyLogo[0] === "string"
+        ? employer.companyDetail.companyLogo[0]
+        : employer.companyDetail.companyLogo[0]?.url
+      : null;
   const website = employer?.companyDetail?.companyWebsite || "#";
   const email = employer?.email || "N/A";
   const phone = employer?.mobileNumber || "N/A";
@@ -67,11 +64,17 @@ function JobDetails({ job, onBack }) {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-5">
 
-          <img
-            src={logo}   
-            alt="company logo"
-            className="w-18 h-18 rounded-full object-cover shadow-lg bg-gray-50 border border-gray-200"
-          />
+          {logoUrl ? (
+            <img
+              src={logoUrl}   
+              alt="company logo"
+              className="w-18 h-18 rounded-full object-cover shadow-lg bg-gray-50 border border-gray-200"
+            />
+          ) : (
+            <div className="w-18 h-18 rounded-full shadow-lg bg-purple-50 border border-purple-200 flex items-center justify-center">
+              <Building2 size={32} className="text-purple-600" />
+            </div>
+          )}
           <div>
             <h3 className="font-bold text-2xl">
               {companyName}
