@@ -49,15 +49,20 @@ const getAllJobSlice = createSlice({
       })
       .addCase(fetchAllJobs.fulfilled, (state, action) => {
         state.loading = false;
-        state.jobs = action.payload.data;
-        state.pagination.totalJobs = action.payload.totalJobs;
-        state.pagination.totalPages = action.payload.totalPages;
-        state.pagination.currentPage = action.payload.page;
-        state.pagination.limit = action.payload.limit;
+        const list =
+          action.payload?.data ||
+          action.payload?.jobs ||
+          (Array.isArray(action.payload) ? action.payload : []);
+        state.jobs = Array.isArray(list) ? list : [];
+        state.pagination.totalJobs = action.payload?.totalJobs || state.jobs.length;
+        state.pagination.totalPages = action.payload?.totalPages || 1;
+        state.pagination.currentPage = action.payload?.page || 1;
+        state.pagination.limit = action.payload?.limit || 10;
       })
       .addCase(fetchAllJobs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.jobs = [];
       });
   },
 });

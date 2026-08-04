@@ -73,27 +73,9 @@ function JobViewDetails() {
         {/* 🔹 Company Section */}
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-4">
-            {/* Logic for logo - fallback if not in API */}
-            {/* <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center font-bold text-purple-700">
-              {job.jobTitle.charAt(0)}
-            </div> */}
-            <div>
-              {/* <h3 className="font-semibold text-lg">{job.jobRole}</h3> */}
-              {/* <p className="text-sm text-gray-500">
-                Status: {job.status}
-              </p> */}
-            </div>
+            <div></div>
           </div>
-
-          {/* <div className="flex items-center gap-4 text-sm">
-            <span className="text-green-600 flex items-center gap-1">
-              <CircleCheck size={20} />
-              {job.status === "active" ? "Active" : "Inactive"}
-            </span>
-          </div> */}
         </div>
-
-        {/* <hr className="border-gray-300 mt-2 mb-5" /> */}
 
         {/* 🔹 Job Title */}
         <div className="mb-4 flex items-center gap-2">
@@ -142,7 +124,6 @@ function JobViewDetails() {
             <h3 className="font-semibold mb-4">Job Overview</h3>
 
             <div className="grid grid-cols-1 gap-4 text-sm">
-              {/* ERROR CODE: Previously used 'items-center' which centered the icon across both the label and value lines, making it float in the middle. We wrap the icon in a container matching the label's line-height ('h-5 flex items-center') to ensure it aligns perfectly with the first-line label. */}
               <div className="flex gap-3 items-start">
                 <div className="h-5 flex items-center flex-shrink-0">
                   <Calendar size={18} className="text-purple-600" />
@@ -153,7 +134,6 @@ function JobViewDetails() {
                 </div>
               </div>
 
-              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. */}
               <div className="flex gap-3 items-start">
                 <div className="h-5 flex items-center flex-shrink-0">
                   <Calendar size={18} className="text-purple-600" />
@@ -168,7 +148,6 @@ function JobViewDetails() {
                 </div>
               </div>
 
-              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. Also handled education array joining with comma separation for multiple values. */}
               <div className="flex gap-3 items-start">
                 <div className="h-5 flex items-center flex-shrink-0">
                   <GraduationCap size={18} className="text-purple-600" />
@@ -183,7 +162,6 @@ function JobViewDetails() {
                 </div>
               </div>
 
-              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. */}
               <div className="flex gap-3 items-start">
                 <div className="h-5 flex items-center flex-shrink-0">
                   <Wallet size={18} className="text-purple-600" />
@@ -197,7 +175,6 @@ function JobViewDetails() {
                 </div>
               </div>
 
-              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. */}
               <div className="flex gap-3 items-start">
                 <div className="h-5 flex items-center flex-shrink-0">
                   <MapPin size={18} className="text-purple-600" />
@@ -208,7 +185,6 @@ function JobViewDetails() {
                 </div>
               </div>
 
-              {/* ERROR CODE: Previously 'items-center'. Wrapped icon in 'h-5 flex items-center' to align with the 'leading-5' label line. */}
               <div className="flex gap-3 items-start">
                 <div className="h-5 flex items-center flex-shrink-0">
                   <Briefcase size={18} className="text-purple-600" />

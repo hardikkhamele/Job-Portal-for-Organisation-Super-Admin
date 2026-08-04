@@ -23,13 +23,14 @@ import { getAllCategories, getSubCategoriesByCategoryId } from "../../redux/slic
 import defaultLogo from "../../assets/Technokreat.svg";
 import Footer from "../Footer";
 import { addNotification } from "../../utils/notificationHelper";
+import { updateJob } from "../../redux/slice/jobManagement/updateJobSlice";
 
 const JobManagement = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  const { jobs, loading } = useSelector((state) => state.allJobs);
-  const { categories, subCategories, subCategoriesLoading } = useSelector((state) => state.category);
+  const { jobs = [], loading = false } = useSelector((state) => state.allJobs || {});
+  const { categories = [], subCategories = [], subCategoriesLoading = false } = useSelector((state) => state.category || {});
 
   const [globalFilter, setGlobalFilter] = useState("");
   const [category, setCategory] = useState("All");
@@ -37,6 +38,21 @@ const JobManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    jobTitle: "",
+    minSalary: "",
+    maxSalary: "",
+    salaryType: "Monthly",
+    location: "",
+    jobLevel: "",
+    jobType: "",
+    experience: "",
+    jobDescription: "",
+  });
 
   const [pagination, setPagination] = useState({
     pageIndex: 0, 
@@ -101,6 +117,59 @@ const JobManagement = () => {
     return result;
   }, [jobs, category, subCategories, globalFilter]);
 
+  const handleEditClick = (row) => {
+    setEditingJob(row);
+    setEditFormData({
+      jobTitle: row.jobTitle || "",
+      minSalary: row.salaryRange?.minSalary || "",
+      maxSalary: row.salaryRange?.maxSalary || "",
+      salaryType: row.salaryType || "Monthly",
+      location: row.jobLocation?.name || row.location || "",
+      jobLevel: row.advanceInformation?.jobLevel || "",
+      jobType: row.advanceInformation?.jobType || "",
+      experience: row.advanceInformation?.experience || "",
+      jobDescription: row.jobDescription || "",
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleConfirmEdit = async (e) => {
+    e.preventDefault();
+    if (!editingJob) return;
+    setEditLoading(true);
+    const jobId = editingJob._id || editingJob.id;
+    const payload = {
+      jobTitle: editFormData.jobTitle,
+      salaryRange: {
+        minSalary: Number(editFormData.minSalary),
+        maxSalary: Number(editFormData.maxSalary),
+      },
+      salaryType: editFormData.salaryType,
+      jobLocation: { name: editFormData.location },
+      advanceInformation: {
+        ...(editingJob.advanceInformation || {}),
+        jobLevel: editFormData.jobLevel,
+        jobType: editFormData.jobType,
+        experience: editFormData.experience,
+      },
+      jobDescription: editFormData.jobDescription,
+    };
+
+    dispatch(updateJob({ jobId, jobData: payload }))
+      .unwrap()
+      .then(() => {
+        setIsEditModalOpen(false);
+        setEditingJob(null);
+        dispatch(fetchAllJobs({ page: 1, limit: 150 }));
+      })
+      .catch((err) => {
+        console.error("Error updating job:", err);
+      })
+      .finally(() => {
+        setEditLoading(false);
+      });
+  };
+
   const handleDeleteClick = (row) => {
     setSelectedRow(row);
     setIsModalOpen(true);
@@ -115,13 +184,19 @@ const JobManagement = () => {
       const jobId = selectedRow._id || selectedRow.id;
 
       try {
-        await axios.delete(`${BASE_URL}/api/admin/employer/deleteJob/${jobId}`, {
+        await axios.delete(`${BASE_URL}/api/admin/jobs/deleteJob/${jobId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } catch (err) {
-        await axios.delete(`${BASE_URL}/api/admin/job/deleteJob/${jobId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        try {
+          await axios.delete(`${BASE_URL}/api/admin/employer/deleteJob/${jobId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (err2) {
+          await axios.delete(`${BASE_URL}/api/admin/job/deleteJob/${jobId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
       }
 
       toast.success("Job deleted successfully!");
@@ -208,11 +283,7 @@ const JobManagement = () => {
             className="text-purple-600 cursor-pointer hover:scale-110 transition"
             size={18}
             title="Edit Job Details"
-            onClick={() =>
-              navigate(`/job-management/job-view-details/${row.original._id}`, {
-                state: { ...row.original, isEditMode: true },
-              })
-            }
+            onClick={() => handleEditClick(row.original)}
           />
           <Trash2
             className="text-red-500 cursor-pointer hover:scale-110 transition"
@@ -380,6 +451,158 @@ const JobManagement = () => {
         onConfirm={handleConfirmDelete}
         loading={deleteLoading}
       />
+
+      {/* Edit Job Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 relative my-8 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsEditModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200">
+              Edit Job Details
+            </h2>
+
+            <form onSubmit={handleConfirmEdit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                  Job Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.jobTitle}
+                  onChange={(e) => setEditFormData({ ...editFormData, jobTitle: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                    Min Salary (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={editFormData.minSalary}
+                    onChange={(e) => setEditFormData({ ...editFormData, minSalary: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                    Max Salary (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={editFormData.maxSalary}
+                    onChange={(e) => setEditFormData({ ...editFormData, maxSalary: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                    Salary Type
+                  </label>
+                  <select
+                    value={editFormData.salaryType}
+                    onChange={(e) => setEditFormData({ ...editFormData, salaryType: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  >
+                    <option value="Monthly">Monthly</option>
+                    <option value="Yearly">Yearly</option>
+                    <option value="Hourly">Hourly</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                    Job Level
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.jobLevel}
+                    onChange={(e) => setEditFormData({ ...editFormData, jobLevel: e.target.value })}
+                    placeholder="e.g. Senior / Mid-level"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                    Job Type
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.jobType}
+                    onChange={(e) => setEditFormData({ ...editFormData, jobType: e.target.value })}
+                    placeholder="e.g. Full-Time / Remote"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                    Experience
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.experience}
+                    onChange={(e) => setEditFormData({ ...editFormData, experience: e.target.value })}
+                    placeholder="e.g. 2-5 Years"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.location}
+                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                  placeholder="e.g. Mumbai, Maharashtra"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                  Job Description
+                </label>
+                <textarea
+                  rows={4}
+                  value={editFormData.jobDescription}
+                  onChange={(e) => setEditFormData({ ...editFormData, jobDescription: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editLoading}
+                  className="px-5 py-2 text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition disabled:opacity-50"
+                >
+                  {editLoading ? "Updating..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

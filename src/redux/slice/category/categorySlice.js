@@ -244,11 +244,16 @@ const categorySlice = createSlice({
       })
       .addCase(getAllCategories.fulfilled, (state, action) => {
         state.categoriesLoading = false;
-        state.categories = action.payload.data;
+        state.categories = Array.isArray(action.payload?.data)
+          ? action.payload.data
+          : Array.isArray(action.payload)
+          ? action.payload
+          : [];
       })
       .addCase(getAllCategories.rejected, (state, action) => {
         state.categoriesLoading = false;
         state.error = action.payload;
+        state.categories = [];
       })
 
       // ── createCategory
@@ -310,11 +315,16 @@ const categorySlice = createSlice({
       })
       .addCase(getSubCategoriesByCategoryId.fulfilled, (state, action) => {
         state.subCategoriesLoading = false;
-        state.subCategories = action.payload.data;
+        state.subCategories = Array.isArray(action.payload?.data)
+          ? action.payload.data
+          : Array.isArray(action.payload)
+          ? action.payload
+          : [];
       })
       .addCase(getSubCategoriesByCategoryId.rejected, (state, action) => {
         state.subCategoriesLoading = false;
         state.error = action.payload;
+        state.subCategories = [];
       })
 
       // ── createSubCategory

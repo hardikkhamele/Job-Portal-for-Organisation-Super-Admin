@@ -29,6 +29,7 @@ import updateCompanyTypeReducer from "../slice/employer/updateCompanyTypeSlice";
 // ─── Job Management ──────────────────────────────────────────
 import getAllJobReducer from "../slice/jobManagement/getAllJob";
 import jobByIdReducer from "../slice/jobManagement/getJobId";
+import updateJobReducer from "../slice/jobManagement/updateJobSlice";
 
 // ─── Job Seeker ───────────────────────────────────────────────
 import jobseekerReducer from "../slice/jobseeker/jobseekerSlice";
@@ -107,6 +108,7 @@ export const store = configureStore({
     // Job Management
     allJobs: getAllJobReducer,
     jobDetail: jobByIdReducer,
+    updateJob: updateJobReducer,
 
     // Category (Job Seeker Management)
     category: categoryReducer,
