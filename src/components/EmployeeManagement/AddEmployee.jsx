@@ -53,7 +53,7 @@ const AddEmployee = () => {
   const [banner, setBanner] = useState(null);
   const [skills, setSkills] = useState([]);
   const [skillInput, setSkillInput] = useState("");
-  const [countryid, setCountryid] = useState(0);
+  const [countryid, setCountryid] = useState(101);
   const [stateData, setStateData] = useState({ id: 0, name: "" });
   const [cityData, setCityData] = useState({ id: 0, name: "" });
 
@@ -507,19 +507,21 @@ const AddEmployee = () => {
                 {/* ✅ Location - State & City inline error message */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 p-4 bg-purple-50/30 rounded-lg">
                   <CountrySelect
-                    onChange={(e) => setCountryid(e.id)}
+                    onChange={(e) => setCountryid(e ? e.id : 101)}
                     placeHolder="Select Country"
                   />
 
                   <div>
                     <StateSelect
-                      countryid={countryid}
+                      countryid={countryid || 101}
                       onChange={(e) => {
-                        setStateData({ id: e.id, name: e.name });
-                        setLocationTouched((prev) => ({
-                          ...prev,
-                          state: true,
-                        }));
+                        if (e) {
+                          setStateData({ id: e.id, name: e.name });
+                          setLocationTouched((prev) => ({
+                            ...prev,
+                            state: true,
+                          }));
+                        }
                       }}
                       placeHolder="Select State *"
                     />
@@ -532,11 +534,13 @@ const AddEmployee = () => {
 
                   <div>
                     <CitySelect
-                      countryid={countryid}
+                      countryid={countryid || 101}
                       stateid={stateData.id}
                       onChange={(e) => {
-                        setCityData({ id: e.id, name: e.name });
-                        setLocationTouched((prev) => ({ ...prev, city: true }));
+                        if (e) {
+                          setCityData({ id: e.id, name: e.name });
+                          setLocationTouched((prev) => ({ ...prev, city: true }));
+                        }
                       }}
                       placeHolder="Select City *"
                     />

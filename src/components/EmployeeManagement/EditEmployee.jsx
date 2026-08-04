@@ -305,7 +305,7 @@ const EditEmployee = () => {
   const [banner, setBanner] = useState(null);
   const [skills, setSkills] = useState([]);
   const [skillInput, setSkillInput] = useState("");
-  const [countryid, setCountryid] = useState(0);
+  const [countryid, setCountryid] = useState(101);
   const [stateData, setStateData] = useState({ id: 0, name: "" });
   const [cityData, setCityData] = useState({ id: 0, name: "" });
 
@@ -612,9 +612,9 @@ const EditEmployee = () => {
 
                 {/* Location Selectors */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 p-4 bg-purple-50/30 rounded-lg">
-                  <CountrySelect onChange={(e) => setCountryid(e.id)} placeHolder="Update Country" />
-                  <StateSelect countryid={countryid} onChange={(e) => setStateData({ id: e.id, name: e.name })} placeHolder="Update State" />
-                  <CitySelect countryid={countryid} stateid={stateData.id} onChange={(e) => setCityData({ id: e.id, name: e.name })} placeHolder="Update City" />
+                  <CountrySelect onChange={(e) => setCountryid(e ? e.id : 101)} placeHolder="Update Country" />
+                  <StateSelect countryid={countryid || 101} onChange={(e) => e && setStateData({ id: e.id, name: e.name })} placeHolder="Update State *" />
+                  <CitySelect countryid={countryid || 101} stateid={stateData.id} onChange={(e) => e && setCityData({ id: e.id, name: e.name })} placeHolder="Update City *" />
                 </div>
               </div>
 
