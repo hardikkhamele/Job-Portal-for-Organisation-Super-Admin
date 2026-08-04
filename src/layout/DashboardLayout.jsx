@@ -58,6 +58,7 @@ import ViewExcelData from "../components/DatabaseManagement/ViewExcelData";
 import CandidateDetails from "../components/DatabaseManagement/CandidateDetails";
 import CandidateDetail from "../components/JobSeekerManagement/CandidateDetail";
 import EditEmployee from "../components/EmployeeManagement/EditEmployee";
+import EmployeeCandidate from "../components/EmployeeManagement/Candidate";
 import BlogManagement from "../components/blogManagement/BlogManagement";
 import AddBlog from "../components/blogManagement/AddBlog";
 import ViewBlog from "../components/blogManagement/ViewBlog";
@@ -150,6 +151,14 @@ function DashboardLayout() {
               element={<EditEmployee />}
             />
             <Route path="employee/add-employee" element={<AddEmployee />} />
+            <Route
+              path="employee/candidates/:id"
+              element={<EmployeeCandidate />}
+            />
+            <Route
+              path="employee/transferred-candidates/:id"
+              element={<EmployeeCandidate />}
+            />
             <Route path="credit-management" element={<CreditModel />} />
             <Route
               path="credit-management/edit"

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, User, ArrowLeftRight, Briefcase, Database, XCircle, Building2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, User, ArrowLeftRight, Briefcase, Database, XCircle, Building2, Users } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import TransactionHistory from "../EmployeeManagement/TransactionHistory";
 import JobInformation from "../EmployeeManagement/JobInformation";
 import CreditHistory from "../EmployeeManagement/CreditHistory";
 import JobDetails from "../EmployeeManagement/JobDetails";
+import Candidate from "../EmployeeManagement/Candidate";
 import Footer from "../Footer";
 import { fetchEmployerById, clearEmployerDetails } from "../../redux/slice/employer/getEmployeeById";
 
@@ -117,6 +118,7 @@ function CompanyDetails() {
                 { id: "transaction", label: "Transaction History", icon: <ArrowLeftRight size={16} /> },
                 { id: "job", label: "Job Information", icon: <Briefcase size={16} /> },
                 { id: "credit", label: "Credit History", icon: <Database size={16} /> },
+                { id: "candidate", label: "Transferred Candidates", icon: <Users size={16} /> },
               ].map((tab) => (
                 <div
                   key={tab.id}
@@ -221,6 +223,7 @@ function CompanyDetails() {
             {activeTab === "transaction" && <TransactionHistory employerId={id} employer={employer} />}
             {activeTab === "job" && <JobInformation setViewJob={setViewJob} employerId={id} jobs={employer.jobs} />}
             {activeTab === "credit" && <CreditHistory employerId={id} employer={employer} />}
+            {activeTab === "candidate" && <Candidate employerId={id} employer={employer} />}
           </>
         )}
       </div>
