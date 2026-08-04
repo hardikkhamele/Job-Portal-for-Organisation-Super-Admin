@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const formatToDDMMYYYY = (dateVal) => {
   if (!dateVal) return "";
   const str = String(dateVal).trim();
@@ -29,10 +30,14 @@ export const fetchCandidates = createAsyncThunk(
       category,
       designation,
       location,
+      city,
+      state,
+      country,
+      workMode,
       experience,
       startDate,
       endDate,
-    },
+    } = {},
     { rejectWithValue }
   ) => {
     try {
@@ -46,6 +51,10 @@ export const fetchCandidates = createAsyncThunk(
       if (category) params.category = category;
       if (designation) params.designation = designation;
       if (location) params.location = location;
+      if (city) params.city = city;
+      if (state) params.state = state;
+      if (country) params.country = country;
+      if (workMode) params.workMode = workMode;
       if (experience) params.experience = experience;
       if (startDate) {
         const formattedStart = formatToDDMMYYYY(startDate);
@@ -110,9 +119,6 @@ const getAllCandidateSlice = createSlice({
       .addCase(fetchCandidates.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch candidates";
-        state.candidates = [];
-        state.total = 0;
-        state.totalPages = 0;
       });
   },
 });

@@ -74,8 +74,9 @@ function HRViewDetails() {
         // 2. If direct list empty, query endpoints with fallback filtering
         if (candidateList.length === 0) {
           const endpointsToTry = [
-            `${BASE_URL}/api/admin/candidate-database/getCandidates?assignedTo=${hrId}&limit=500`,
+            `${BASE_URL}/api/admin/hr/${hrId}/transferred-candidates`,
             `${BASE_URL}/api/admin/hr/assigned-candidates/${hrId}`,
+            `${BASE_URL}/api/admin/candidate-database/getCandidates?assignedTo=${hrId}&limit=500`,
             `${BASE_URL}/api/admin/candidate-database/getCandidates?hrId=${hrId}&limit=500`,
           ];
 

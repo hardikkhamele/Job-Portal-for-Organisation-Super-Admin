@@ -167,8 +167,73 @@ const DatabaseCandidate = () => {
     };
   }, [candidates]);
 
+  // Combine Redux API categories and dynamic categories extracted from candidates
+  const combinedCategories = useMemo(() => {
+    const list = Array.isArray(categories) ? categories : [];
+    const map = new Map();
+
+    // 1. Add categories from Redux API state
+    list.forEach((cat) => {
+      if (!cat) return;
+      const name = typeof cat === "string" ? cat : (cat.name || cat.categoryName || cat.title);
+      const idVal = cat._id || cat.id || name;
+      if (name) {
+        const key = String(name).trim().toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, { id: idVal, name: String(name).trim(), rawObj: cat });
+        }
+      }
+    });
+
+    // 2. Add dynamic categories from candidate records
+    (candidates || []).forEach((item) => {
+      const catName = item.categoryName || item.category?.name || (typeof item.category === "string" ? item.category : null);
+      const catId = item.categoryId || item.category?._id || item.category?.id || catName;
+      if (catName && typeof catName === "string" && catName.trim()) {
+        const key = catName.trim().toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, { id: catId || catName.trim(), name: catName.trim(), rawObj: null });
+        }
+      }
+    });
+
+    return Array.from(map.values());
+  }, [categories, candidates]);
+
+  // Combine Redux API designations and dynamic designations extracted from candidates
+  const combinedDesignations = useMemo(() => {
+    const list = Array.isArray(designations) ? designations : [];
+    const map = new Map();
+
+    // 1. Add designations from Redux API state
+    list.forEach((item) => {
+      if (!item) return;
+      const name = typeof item === "string" ? item : (item.name || item.designationName || item.title || item.designation);
+      if (name && typeof name === "string" && name.trim()) {
+        const trimmed = name.trim();
+        if (!map.has(trimmed.toLowerCase())) {
+          map.set(trimmed.toLowerCase(), { id: trimmed, name: trimmed, rawId: item._id || item.id });
+        }
+      }
+    });
+
+    // 2. Add dynamic designations from candidates list
+    (candidates || []).forEach((item) => {
+      const desigName = item.designationName || item.designation?.name || (typeof item.designation === "string" ? item.designation : null);
+      if (desigName && typeof desigName === "string" && desigName.trim()) {
+        const trimmed = desigName.trim();
+        if (!map.has(trimmed.toLowerCase())) {
+          map.set(trimmed.toLowerCase(), { id: trimmed, name: trimmed, rawId: item.designationId || item.designation?._id });
+        }
+      }
+    });
+
+    return Array.from(map.values());
+  }, [designations, candidates]);
+
   useEffect(() => {
     dispatch(fetchCategories());
+    dispatch(fetchDesignations());
   }, [dispatch]);
 
   useEffect(() => {
@@ -182,13 +247,54 @@ const DatabaseCandidate = () => {
   }, [location.state, dispatch]);
 
   useEffect(() => {
+    // When any filter is active, fetch a larger batch so pagination doesn't truncate filter matches
+    const hasFilter =
+      Boolean(
+        search ||
+          selectedCategory ||
+          selectedDesignation ||
+          selectedCity ||
+          selectedState ||
+          selectedCountry ||
+          selectedWorkMode ||
+          selectedExperience ||
+          startDate ||
+          endDate
+      );
+
+    // Resolve category name to ObjectId for backend API if available
+    let catParam = selectedCategory;
+    if (selectedCategory && Array.isArray(categories)) {
+      const found = categories.find(
+        (c) =>
+          String(c.name || c.categoryName || "").toLowerCase() === selectedCategory.trim().toLowerCase() ||
+          String(c._id || c.id || "").toLowerCase() === selectedCategory.trim().toLowerCase()
+      );
+      if (found?._id || found?.id) {
+        catParam = found._id || found.id;
+      }
+    }
+
+    // Resolve designation name to ObjectId for backend API if available
+    let desigParam = selectedDesignation;
+    if (selectedDesignation && Array.isArray(designations)) {
+      const found = designations.find(
+        (d) =>
+          String(d.name || d.designationName || "").toLowerCase() === selectedDesignation.trim().toLowerCase() ||
+          String(d._id || d.id || "").toLowerCase() === selectedDesignation.trim().toLowerCase()
+      );
+      if (found?._id || found?.id) {
+        desigParam = found._id || found.id;
+      }
+    }
+
     dispatch(
       fetchCandidates({
-        page: currentPage,
-        limit: itemsPerPage,
+        page: hasFilter ? 1 : currentPage,
+        limit: hasFilter ? 500 : itemsPerPage,
         search,
-        category: selectedCategory,
-        designation: selectedDesignation,
+        category: catParam,
+        designation: desigParam,
         location: selectedCity || selectedState || selectedCountry,
         city: selectedCity,
         state: selectedState,
@@ -212,18 +318,27 @@ const DatabaseCandidate = () => {
     selectedExperience,
     startDate,
     endDate,
+    categories,
+    designations,
   ]);
 
   const handleCategoryChange = (e) => {
-    const categoryId = e.target.value;
-    setSelectedCategory(categoryId);
+    const categoryVal = e.target.value;
+    setSelectedCategory(categoryVal);
     setSelectedDesignation("");
     setCurrentPage(1);
 
-    if (categoryId) {
-      dispatch(fetchDesignations(categoryId));
+    if (categoryVal) {
+      const catObj = combinedCategories?.find(
+        (c) =>
+          String(c.name).toLowerCase() === categoryVal.toLowerCase() ||
+          String(c.id).toLowerCase() === categoryVal.toLowerCase() ||
+          (c.rawObj && (String(c.rawObj._id).toLowerCase() === categoryVal.toLowerCase() || String(c.rawObj.id).toLowerCase() === categoryVal.toLowerCase()))
+      );
+      const catIdForApi = catObj?.rawObj?._id || catObj?.rawObj?.id || catObj?.id || categoryVal;
+      dispatch(fetchDesignations(catIdForApi));
     } else {
-      dispatch(clearDesignations());
+      dispatch(fetchDesignations());
     }
   };
 
@@ -281,7 +396,7 @@ const DatabaseCandidate = () => {
     setEndDate("");
     setCurrentPage(1);
     setSelectedCandidates([]);
-    dispatch(clearDesignations());
+    dispatch(fetchDesignations());
   };
 
   const parseDateToMs = (dateInput, endOfDay = false) => {
@@ -324,55 +439,79 @@ const DatabaseCandidate = () => {
   };
 
   const filteredCandidates = (candidates || []).filter((item) => {
+    if (!item) return false;
+
     // 1. Search filter
     if (search && search.trim() !== "") {
       const q = search.trim().toLowerCase();
-      const name = (item.name || item.personalInfo?.name || "").toLowerCase();
+      const name = (item.name || item.fullName || item.personalInfo?.name || "").toLowerCase();
       const email = (item.email || item.personalInfo?.email || "").toLowerCase();
-      const phone = (item.phone || item.personalInfo?.phone || "").toLowerCase();
+      const phone = (item.phone || item.mobile || item.personalInfo?.phone || "").toLowerCase();
       const catName = (item.categoryName || item.category?.name || (typeof item.category === "string" ? item.category : "")).toLowerCase();
       const desigName = (item.designationName || item.designation?.name || (typeof item.designation === "string" ? item.designation : "")).toLowerCase();
+      const loc = (item.city || item.state || item.location || item.address?.city || "").toString().toLowerCase();
 
       const matchesSearch =
         name.includes(q) ||
         email.includes(q) ||
         phone.includes(q) ||
         catName.includes(q) ||
-        desigName.includes(q);
+        desigName.includes(q) ||
+        loc.includes(q);
 
       if (!matchesSearch) return false;
     }
 
     // 2. Category filter
     if (selectedCategory) {
-      const catObj = categories?.find(
-        (c) => (c._id || c.id || c.name || c.categoryName) === selectedCategory
-      );
-      const catTargetName = (catObj?.name || catObj?.categoryName || selectedCategory).toLowerCase();
+      const targetCatStr = selectedCategory.trim().toLowerCase();
 
-      const itemCatId = item.categoryId || item.category?._id || item.category?.id;
-      const itemCatName = (item.categoryName || item.category?.name || (typeof item.category === "string" ? item.category : "")).toLowerCase();
+      const matchedCatObj = combinedCategories.find(
+        (c) =>
+          String(c.id).toLowerCase() === targetCatStr ||
+          String(c.name).toLowerCase() === targetCatStr ||
+          (c.rawObj && (String(c.rawObj._id).toLowerCase() === targetCatStr || String(c.rawObj.id).toLowerCase() === targetCatStr))
+      );
+
+      const catTargetName = matchedCatObj ? matchedCatObj.name.toLowerCase() : targetCatStr;
+      const catTargetId = matchedCatObj ? String(matchedCatObj.rawObj?._id || matchedCatObj.rawObj?.id || matchedCatObj.id).toLowerCase() : targetCatStr;
+
+      const itemCatName = (
+        item.categoryName ||
+        item.category_name ||
+        item.category?.name ||
+        item.category?.categoryName ||
+        item.jobCategory ||
+        item.jobCategoryName ||
+        (typeof item.category === "string" ? item.category : "")
+      ).toLowerCase();
+
+      const itemCatId = (
+        item.categoryId ||
+        item.category_id ||
+        item.category?._id ||
+        item.category?.id ||
+        (typeof item.category === "string" ? item.category : "")
+      ).toString().toLowerCase();
 
       const matchesCat =
-        (itemCatId && String(itemCatId) === String(selectedCategory)) ||
-        (itemCatName && (itemCatName === catTargetName || itemCatName.includes(catTargetName) || catTargetName.includes(itemCatName)));
+        (itemCatName && (itemCatName === catTargetName || itemCatName.includes(catTargetName) || catTargetName.includes(itemCatName))) ||
+        (itemCatId && (itemCatId === catTargetId || itemCatId === targetCatStr));
 
       if (!matchesCat) return false;
     }
 
     // 3. Designation filter
     if (selectedDesignation) {
-      const desigObj = designations?.find(
-        (d) => (d._id || d.id || d.name || d.designationName) === selectedDesignation
-      );
-      const desigTargetName = (desigObj?.name || desigObj?.designationName || selectedDesignation).toLowerCase();
-
-      const itemDesigId = item.designationId || item.designation?._id || item.designation?.id;
+      const targetDesig = selectedDesignation.trim().toLowerCase();
       const itemDesigName = (item.designationName || item.designation?.name || (typeof item.designation === "string" ? item.designation : "")).toLowerCase();
+      const itemDesigId = (item.designationId || item.designation?._id || item.designation?.id || "").toString().toLowerCase();
 
       const matchesDesig =
-        (itemDesigId && String(itemDesigId) === String(selectedDesignation)) ||
-        (itemDesigName && (itemDesigName === desigTargetName || itemDesigName.includes(desigTargetName) || desigTargetName.includes(itemDesigName)));
+        itemDesigName === targetDesig ||
+        itemDesigName.includes(targetDesig) ||
+        targetDesig.includes(itemDesigName) ||
+        (itemDesigId && itemDesigId === targetDesig);
 
       if (!matchesDesig) return false;
     }
@@ -390,7 +529,7 @@ const DatabaseCandidate = () => {
         ""
       ).toString().toLowerCase();
 
-      if (!itemCity.includes(targetCity)) return false;
+      if (itemCity && !itemCity.includes(targetCity) && !targetCity.includes(itemCity)) return false;
     }
 
     // 5. State filter
@@ -406,7 +545,7 @@ const DatabaseCandidate = () => {
         ""
       ).toString().toLowerCase();
 
-      if (!itemState.includes(targetState)) return false;
+      if (itemState && !itemState.includes(targetState) && !targetState.includes(itemState)) return false;
     }
 
     // 6. Country filter
@@ -421,7 +560,7 @@ const DatabaseCandidate = () => {
         "india"
       ).toString().toLowerCase();
 
-      if (!itemCountry.includes(targetCountry)) return false;
+      if (!itemCountry.includes(targetCountry) && !targetCountry.includes(itemCountry)) return false;
     }
 
     // 7. Work Mode filter
@@ -439,25 +578,42 @@ const DatabaseCandidate = () => {
         ""
       ).toString().toLowerCase();
 
-      const isMatch =
-        itemMode.includes(targetMode) ||
-        (targetMode.includes("on-site") && (itemMode.includes("onsite") || itemMode.includes("office") || itemMode.includes("on site"))) ||
-        (targetMode.includes("remote") && (itemMode.includes("wfh") || itemMode.includes("home")));
+      if (itemMode) {
+        const isMatch =
+          itemMode.includes(targetMode) ||
+          (targetMode.includes("on-site") && (itemMode.includes("onsite") || itemMode.includes("office") || itemMode.includes("on site") || itemMode.includes("full time"))) ||
+          (targetMode.includes("remote") && (itemMode.includes("wfh") || itemMode.includes("home"))) ||
+          (targetMode.includes("hybrid") && itemMode.includes("hybrid"));
 
-      if (!isMatch) return false;
-    }
-
-    // 5. Experience filter
-    if (selectedExperience) {
-      const targetExp = parseInt(selectedExperience, 10);
-      const itemExpVal = item.experience ?? item.totalExperience ?? item.exp ?? item.professionalInfo?.totalExperience;
-      if (itemExpVal !== undefined && itemExpVal !== null && itemExpVal !== "") {
-        const parsedExp = parseInt(itemExpVal, 10);
-        if (!isNaN(parsedExp) && parsedExp < targetExp) return false;
+        if (!isMatch) return false;
       }
     }
 
-    // 6. Date Range filter
+    // 8. Experience filter
+    if (selectedExperience) {
+      const targetExp = parseInt(selectedExperience, 10);
+      const rawExp = (
+        item.experience ??
+        item.totalExperience ??
+        item.exp ??
+        item.professionalInfo?.totalExperience ??
+        item.personalInfo?.experience ??
+        ""
+      ).toString().toLowerCase();
+
+      if (rawExp) {
+        if (rawExp.includes("fresher") && targetExp > 0) {
+          return false;
+        }
+        const match = rawExp.match(/\d+/);
+        if (match) {
+          const parsedExp = parseInt(match[0], 10);
+          if (parsedExp < targetExp) return false;
+        }
+      }
+    }
+
+    // 9. Date Range filter
     if (startDate || endDate) {
       const candidateDateVal =
         item.createdAt ||
@@ -471,7 +627,6 @@ const DatabaseCandidate = () => {
 
       let itemMs = candidateDateVal ? parseDateToMs(candidateDateVal) : null;
 
-      // Fallback: Extract creation timestamp from 24-character hex MongoDB _id if date is missing
       if (itemMs === null && item._id && typeof item._id === "string" && item._id.length === 24) {
         const timestamp = parseInt(item._id.substring(0, 8), 16) * 1000;
         if (!isNaN(timestamp)) {
@@ -479,17 +634,15 @@ const DatabaseCandidate = () => {
         }
       }
 
-      if (itemMs === null) {
-        return false;
-      }
-
-      if (startDate) {
-        const startMs = parseDateToMs(startDate, false);
-        if (startMs !== null && itemMs < startMs) return false;
-      }
-      if (endDate) {
-        const endMs = parseDateToMs(endDate, true);
-        if (endMs !== null && itemMs > endMs) return false;
+      if (itemMs !== null) {
+        if (startDate) {
+          const startMs = parseDateToMs(startDate, false);
+          if (startMs !== null && itemMs < startMs) return false;
+        }
+        if (endDate) {
+          const endMs = parseDateToMs(endDate, true);
+          if (endMs !== null && itemMs > endMs) return false;
+        }
       }
     }
 
@@ -927,12 +1080,10 @@ const DatabaseCandidate = () => {
                   className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[160px]"
                 >
                   <option value="">Select category</option>
-                  {categories?.map((cat, idx) => {
-                    const catVal = cat._id || cat.id || cat.name || cat.categoryName;
-                    const catLabel = cat.name || cat.categoryName || cat;
+                  {combinedCategories?.map((cat, idx) => {
                     return (
-                      <option key={catVal || idx} value={catVal}>
-                        {catLabel}
+                      <option key={cat.id || idx} value={cat.name}>
+                        {cat.name}
                       </option>
                     );
                   })}
@@ -948,12 +1099,10 @@ const DatabaseCandidate = () => {
                   className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[160px]"
                 >
                   <option value="">Select Designation</option>
-                  {designations?.map((desig, idx) => {
-                    const desigVal = desig._id || desig.id || desig.name || desig.designationName;
-                    const desigLabel = desig.name || desig.designationName || desig;
+                  {combinedDesignations?.map((desig, idx) => {
                     return (
-                      <option key={desigVal || idx} value={desigVal}>
-                        {desigLabel}
+                      <option key={desig.id || idx} value={desig.id}>
+                        {desig.name}
                       </option>
                     );
                   })}
@@ -1161,11 +1310,11 @@ const DatabaseCandidate = () => {
                         />
                       </td>
                       <td className="p-3">{startIndex + index + 1}</td>
-                      <td className="p-3">{item.name}</td>
-                      <td className="p-3">{item.categoryName || "N/A"}</td>
-                      <td className="p-3">{item.designationName || "N/A"}</td>
-                      <td className="p-3">{item.phone}</td>
-                      <td className="p-3">{item.email}</td>
+                      <td className="p-3">{item.name || item.fullName || item.personalInfo?.name || "N/A"}</td>
+                      <td className="p-3">{item.categoryName || (typeof item.category === "object" ? item.category?.name : item.category) || "N/A"}</td>
+                      <td className="p-3">{item.designationName || (typeof item.designation === "object" ? item.designation?.name : item.designation) || "N/A"}</td>
+                      <td className="p-3">{item.phone || item.mobile || item.personalInfo?.phone || "N/A"}</td>
+                      <td className="p-3">{item.email || item.personalInfo?.email || "N/A"}</td>
                       <td className="text-center">
                         <Eye
                           className="text-purple-600 cursor-pointer mx-auto hover:scale-110 transition-transform"

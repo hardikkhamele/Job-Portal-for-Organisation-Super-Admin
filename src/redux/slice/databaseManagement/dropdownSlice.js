@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export const fetchCategories = createAsyncThunk(
   "dropdown/fetchCategories",
   async (_, { rejectWithValue }) => {
@@ -10,9 +11,9 @@ export const fetchCategories = createAsyncThunk(
         `${BASE_URL}/api/admin/jobSeeker/getAllCategory`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      return response.data.data;
+      return response.data?.data || response.data?.categories || (Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
@@ -22,16 +23,17 @@ export const fetchDesignations = createAsyncThunk(
   async (categoryId, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
+      const params = categoryId ? { categoryId } : {};
       const response = await axios.get(
         `${BASE_URL}/api/admin/candidate-database/getallDesignation`,
         { 
-          params: { categoryId: categoryId }, 
+          params, 
           headers: { Authorization: `Bearer ${token}` } 
         }
       );
-      return response.data.data;
+      return response.data?.data || response.data?.designations || (Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
@@ -51,10 +53,10 @@ const dropdownSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchCategories.fulfilled, (state, action) => {
-        state.categories = action.payload;
+        state.categories = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchDesignations.fulfilled, (state, action) => {
-        state.designations = action.payload;
+        state.designations = Array.isArray(action.payload) ? action.payload : [];
       });
   },
 });
