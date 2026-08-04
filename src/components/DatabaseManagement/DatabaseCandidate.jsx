@@ -68,8 +68,13 @@ const DatabaseCandidate = () => {
   const formattedHrList = useMemo(() => {
     const list = combinedHrList.length > 0 ? combinedHrList : hrList || [];
     const map = new Map();
+    const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
     list.forEach((item, idx) => {
       if (!item) return;
+      const idVal = item._id || item.id;
+      if (!idVal || !isValidObjectId(String(idVal))) return;
+
       const name =
         item.hrName ||
         item.name ||
@@ -79,10 +84,10 @@ const DatabaseCandidate = () => {
         item.user?.fullName ||
         item.email ||
         `HR #${idx + 1}`;
-      const idVal = item._id || item.id || name;
-      if (!map.has(idVal)) {
-        map.set(idVal, {
-          id: idVal,
+
+      if (!map.has(String(idVal))) {
+        map.set(String(idVal), {
+          id: String(idVal),
           name: name,
           email: item.email || item.user?.email || "",
         });
@@ -95,8 +100,13 @@ const DatabaseCandidate = () => {
   const formattedEmployeeList = useMemo(() => {
     const list = combinedEmployeeList.length > 0 ? combinedEmployeeList : employers || [];
     const map = new Map();
+    const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
     list.forEach((item, idx) => {
       if (!item) return;
+      const idVal = item._id || item.id;
+      if (!idVal || !isValidObjectId(String(idVal))) return;
+
       const name =
         item.companyName ||
         item.name ||
@@ -107,10 +117,10 @@ const DatabaseCandidate = () => {
         item.user?.name ||
         item.email ||
         `Employee #${idx + 1}`;
-      const idVal = item._id || item.id || name;
-      if (!map.has(idVal)) {
-        map.set(idVal, {
-          id: idVal,
+
+      if (!map.has(String(idVal))) {
+        map.set(String(idVal), {
+          id: String(idVal),
           name: name,
           email: item.email || item.companyEmail || item.user?.email || "",
         });
@@ -667,7 +677,7 @@ const DatabaseCandidate = () => {
 
   // IDs of candidates currently visible after all filters applied (ignore undefined _id)
   const filteredIds = useMemo(
-    () => filteredCandidates.filter((item) => item._id).map((item) => item._id),
+    () => filteredCandidates.filter((item) => item.uniqueKey || item._id).map((item) => item.uniqueKey || item._id),
     [filteredCandidates]
   );
 
@@ -737,8 +747,8 @@ const DatabaseCandidate = () => {
         (Array.isArray(payload) ? payload : []);
 
       const allIds = allList
-        .filter((item) => item._id)
-        .map((item) => item._id);
+        .filter((item) => item.uniqueKey || item._id)
+        .map((item) => item.uniqueKey || item._id);
 
       if (allIds.length > 0) {
         setSelectedCandidates((prev) =>
@@ -953,17 +963,43 @@ const DatabaseCandidate = () => {
   }, [isTransferModalOpen, transferTarget, dispatch]);
 
   const handleConfirmTransfer = async () => {
+    const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
     if (!transferTarget) {
       toast.error("Please select a destination module");
       return;
     }
 
-    if (!selectedPersonId) {
+    if (!selectedPersonId || !isValidObjectId(selectedPersonId)) {
       toast.error(
         transferTarget === "hr_management"
           ? "Please select a specific HR from the dropdown"
           : "Please select a specific Employee from the dropdown"
       );
+      return;
+    }
+
+    // Resolve candidates to valid MongoDB ObjectIds
+    const rawCandidateIds = selectedCandidates.map((selKey) => {
+      const foundCandidate = (candidates || []).find(
+        (c) => (c.uniqueKey || c._id) === selKey || c._id === selKey
+      );
+      if (foundCandidate?._id && isValidObjectId(String(foundCandidate._id))) {
+        return String(foundCandidate._id);
+      }
+      if (foundCandidate?.dbItemId && isValidObjectId(String(foundCandidate.dbItemId))) {
+        return String(foundCandidate.dbItemId);
+      }
+      if (isValidObjectId(String(selKey))) {
+        return String(selKey);
+      }
+      return null;
+    }).filter(Boolean);
+
+    const validCandidateIds = Array.from(new Set(rawCandidateIds));
+
+    if (validCandidateIds.length === 0) {
+      toast.error("Selected candidate(s) do not have a valid database ID for transfer");
       return;
     }
 
@@ -985,7 +1021,7 @@ const DatabaseCandidate = () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
       const payload = {
-        candidateIds: selectedCandidates,
+        candidateIds: validCandidateIds,
         assignedTo: selectedPersonId,
       };
 

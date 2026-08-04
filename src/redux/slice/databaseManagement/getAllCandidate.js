@@ -182,9 +182,16 @@ const getAllCandidateSlice = createSlice({
           if (rows) {
             rows.forEach((row, rIdx) => {
               if (!row) return;
-              const rowId = row._id || `${dbItem._id}_${rIdx}`;
-              if (seenIds.has(String(rowId))) return;
-              seenIds.add(String(rowId));
+              const uniqueKey = row._id || `${dbItem._id}_${rIdx}`;
+              if (seenIds.has(String(uniqueKey))) return;
+              seenIds.add(String(uniqueKey));
+
+              const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+              const validMongoId = (row._id && isValidObjectId(String(row._id)))
+                ? String(row._id)
+                : (dbItem._id && isValidObjectId(String(dbItem._id)))
+                ? String(dbItem._id)
+                : uniqueKey;
 
               const name =
                 row["FULL NAME"] ||
@@ -224,7 +231,9 @@ const getAllCandidateSlice = createSlice({
                 "N/A";
 
               combinedCandidates.push({
-                _id: rowId,
+                _id: validMongoId,
+                uniqueKey: uniqueKey,
+                dbItemId: dbItem._id,
                 name,
                 email,
                 phone,
@@ -247,6 +256,8 @@ const getAllCandidateSlice = createSlice({
               seenIds.add(String(idVal));
               combinedCandidates.push({
                 _id: idVal,
+                uniqueKey: String(idVal),
+                dbItemId: idVal,
                 name: dbItem.name || dbItem.fullName || dbItem.HRName || "Candidate",
                 categoryName: dbItem.CategoryName || dbItem.categoryName || "N/A",
                 designationName: dbItem.DesignationName || dbItem.designationName || "N/A",
