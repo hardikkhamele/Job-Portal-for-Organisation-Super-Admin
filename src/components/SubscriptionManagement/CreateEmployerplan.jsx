@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { CircleChevronLeft } from "lucide-react";
 import { useFormik } from "formik";
@@ -15,17 +15,56 @@ const CreateEmployerplan = () => {
   const dispatch = useDispatch();
 
   // Get data from Redux Store
-  const { options: planTypeOptions } = useSelector(
-    (state) => state.planTypeDropdown,
+  const { options: planTypeOptions = [] } = useSelector(
+    (state) => state.planTypeDropdown || {},
   );
-  const { options: durationOptions } = useSelector(
-    (state) => state.durationDropdown,
+  const { options: durationOptions = [] } = useSelector(
+    (state) => state.durationDropdown || {},
   );
 
   useEffect(() => {
     dispatch(fetchPlanTypeDropdown());
     dispatch(fetchDurationDropdown());
   }, [dispatch]);
+
+  // Filter Plan Type to ONLY Package Plan
+  const filteredPlanTypeOptions = useMemo(() => {
+    if (!planTypeOptions || planTypeOptions.length === 0) {
+      return [{ label: "Package Plan", value: "Package Plan" }];
+    }
+    const filtered = planTypeOptions.filter((opt) => {
+      const txt = (opt.label || opt.name || opt.value || "").toLowerCase();
+      return txt.includes("package");
+    });
+    return filtered.length > 0
+      ? filtered
+      : [{ label: "Package Plan", value: "Package Plan" }];
+  }, [planTypeOptions]);
+
+  // Filter Duration to ONLY 1, 3, 6 Months (exclude 1 Year / 12 Months)
+  const filteredDurationOptions = useMemo(() => {
+    if (!durationOptions || durationOptions.length === 0) {
+      return [
+        { label: "1 Month", value: "30" },
+        { label: "3 Months", value: "90" },
+        { label: "6 Months", value: "180" },
+      ];
+    }
+    return durationOptions.filter((opt) => {
+      const txt = (opt.label || opt.name || String(opt.value) || "").toLowerCase();
+      const valStr = String(opt.value || "");
+      if (
+        txt.includes("year") ||
+        txt.includes("12 month") ||
+        valStr === "365" ||
+        valStr === "360" ||
+        valStr === "12"
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [durationOptions]);
 
   // ✅ Validation Schema
   const validationSchema = Yup.object({
@@ -155,7 +194,7 @@ const CreateEmployerplan = () => {
                   value={formik.values.title}
                 >
                   <option value="">Select Plan Type</option>
-                  {planTypeOptions?.map((opt, index) => (
+                  {filteredPlanTypeOptions?.map((opt, index) => (
                     <option key={index} value={opt.value}>
                       {opt.label}
                     </option>
@@ -217,8 +256,7 @@ const CreateEmployerplan = () => {
                   value={formik.values.validity}
                 >
                   <option value="">Select Duration</option>
-                  {durationOptions?.map((opt, index) => (
-                    // Yahan opt.value (e.g. 30) backend jayega aur opt.label (e.g. 1 months) UI mein dikhega
+                  {filteredDurationOptions?.map((opt, index) => (
                     <option key={index} value={opt.value}>
                       {opt.label}
                     </option>

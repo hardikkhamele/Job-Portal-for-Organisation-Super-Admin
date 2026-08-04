@@ -67,16 +67,34 @@ export const fetchCandidates = createAsyncThunk(
         params.toDate = formattedEnd;
       }
 
-      const response = await axios.get(
-        `${BASE_URL}/api/admin/candidate-database/getCandidates`,
-        {
+      const authHeader = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      // Fetch direct candidates AND approved candidate databases from Accept/Reject module concurrently
+      const [resCandidates, resDatabases] = await Promise.allSettled([
+        axios.get(`${BASE_URL}/api/admin/candidate-database/getCandidates`, {
           params,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data;
+          ...authHeader,
+        }),
+        axios.get(
+          `${BASE_URL}/api/admin/candidate-database/getCandidateDatabases?page=1&pageSize=1000`,
+          authHeader
+        ),
+      ]);
+
+      const candidateData =
+        resCandidates.status === "fulfilled" ? resCandidates.value.data : null;
+      const databaseData =
+        resDatabases.status === "fulfilled" ? resDatabases.value.data : null;
+
+      return {
+        candidateData,
+        databaseData,
+        limit: limit || 10,
+      };
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Something went wrong"
@@ -104,17 +122,146 @@ const getAllCandidateSlice = createSlice({
       .addCase(fetchCandidates.fulfilled, (state, action) => {
         state.loading = false;
         state.error = null;
-        const list =
-          action.payload?.data ||
-          action.payload?.candidates ||
-          (Array.isArray(action.payload) ? action.payload : []);
-        state.candidates = Array.isArray(list) ? list : [];
-        state.total =
-          action.payload?.total || action.payload?.count || state.candidates.length;
-        state.totalPages =
-          action.payload?.totalPages ||
-          Math.ceil(state.total / (action.payload?.limit || 10)) ||
-          1;
+
+        const { candidateData, databaseData } = action.payload || {};
+
+        // 1. Extract direct candidates list
+        let directList = [];
+        if (Array.isArray(candidateData)) {
+          directList = candidateData;
+        } else if (Array.isArray(candidateData?.candidates)) {
+          directList = candidateData.candidates;
+        } else if (Array.isArray(candidateData?.data)) {
+          directList = candidateData.data;
+        } else if (Array.isArray(candidateData?.data?.candidates)) {
+          directList = candidateData.data.candidates;
+        }
+
+        // 2. Extract database records from Accept/Reject module
+        let dbList = [];
+        if (Array.isArray(databaseData)) {
+          dbList = databaseData;
+        } else if (Array.isArray(databaseData?.data)) {
+          dbList = databaseData.data;
+        } else if (Array.isArray(databaseData?.databases)) {
+          dbList = databaseData.databases;
+        }
+
+        const combinedCandidates = [];
+        const seenIds = new Set();
+
+        // Push direct candidates first
+        directList.forEach((c) => {
+          if (!c) return;
+          const cId = c._id || c.id;
+          if (cId) seenIds.add(String(cId));
+          combinedCandidates.push(c);
+        });
+
+        // Process approved candidate databases from Accept/Reject module
+        dbList.forEach((dbItem) => {
+          if (!dbItem) return;
+
+          // Must be approved / accepted
+          const isApproved =
+            dbItem.isApproved ||
+            dbItem.status === "Approved" ||
+            dbItem.status === "Accepted" ||
+            dbItem.approvalStatus === "Approved" ||
+            dbItem.approved === true;
+
+          if (!isApproved) return;
+
+          // Check for inner candidate rows (e.g. from uploaded Excel file)
+          const rows =
+            (Array.isArray(dbItem.excelData) && dbItem.excelData.length > 0 && dbItem.excelData) ||
+            (Array.isArray(dbItem.candidates) && dbItem.candidates.length > 0 && dbItem.candidates) ||
+            (Array.isArray(dbItem.excel_data) && dbItem.excel_data.length > 0 && dbItem.excel_data) ||
+            (Array.isArray(dbItem.parsedData) && dbItem.parsedData.length > 0 && dbItem.parsedData);
+
+          if (rows) {
+            rows.forEach((row, rIdx) => {
+              if (!row) return;
+              const rowId = row._id || `${dbItem._id}_${rIdx}`;
+              if (seenIds.has(String(rowId))) return;
+              seenIds.add(String(rowId));
+
+              const name =
+                row["FULL NAME"] ||
+                row["Candidate Name"] ||
+                row.name ||
+                row.fullName ||
+                row.Name ||
+                `Candidate #${rIdx + 1}`;
+
+              const email =
+                row["EMAIL"] ||
+                row["EMAIL ID"] ||
+                row.email ||
+                row.Email ||
+                "N/A";
+
+              const phone =
+                row["PHONE NUMBER"] ||
+                row["MOBILE"] ||
+                row.phone ||
+                row.mobile ||
+                row.Phone ||
+                "N/A";
+
+              const catName =
+                dbItem.CategoryName ||
+                dbItem.categoryName ||
+                (typeof dbItem.category === "object" ? dbItem.category?.name || dbItem.category?.categoryName : dbItem.category) ||
+                row.categoryName ||
+                "N/A";
+
+              const desigName =
+                dbItem.DesignationName ||
+                dbItem.designationName ||
+                (typeof dbItem.designation === "object" ? dbItem.designation?.name || dbItem.designation?.designationName : dbItem.designation) ||
+                row.designationName ||
+                "N/A";
+
+              combinedCandidates.push({
+                _id: rowId,
+                name,
+                email,
+                phone,
+                categoryName: catName,
+                designationName: desigName,
+                city: row["CITY"] || row.city || dbItem.city || "N/A",
+                state: row["STATE"] || row.state || dbItem.state || "N/A",
+                country: row["COUNTRY"] || row.country || dbItem.country || "India",
+                workMode: row["WORK MODE"] || row.workMode || dbItem.workMode || "N/A",
+                experience: row["EXPERIENCE"] || row.experience || dbItem.experience || "N/A",
+                createdAt: dbItem.createdAt || dbItem.exceluploadedDate || dbItem.uploadedDate || new Date().toISOString(),
+                isApproved: true,
+                ...row,
+              });
+            });
+          } else {
+            // Include dbItem itself if single candidate record
+            const idVal = dbItem._id || dbItem.id;
+            if (idVal && !seenIds.has(String(idVal))) {
+              seenIds.add(String(idVal));
+              combinedCandidates.push({
+                _id: idVal,
+                name: dbItem.name || dbItem.fullName || dbItem.HRName || "Candidate",
+                categoryName: dbItem.CategoryName || dbItem.categoryName || "N/A",
+                designationName: dbItem.DesignationName || dbItem.designationName || "N/A",
+                phone: dbItem.phone || dbItem.mobile || "N/A",
+                email: dbItem.email || "N/A",
+                isApproved: true,
+                ...dbItem,
+              });
+            }
+          }
+        });
+
+        state.candidates = combinedCandidates;
+        state.total = candidateData?.total || candidateData?.count || candidateData?.pagination?.total || combinedCandidates.length;
+        state.totalPages = candidateData?.totalPages || candidateData?.pagination?.pages || Math.ceil(state.total / (action.payload?.limit || 10)) || 1;
       })
       .addCase(fetchCandidates.rejected, (state, action) => {
         state.loading = false;
