@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -15,6 +15,14 @@ import {
   XCircle,
   Search,
   Edit,
+  Clock,
+  Building2,
+  ShieldCheck,
+  AlertCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Check,
+  X,
 } from "lucide-react";
 
 import DeleteModal from "../common/DeleteModal";
@@ -29,6 +37,7 @@ import {
   updateCompanyType,
 } from "../../redux/slice/employer/updateCompanyTypeSlice";
 import { deleteEmployer, resetDeleteState } from "../../redux/slice/employer/deleteEmployeeSlice";
+import { toast } from "react-toastify";
 
 function EmployeeTable() {
   const navigate = useNavigate();
@@ -45,22 +54,31 @@ function EmployeeTable() {
   );
   const { success: deleteSuccess, loading: deleteLoading } = useSelector((state) => state.deleteEmployee);
 
+  const [activeTab, setActiveTab] = useState("approved"); // 'approved' | 'pending' | 'rejected'
   const [selectedCompanyTypes, setSelectedCompanyTypes] = useState({});
   const [openModal, setOpenModal] = useState(false);
   const [openBlockModal, setOpenBlockModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
+  // Approval Modal state
+  const [approvalModal, setApprovalModal] = useState({
+    isOpen: false,
+    company: null,
+    actionType: "approve", // 'approve' | 'reject'
+    reason: "",
+  });
+
+  // Local state override for pending/rejected companies to demonstrate real-time workflow
+  const [localStatusUpdates, setLocalStatusUpdates] = useState({});
+
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
-  // Global loading state to block screen
-  // const isActionLoading = updateLoading || deleteLoading;
-
-  // Initial Fetch & Search Fetch
+  // Fetch employers from API whenever page, pageSize, or search term changes
   useEffect(() => {
     dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
-  }, [dispatch, page, searchTerm]);
+  }, [dispatch, page, pageSize, searchTerm]);
 
   // ✅ Refresh data automatically when update or delete is successful
   useEffect(() => {
@@ -75,13 +93,68 @@ function EmployeeTable() {
         setSelectedRow(null);
       }
     }
-  }, [updateSuccess, deleteSuccess, dispatch, page, searchTerm, pageSize]);
+  }, [updateSuccess, deleteSuccess, dispatch, page, pageSize, searchTerm]);
+
+  // Reset page to 1 whenever activeTab, pageSize, or searchTerm changes
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, pageSize, searchTerm]);
+
+  // Combine fetched employers with local overrides applied
+  const allProcessedEmployers = useMemo(() => {
+    const list = [...(employers || [])];
+
+    return list.map((emp) => {
+      const overrideStatus = localStatusUpdates[emp._id];
+      return {
+        ...emp,
+        status: overrideStatus || emp.status || "active",
+      };
+    });
+  }, [employers, localStatusUpdates]);
+
+  // Calculate Metrics & Counts
+  const approvedList = useMemo(() => {
+    return allProcessedEmployers.filter(
+      (e) => e.status === "active" || e.status === "approved"
+    );
+  }, [allProcessedEmployers]);
+
+  const pendingList = useMemo(() => {
+    return allProcessedEmployers.filter(
+      (e) => e.status === "pending" || e.status === "pending_approval" || e.status === "verification"
+    );
+  }, [allProcessedEmployers]);
+
+  const rejectedList = useMemo(() => {
+    return allProcessedEmployers.filter(
+      (e) => e.status === "rejected" || e.status === "blocked"
+    );
+  }, [allProcessedEmployers]);
+
+  // Current tab filtered data
+  const currentTabEmployers = useMemo(() => {
+    let filtered = [];
+    if (activeTab === "approved") filtered = approvedList;
+    else if (activeTab === "pending") filtered = pendingList;
+    else if (activeTab === "rejected") filtered = rejectedList;
+
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (e) =>
+          e.companyName?.toLowerCase().includes(lower) ||
+          e.email?.toLowerCase().includes(lower)
+      );
+    }
+    return filtered;
+  }, [activeTab, approvedList, pendingList, rejectedList, searchTerm]);
 
   const handleCompanyTypeChange = (id, newType) => {
     if (!newType) return;
     if (
       window.confirm(
-        `Are you sure you want to set this company as "${newType}"?`,
+        `Are you sure you want to set this company as "${newType}"?`
       )
     ) {
       setSelectedCompanyTypes((prev) => ({ ...prev, [id]: newType }));
@@ -100,16 +173,49 @@ function EmployeeTable() {
   const handleBlock = () => {
     if (selectedRow) {
       const newStatus = selectedRow.status === "active" ? "blocked" : "active";
+      setLocalStatusUpdates((prev) => ({ ...prev, [selectedRow._id]: newStatus }));
       dispatch(updateEmployerStatus({ id: selectedRow._id, status: newStatus }))
         .unwrap()
         .then(() => {
           dispatch(
-            fetchEmployers({ page, limit: pageSize, search: searchTerm }),
+            fetchEmployers({ page, limit: pageSize, search: searchTerm })
           );
         });
     }
     setOpenBlockModal(false);
     setSelectedRow(null);
+  };
+
+  // Open Approval/Rejection Modal
+  const openApprovalActionModal = (company, actionType) => {
+    setApprovalModal({
+      isOpen: true,
+      company,
+      actionType,
+      reason: "",
+    });
+  };
+
+  // Execute Approval or Rejection Decision
+  const handleConfirmApprovalAction = () => {
+    const { company, actionType, reason } = approvalModal;
+    if (!company) return;
+
+    const newStatus = actionType === "approve" ? "active" : "rejected";
+
+    // Update local state immediately for instant feedback
+    setLocalStatusUpdates((prev) => ({ ...prev, [company._id]: newStatus }));
+
+    // Dispatch redux update if real ID
+    dispatch(updateEmployerStatus({ id: company._id, status: newStatus }));
+
+    if (actionType === "approve") {
+      toast.success(`"${company.companyName}" has been Accepted & Published to Employee Management!`);
+    } else {
+      toast.info(`"${company.companyName}" Job/Registration Request was Rejected.`);
+    }
+
+    setApprovalModal({ isOpen: false, company: null, actionType: "approve", reason: "" });
   };
 
   const columns = [
@@ -124,7 +230,7 @@ function EmployeeTable() {
         const logo = row.original.companyLogo?.[0];
         return (
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-[#FFFFFF] to-[#8931BA]">
+            <div className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-[#FFFFFF] to-[#8931BA] shadow-sm">
               <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
                 <img
                   src={
@@ -140,9 +246,16 @@ function EmployeeTable() {
                 />
               </div>
             </div>
-            <span className="text-base font-medium">
-              {row.original.companyName}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-base font-semibold text-gray-900">
+                {row.original.companyName}
+              </span>
+              {row.original.email && (
+                <span className="text-xs text-gray-500">
+                  {row.original.email}
+                </span>
+              )}
+            </div>
           </div>
         );
       },
@@ -189,57 +302,138 @@ function EmployeeTable() {
         );
       },
     },
-    { accessorKey: "totalJobs", header: "Posted Jobs" },
+    { 
+      accessorKey: "totalJobs", 
+      header: "Posted Jobs",
+      cell: ({ row }) => (
+        <span className="font-semibold text-gray-800">
+          {row.original.totalJobs || 0}
+        </span>
+      ),
+    },
     {
       header: "Credits Left",
       cell: ({ row }) => (
-        <div className="text-base leading-5 text-center">
-          <p>Job Credits {row.original.creditsLeft || 0}</p>
-          <p className="text-gray-500">Database Credits 0</p>
+        <div className="text-sm leading-5 text-center">
+          <p className="font-medium text-purple-700">Job Credits {row.original.creditsLeft || 0}</p>
+          <p className="text-xs text-gray-500">Database Credits 0</p>
         </div>
       ),
     },
     {
       header: "Status",
-      cell: ({ row }) => (
-        <div className="flex items-center justify-center gap-2 text-sm">
-          {row.original.status === "active" ? (
-            <>
-              <CheckCircle size={20} className="text-green-500" />
-              <span className="text-green-600 capitalize font-medium">
-                Active
-              </span>
-            </>
-          ) : (
-            <>
-              <XCircle size={20} className="text-red-500" />
-              <span className="text-red-600 capitalize font-medium">
-                {row.original.status || "Blocked"}
-              </span>
-            </>
-          )}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const st = row.original.status;
+        if (st === "pending" || st === "pending_approval" || st === "verification") {
+          return (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-300 text-amber-700 rounded-full text-xs font-semibold shadow-xs animate-pulse">
+              <Clock size={14} className="text-amber-600" />
+              <span>Pending Approval</span>
+            </div>
+          );
+        }
+        if (st === "rejected") {
+          return (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 border border-red-300 text-red-700 rounded-full text-xs font-semibold">
+              <XCircle size={14} className="text-red-500" />
+              <span>Rejected</span>
+            </div>
+          );
+        }
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-300 text-emerald-700 rounded-full text-xs font-semibold">
+            <CheckCircle size={14} className="text-emerald-500" />
+            <span>Active</span>
+          </div>
+        );
+      },
     },
     {
       header: "Action",
       cell: ({ row }) => {
+        const st = row.original.status;
+        
+        // Actions for Pending Requests Tab
+        if (st === "pending" || st === "pending_approval" || st === "verification") {
+          return (
+            <div className="flex gap-2 items-center justify-center">
+              <button
+                onClick={() => openApprovalActionModal(row.original, "approve")}
+                className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition-all shadow-sm cursor-pointer"
+                title="Accept Company Request"
+              >
+                <Check size={14} />
+                <span>Accept</span>
+              </button>
+              <button
+                onClick={() => openApprovalActionModal(row.original, "reject")}
+                className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-medium transition-all shadow-sm cursor-pointer"
+                title="Reject Company Request"
+              >
+                <X size={14} />
+                <span>Reject</span>
+              </button>
+              <Eye
+                size={18}
+                className="text-purple-600 hover:text-purple-800 cursor-pointer ml-1"
+                onClick={() =>
+                  navigate(`/employee/company-details/${row.original._id}`)
+                }
+                title="View Request Details"
+              />
+            </div>
+          );
+        }
+
+        // Actions for Rejected Tab
+        if (st === "rejected") {
+          return (
+            <div className="flex gap-2 items-center justify-center">
+              <button
+                onClick={() => openApprovalActionModal(row.original, "approve")}
+                className="flex items-center gap-1 px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 border border-purple-300 rounded-lg text-xs font-medium transition-all cursor-pointer"
+                title="Re-approve Company"
+              >
+                <CheckCircle size={14} />
+                <span>Re-Approve</span>
+              </button>
+              <Eye
+                size={18}
+                className="text-purple-600 hover:text-purple-800 cursor-pointer"
+                onClick={() =>
+                  navigate(`/employee/company-details/${row.original._id}`)
+                }
+                title="View Details"
+              />
+              <Trash2
+                size={18}
+                className="text-red-500 hover:text-red-700 cursor-pointer"
+                onClick={() => {
+                  setSelectedRow(row.original);
+                  setOpenModal(true);
+                }}
+                title="Delete Employer"
+              />
+            </div>
+          );
+        }
+
+        // Default Actions for Approved/Active Companies
         return (
-          <div className="flex gap-3 items-center flex-wrap justify-center ">
-            {/* Action Icons */}
+          <div className="flex gap-3 items-center flex-wrap justify-center">
             <Eye
-              size={20}
-              className="text-purple-500 cursor-pointer"
+              size={18}
+              className="text-purple-600 hover:text-purple-800 cursor-pointer"
               onClick={() =>
                 navigate(`/employee/company-details/${row.original._id}`)
               }
               title="View Details"
             />
             <Edit
-              size={20}
-              className="text-purple-500 cursor-pointer"
+              size={18}
+              className="text-purple-600 hover:text-purple-800 cursor-pointer"
               onClick={() =>
-                navigate(`/employee/edit-employee//${row.original._id}`)
+                navigate(`/employee/edit-employee/${row.original._id}`)
               }
               title="Edit Details"
             />
@@ -250,19 +444,11 @@ function EmployeeTable() {
                 setOpenBlockModal(true);
               }}
             >
-              {row.original.status === "active" ? (
-                <Ban size={20} className="text-red-500" title="Block Employer" />
-              ) : (
-                <CheckCircle
-                  size={20}
-                  className="text-green-600"
-                  title="Unblock Employer"
-                />
-              )}
+              <Ban size={18} className="text-red-500 hover:text-red-700" title="Block Employer" />
             </div>
             <Trash2
-              size={20}
-              className="text-red-500 cursor-pointer"
+              size={18}
+              className="text-red-500 hover:text-red-700 cursor-pointer"
               onClick={() => {
                 setSelectedRow(row.original);
                 setOpenModal(true);
@@ -275,37 +461,115 @@ function EmployeeTable() {
     },
   ];
 
+  // Smart data resolver: if server is paginating (employers.length < total), use currentTabEmployers directly for current page;
+  // otherwise, slice client-side.
+  const displayEmployers = useMemo(() => {
+    const isServerPaginated = total > 0 && employers && employers.length < total;
+    if (isServerPaginated || pageSize >= 1000) {
+      return currentTabEmployers;
+    }
+    const start = (page - 1) * pageSize;
+    return currentTabEmployers.slice(start, start + pageSize);
+  }, [currentTabEmployers, employers, total, page, pageSize]);
+
   const table = useReactTable({
-    data: employers || [],
+    data: displayEmployers || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
-    <div className="p-3 bg-gray-100 min-h-screen overflow-y-auto no-scrollbar pb-20 relative">
-      {/* Processing Loader Overlay */}
-      {/* {isActionLoading && (
-        <div className="fixed inset-0 bg-black/20 z-[9999] flex items-center justify-center cursor-wait">
-          <div className=" p-6  flex flex-col items-center gap-4">
-            <div className="w-10 h-10 border-b border-3 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-700 font-semibold text-sm">Please wait...</p>
+    <div className="p-4 bg-gray-100 min-h-screen overflow-y-auto no-scrollbar pb-20 relative">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+        
+        {/* HEADER TITLE */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <Building2 className="text-purple-600" size={26} />
+              Employer Management
+            </h2>
+            <p className="text-gray-500 text-sm mt-1">
+              Admin decision center: Accept or Reject new company job requests & manage active employers.
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/employee/add-employee")}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2 whitespace-nowrap"
+          >
+            <span>+ Add Employee</span>
+          </button>
+        </div>
+
+        {/* METRIC SUMMARY CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div 
+            onClick={() => setActiveTab("approved")}
+            className={`p-4 rounded-xl border transition-all cursor-pointer ${
+              activeTab === "approved" 
+                ? "bg-purple-50/80 border-purple-400 ring-2 ring-purple-300/50 shadow-sm" 
+                : "bg-white border-gray-200 hover:border-purple-200"
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-semibold text-gray-600">Approved Companies</span>
+              <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <ShieldCheck size={20} />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mt-2">{approvedList.length}</p>
+            <p className="text-xs text-emerald-600 font-medium mt-1">Active in Employee Management</p>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab("pending")}
+            className={`p-4 rounded-xl border transition-all cursor-pointer relative ${
+              activeTab === "pending" 
+                ? "bg-amber-50/80 border-amber-400 ring-2 ring-amber-300/50 shadow-sm" 
+                : "bg-white border-gray-200 hover:border-amber-200"
+            }`}
+          >
+            {pendingList.length > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-500 rounded-full animate-ping"></span>
+            )}
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-semibold text-gray-600">Pending Approvals</span>
+              <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                <Clock size={20} />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-amber-700 mt-2">{pendingList.length}</p>
+            <p className="text-xs text-amber-600 font-medium mt-1">Awaiting Admin Accept/Reject</p>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab("rejected")}
+            className={`p-4 rounded-xl border transition-all cursor-pointer ${
+              activeTab === "rejected" 
+                ? "bg-red-50/80 border-red-400 ring-2 ring-red-300/50 shadow-sm" 
+                : "bg-white border-gray-200 hover:border-red-200"
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-semibold text-gray-600">Rejected Requests</span>
+              <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                <AlertCircle size={20} />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-red-700 mt-2">{rejectedList.length}</p>
+            <p className="text-xs text-red-600 font-medium mt-1">Not shown in Employee Management</p>
           </div>
         </div>
-      )} */}
 
-      <div className="bg-white p-6 rounded-xl shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-800 mb-3">
-          Employer Management
-        </h2>
-        {/* <div className="border-b border-gray-500 mb-5"></div> */}
-        <hr className="border-gray-300  mb-5" />
-
-        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center sm:justify-between">
-          <div className="flex items-center w-full sm:w-[240px] h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-lg">
+        {/* TABLE CONTROLS */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-gray-200 mb-6 pb-4">
+          {/* SEARCH */}
+          <div className="flex items-center w-full sm:w-[300px] h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-xl">
             <Search size={16} className="text-gray-500 mr-2" />
             <input
               type="text"
-              placeholder="Search here....."
+              placeholder="Search Company..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -315,23 +579,36 @@ function EmployeeTable() {
             />
           </div>
 
-          <button
-            onClick={() => navigate("/employee/add-employee")}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-center"
-          >
-            + Add Employee
-          </button>
+          {/* PAGE SIZE SELECTOR */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+              className="h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-xl text-xs font-semibold text-gray-700 outline-none cursor-pointer hover:border-purple-300 transition-colors"
+              title="Select Companies Per Page"
+            >
+              <option value={10}>10 Per Page</option>
+              <option value={25}>25 Per Page</option>
+              <option value={50}>50 Per Page</option>
+              <option value={100}>100 Per Page</option>
+              <option value={1000}>Show All ({currentTabEmployers.length})</option>
+            </select>
+          </div>
         </div>
 
-        <div className="rounded-lg overflow-x-auto min-h-[400px] w-full">
+        {/* DATA TABLE */}
+        <div className="rounded-xl overflow-x-auto min-h-[380px] w-full border border-gray-100">
           <table className="w-full text-sm border-collapse min-w-[1000px]">
-            <thead className="bg-[#F1F1F1] text-gray-700">
+            <thead className="bg-[#F8F9FA] text-gray-700 border-b border-gray-200">
               {table.getHeaderGroups().map((hg) => (
-                <tr key={hg.id} className="bg-gray-100 text-gray-600">
+                <tr key={hg.id}>
                   {hg.headers.map((header) => (
                     <th
                       key={header.id}
-                      className={`py-4 px-4 font-semibold text-[15px] ${
+                      className={`py-3.5 px-4 font-semibold text-[14px] text-gray-600 ${
                         header.id === "company" ? "text-left" : "text-center"
                       }`}
                     >
@@ -355,7 +632,7 @@ function EmployeeTable() {
                     <div className="flex flex-col justify-center items-center gap-3">
                       <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
                       <span className="font-medium">
-                        Loading Employee Management...
+                        Loading Employer Data...
                       </span>
                     </div>
                   </td>
@@ -364,12 +641,12 @@ function EmployeeTable() {
                 table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-gray-200 h-21 hover:bg-gray-50 transition"
+                    className="border-b border-gray-100 h-18 hover:bg-purple-50/40 transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className={`py-4 px-4 align-middle ${
+                        className={`py-3 px-4 align-middle ${
                           cell.column.id === "company" ? "text-left" : "text-center"
                         }`}
                       >
@@ -385,9 +662,18 @@ function EmployeeTable() {
                 <tr>
                   <td
                     colSpan={columns.length}
-                    className="text-center py-20 text-gray-500"
+                    className="text-center py-16 text-gray-500"
                   >
-                    No data found
+                    <div className="flex flex-col items-center gap-2">
+                      <Building2 size={36} className="text-gray-300" />
+                      <p className="font-medium text-gray-600">
+                        {activeTab === "pending"
+                          ? "No pending company requests at the moment."
+                          : activeTab === "rejected"
+                          ? "No rejected company requests."
+                          : "No approved employers found."}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -395,42 +681,132 @@ function EmployeeTable() {
           </table>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mt-6 font-bold text-purple-600">
-          <span className="text-center sm:text-left">
-            Showing {total === 0 ? 0 : (page - 1) * pageSize + 1} to{" "}
-            {Math.min(page * pageSize, total)} of {total}
-          </span>
+        {/* PAGINATION */}
+        {(() => {
+          const totalCount = (total > 0 && total > currentTabEmployers.length) ? total : currentTabEmployers.length;
+          const totalPageCount = (pages > 0 && total > currentTabEmployers.length) ? pages : (Math.ceil(totalCount / pageSize) || 1);
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage(Math.max(page - 1, 1))}
-              disabled={page === 1}
-              className="w-8 h-8 border rounded-full disabled:opacity-50"
-            >
-              {"<"}
-            </button>
+          return (
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mt-6 font-semibold text-purple-600">
+              <span className="text-center sm:text-left text-sm text-gray-600">
+                Showing {totalCount === 0 ? 0 : (page - 1) * pageSize + 1} to{" "}
+                {Math.min(page * pageSize, totalCount)} of {totalCount} total companies
+              </span>
 
-            {[...Array(pages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`w-8 h-8 rounded-full ${
-                  page === i + 1 ? "bg-purple-600 text-white" : "border"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+              <div className="flex gap-2 items-center flex-wrap justify-center sm:justify-end">
+                <button
+                  onClick={() => setPage(Math.max(page - 1, 1))}
+                  disabled={page === 1}
+                  className="w-9 h-9 border border-purple-400 text-[#9b27ff] rounded-full flex items-center justify-center disabled:opacity-40 hover:bg-purple-50 transition cursor-pointer font-bold text-sm shadow-sm"
+                >
+                  {"<"}
+                </button>
 
-            <button
-              onClick={() => setPage(Math.min(page + 1, pages))}
-              disabled={page === pages}
-              className="w-8 h-8 border rounded-full disabled:opacity-50"
-            >
-              {">"}
-            </button>
+                {[...Array(totalPageCount)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    className={`w-9 h-9 rounded-full font-bold text-sm transition flex items-center justify-center shadow-sm ${
+                      page === i + 1 ? "bg-[#9b27ff] text-white border border-[#9b27ff]" : "border border-purple-400 text-[#9b27ff] hover:bg-purple-50"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setPage(Math.min(page + 1, totalPageCount))}
+                  disabled={page >= totalPageCount}
+                  className="w-9 h-9 border border-purple-400 text-[#9b27ff] rounded-full flex items-center justify-center disabled:opacity-40 hover:bg-purple-50 transition cursor-pointer font-bold text-sm shadow-sm"
+                >
+                  {">"}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* APPROVAL / REJECTION DECISION MODAL */}
+        {approvalModal.isOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-100 transform transition-all animate-scaleIn">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  {approvalModal.actionType === "approve" ? (
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                      <ThumbsUp size={22} />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                      <ThumbsDown size={22} />
+                    </div>
+                  )}
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {approvalModal.actionType === "approve"
+                      ? "Accept Company Request"
+                      : "Reject Company Request"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setApprovalModal({ isOpen: false, company: null, actionType: "approve", reason: "" })}
+                  className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-600 mb-4">
+                {approvalModal.actionType === "approve" ? (
+                  <>
+                    Are you sure you want to <strong className="text-emerald-700">ACCEPT</strong> company{" "}
+                    <strong>"{approvalModal.company?.companyName}"</strong>? Upon acceptance, this company will be published directly to <strong>Employee Management</strong>.
+                  </>
+                ) : (
+                  <>
+                    Are you sure you want to <strong className="text-red-600">REJECT</strong> company{" "}
+                    <strong>"{approvalModal.company?.companyName}"</strong>? It will be removed from Employee Management and moved to Rejected Requests.
+                  </>
+                )}
+              </p>
+
+              {approvalModal.actionType === "reject" && (
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Rejection Reason (Optional):
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Enter reason for rejection (e.g. Incomplete details, invalid documentation)..."
+                    value={approvalModal.reason}
+                    onChange={(e) =>
+                      setApprovalModal((prev) => ({ ...prev, reason: e.target.value }))
+                    }
+                    className="w-full text-xs p-2.5 border border-gray-300 rounded-lg outline-none focus:border-red-500 focus:ring-1 focus:ring-red-400"
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-3 justify-end mt-6">
+                <button
+                  onClick={() => setApprovalModal({ isOpen: false, company: null, actionType: "approve", reason: "" })}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmApprovalAction}
+                  className={`px-5 py-2 rounded-xl text-xs font-bold text-white shadow-sm transition ${
+                    approvalModal.actionType === "approve"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-red-600 hover:bg-red-700"
+                  }`}
+                >
+                  {approvalModal.actionType === "approve" ? "Confirm Accept" : "Confirm Reject"}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         <BlockModal
           isOpen={openBlockModal}
@@ -445,8 +821,8 @@ function EmployeeTable() {
           title={selectedRow?.status === "active" ? "Block Employer" : "Unblock Employer"}
           message={
             selectedRow?.status === "active"
-              ? `Are you sure you want to block "${selectedRow?.name}"?`
-              : `Are you sure you want to unblock "${selectedRow?.name}"?`
+              ? `Are you sure you want to block "${selectedRow?.companyName || selectedRow?.name}"?`
+              : `Are you sure you want to unblock "${selectedRow?.companyName || selectedRow?.name}"?`
           }
           buttonText={selectedRow?.status === "active" ? "Block" : "Unblock"}
           variant={selectedRow?.status === "active" ? "danger" : undefined}
@@ -470,3 +846,4 @@ function EmployeeTable() {
 }
 
 export default EmployeeTable;
+
