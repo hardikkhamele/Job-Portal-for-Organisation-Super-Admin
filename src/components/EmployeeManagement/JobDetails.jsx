@@ -90,8 +90,8 @@ function JobDetails({ job, onBack }) {
             {job?.spamCount || 0} Spam Reports
           </span>
           <div className="flex items-center gap-1">
-            <CheckCircle className={job?.status === "active" ? "text-green-500" : "text-red-500"} size={16} />
-            <span className={`${job?.status === "active" ? "text-green-500" : "text-red-500"} font-semibold capitalize`}>
+            <CheckCircle className={job?.status?.toLowerCase() === "active" ? "text-green-500" : "text-red-500"} size={16} />
+            <span className={`${job?.status?.toLowerCase() === "active" ? "text-green-500" : "text-red-500"} font-semibold capitalize`}>
               {job?.status || "Inactive"}
             </span>
           </div>

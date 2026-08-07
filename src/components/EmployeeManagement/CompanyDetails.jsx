@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, User, ArrowLeftRight, Briefcase, Database, XCircle, Building2, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle, User, ArrowLeftRight, Briefcase, Database, XCircle, Building2, Users, Search } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import TransactionHistory from "../EmployeeManagement/TransactionHistory";
@@ -18,6 +18,7 @@ function CompanyDetails() {
   const { employer, loading } = useSelector((state) => state.employeeDetails);
   const [activeTab, setActiveTab] = useState("company");
   const [viewJob, setViewJob] = useState(null);
+  const [jobSearch, setJobSearch] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -115,11 +116,11 @@ function CompanyDetails() {
             <div className="flex items-center gap-10 border-b border-gray-200 mb-8">
               {[
                 { id: "company", label: "Company Info", icon: <User size={16} /> },
-                { id: "transaction", label: "Transaction History", icon: <ArrowLeftRight size={16} /> },
+                { id: "transaction", label: "Transaction History", icon: <ArrowLeftRight size={16} />, hideIfInternal: true },
                 { id: "job", label: "Job Information", icon: <Briefcase size={16} /> },
-                { id: "credit", label: "Credit History", icon: <Database size={16} /> },
+                { id: "credit", label: "Credit History", icon: <Database size={16} />, hideIfInternal: true },
                 { id: "candidate", label: "Transferred Candidates", icon: <Users size={16} /> },
-              ].map((tab) => (
+              ].filter(tab => !(tab.hideIfInternal && companyTypeVal.includes("internal"))).map((tab) => (
                 <div
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -229,6 +230,7 @@ function CompanyDetails() {
       </div>
 
 
+
       {/* JOBS TABLE SECTION (ONLY VISIBLE IN JOB INFORMATION TAB) */}
       {activeTab === "job" && !viewJob && (
         <div className="mt-5 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -236,9 +238,22 @@ function CompanyDetails() {
             <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
               Available Job Openings
             </h3>
-            <span className="bg-purple-100 text-purple-700 px-4 py-1 rounded-full text-sm font-bold">
-              {employer.jobs?.length || 0} Total Jobs
-            </span>
+            
+            <div className="flex items-center gap-4">
+              <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white w-64 shadow-sm">
+                <Search size={16} className="text-gray-400 mr-2" />
+                <input
+                  type="text"
+                  placeholder="Search jobs..."
+                  value={jobSearch}
+                  onChange={(e) => setJobSearch(e.target.value)}
+                  className="bg-transparent outline-none text-sm w-full"
+                />
+              </div>
+              <span className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg text-sm font-bold">
+                {employer.jobs?.length || 0} Total Jobs
+              </span>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -254,8 +269,18 @@ function CompanyDetails() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {employer.jobs && employer.jobs.length > 0 ? (
-                  employer.jobs.map((job) => (
+                {(employer.jobs || [])
+                  .filter((job) => 
+                    job.jobTitle?.toLowerCase().includes(jobSearch.toLowerCase()) ||
+                    job.category?.toLowerCase().includes(jobSearch.toLowerCase()) ||
+                    job.subCategory?.toLowerCase().includes(jobSearch.toLowerCase())
+                  ).length > 0 ? (
+                  (employer.jobs || [])
+                    .filter((job) => 
+                      job.jobTitle?.toLowerCase().includes(jobSearch.toLowerCase()) ||
+                      job.category?.toLowerCase().includes(jobSearch.toLowerCase()) ||
+                      job.subCategory?.toLowerCase().includes(jobSearch.toLowerCase())
+                    ).map((job) => (
                     <tr key={job._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <p className="font-bold text-gray-800">{job.jobTitle}</p>
@@ -280,7 +305,7 @@ function CompanyDetails() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          job.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                          job.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
                         }`}>
                           {job.status}
                         </span>

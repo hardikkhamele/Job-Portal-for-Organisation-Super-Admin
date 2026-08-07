@@ -1624,3 +1624,4 @@ const DatabaseCandidate = () => {
 };
 
 export default DatabaseCandidate;
+

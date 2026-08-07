@@ -273,6 +273,7 @@
 
 import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 import * as XLSX from "xlsx";
 import axios from "axios";
 import {
@@ -508,8 +509,8 @@ const AcceptReject = () => {
     }
   };
 
-  const handleCategoryChange = (e) => {
-    const categoryId = e.target.value;
+  const handleCategoryChange = (selectedOption) => {
+    const categoryId = selectedOption ? selectedOption.value : "";
     setSelectedCategory(categoryId);
     setSelectedSubCategory("");
     setSelectedDesignation("");
@@ -518,13 +519,17 @@ const AcceptReject = () => {
     }
   };
 
-  const handleSubCategoryChange = (e) => {
-    const subCategoryId = e.target.value;
+  const handleSubCategoryChange = (selectedOption) => {
+    const subCategoryId = selectedOption ? selectedOption.value : "";
     setSelectedSubCategory(subCategoryId);
     setSelectedDesignation("");
     if (subCategoryId) {
       dispatch(fetchDesignationsBySubCategory(subCategoryId));
     }
+  };
+
+  const handleDesignationChange = (selectedOption) => {
+    setSelectedDesignation(selectedOption ? selectedOption.value : "");
   };
 
   const handleFileChange = (e) => {
@@ -786,54 +791,42 @@ const AcceptReject = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
                 </label>
-                <select
-                  className="w-full p-2.5 bg-gray-50 border cursor-pointer border-gray-300 rounded-md text-sm"
-                  value={selectedCategory}
+                <Select
+                  options={categories.map((cat) => ({ value: cat.id, label: cat.categoryName }))}
+                  value={categories.find(c => c.id === selectedCategory) ? { value: selectedCategory, label: categories.find(c => c.id === selectedCategory).categoryName } : null}
                   onChange={handleCategoryChange}
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.categoryName}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Select Category"
+                  isClearable
+                  className="text-sm"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sub Category
                 </label>
-                <select
-                  className="w-full p-2.5 bg-gray-50 border cursor-pointer border-gray-300 rounded-md text-sm"
-                  value={selectedSubCategory}
+                <Select
+                  options={(subCategories[selectedCategory] || []).map((sub) => ({ value: sub.id, label: sub.subCategoryName }))}
+                  value={(subCategories[selectedCategory] || []).find(s => s.id === selectedSubCategory) ? { value: selectedSubCategory, label: (subCategories[selectedCategory] || []).find(s => s.id === selectedSubCategory).subCategoryName } : null}
                   onChange={handleSubCategoryChange}
-                  disabled={!selectedCategory}
-                >
-                  <option value="">Select Sub Category</option>
-                  {subCategories[selectedCategory]?.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.subCategoryName}
-                    </option>
-                  ))}
-                </select>
+                  isDisabled={!selectedCategory}
+                  placeholder="Select Sub Category"
+                  isClearable
+                  className="text-sm"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Designation
                 </label>
-                <select
-                  className="w-full p-2.5 bg-gray-50 border cursor-pointer border-gray-300 rounded-md text-sm"
-                  value={selectedDesignation}
-                  onChange={(e) => setSelectedDesignation(e.target.value)}
-                  disabled={!selectedSubCategory}
-                >
-                  <option value="">Select Designation</option>
-                  {designations[selectedSubCategory]?.map((des) => (
-                    <option key={des.id} value={des.id}>
-                      {des.designationName}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  options={(designations[selectedSubCategory] || []).map((des) => ({ value: des.id, label: des.designationName }))}
+                  value={(designations[selectedSubCategory] || []).find(d => d.id === selectedDesignation) ? { value: selectedDesignation, label: (designations[selectedSubCategory] || []).find(d => d.id === selectedDesignation).designationName } : null}
+                  onChange={handleDesignationChange}
+                  isDisabled={!selectedSubCategory}
+                  placeholder="Select Designation"
+                  isClearable
+                  className="text-sm"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

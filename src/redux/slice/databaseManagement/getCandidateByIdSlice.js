@@ -6,7 +6,7 @@ export const fetchCandidateById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/admin/candidate-database/getCandidates/${id}`, {
+      const response = await axios.get(`${BASE_URL}/api/admin/candidate-database/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

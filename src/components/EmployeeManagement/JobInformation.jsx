@@ -35,6 +35,7 @@ function JobInformation({ setViewJob, jobs = [] }) {
   // DATA
   const data = useMemo(
     () => (jobs || []).map((job, index) => ({
+      ...job,
       sr: index + 1,
       id: job._id,
       post: job.jobTitle || "N/A",
@@ -42,8 +43,7 @@ function JobInformation({ setViewJob, jobs = [] }) {
       date: job.advanceInformation?.expireDate 
         ? new Date(job.advanceInformation.expireDate).toLocaleDateString("en-GB") 
         : "N/A",
-      status: job.status === "active" ? "Active" : "Expired",
-      ...job
+      status: job.status?.toLowerCase() === "active" ? "Active" : "Expired",
     })),
     [jobs]
   );
@@ -192,124 +192,7 @@ function JobInformation({ setViewJob, jobs = [] }) {
         </div>
 
 
-      {/* SEARCH */}
-      <div className="flex justify-between mb-4">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search"
-          className="border border-gray-200 rounded-lg px-3 py-2 w-1/4 bg-[#F7F8F9] outline-none"
-        />
-
-        <div className="relative">
-          <div
-            onClick={() => setOpen(!open)}
-            className="border border-gray-300 rounded-lg px-3 py-2 cursor-pointer min-w-[140px]"
-          >
-            {jobTypeFilter === "All" ? "All Job Type" : jobTypeFilter}
-          </div>
-        
-          {open && (
-            <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-300 rounded-lg z-10">
-              {["All Job Type", "Classic", "Super", "Premium"].map((item) => (
-                <div
-                  key={item}
-                  onClick={() => {
-                    setJobTypeFilter(item === "All Job Type" ? "All" : item);
-                    setOpen(false);
-                  }}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer whitespace-nowrap"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-
-      {/* TABLE */}
-      <div className=" border border-gray-200 rounded-xl overflow-hidden bg-[#D3D3D3] mb-6">
-        <table className="w-full bg-[#FFFFFF]">
-          <thead className="bg-gray-200">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="p-4 text-center">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-t border border-gray-200">
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="p-4 text-center">
-                    {flexRender(cell.column.columnDef.cell ?? cell.column.columnDef.accessorKey, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* PAGINATION */}
-      <div className="flex justify-between items-center mt-4">
-
-        <p className="text-purple-600 font-bold">
-          Showing{" "}
-          {pagination.pageIndex * pagination.pageSize + 1} to{" "}
-          {Math.min(
-            (pagination.pageIndex + 1) * pagination.pageSize,
-           filteredData.length
-          )}{" "}
-          of {filteredData.length} Jobs
-        </p>
-
-        <div className="flex gap-2">
-
-          <button
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="w-8 h-8 border rounded-full border-purple-400 text-purple-600 font-bold"
-          >
-            {"<"}
-          </button>
-
-          {Array.from({ length: table.getPageCount() }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => table.setPageIndex(i)}
-              className={`w-8 h-8 rounded-full border border-purple-400 font-bold text-purple-600 ${
-                pagination.pageIndex === i
-                  ? "bg-purple-600 text-white"
-                  : ""
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          <button
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="w-8 h-8 border border-purple-400 rounded-full font-bold text-purple-600"
-          >
-            {">"}
-          </button>
-
-          <DeleteModal
-              isOpen={isDeleteOpen}
-              onClose={() => setIsDeleteOpen(false)}
-              onConfirm={handleConfirmDelete}
-            />
-        </div>
-      </div>
+      {/* Delete Modal is still needed if we move the delete logic? No, if the table is gone, no delete buttons. So we can remove the DeleteModal too. */}
     </div>
   );
 }
