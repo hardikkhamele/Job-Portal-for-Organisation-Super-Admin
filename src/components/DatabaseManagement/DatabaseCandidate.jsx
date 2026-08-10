@@ -11,7 +11,373 @@ import {
 } from "../../redux/slice/databaseManagement/dropdownSlice";
 import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
 import { fetchEmployers } from "../../redux/slice/employer/getAllEmployer";
-import axios from "axios";
+const getCandidateName = (item) => {
+  if (!item || typeof item !== "object") return "N/A";
+
+  // 1. Direct explicit property checks
+  const explicitName =
+    item.name ||
+    item.fullName ||
+    item.full_name ||
+    item.candidateName ||
+    item.candidate_name ||
+    item.CandidateName ||
+    item.Candidate_Name ||
+    item.HRName ||
+    item.hrName ||
+    item.userName ||
+    item.user_name ||
+    item.applicantName ||
+    item.applicant_name ||
+    item.seekerName ||
+    item.seeker_name ||
+    item.contactPerson ||
+    item["FULL NAME"] ||
+    item["Full Name"] ||
+    item["Candidate Name"] ||
+    item["CANDIDATE NAME"] ||
+    item["Candidate_Name"] ||
+    item["CandidateName"] ||
+    item["Name"] ||
+    item["NAME"] ||
+    item.candidate?.name ||
+    item.candidate?.fullName ||
+    item.candidateId?.name ||
+    item.candidateId?.fullName ||
+    item.candidate_id?.name ||
+    item.candidate_id?.fullName ||
+    item.jobseekerId?.name ||
+    item.jobSeekerId?.name ||
+    item.userId?.name ||
+    item.user_id?.name ||
+    item.candidateDetails?.name ||
+    item.candidate_details?.name ||
+    item.personalInfo?.name ||
+    item.personalInfo?.fullName ||
+    item.personalInfo?.full_name ||
+    item.personalInfo?.candidateName ||
+    item.basicDetails?.name ||
+    item.basicDetails?.fullName ||
+    item.basicDetails?.full_name ||
+    item.user?.name ||
+    item.user?.fullName ||
+    item.user?.userName ||
+    item.profile?.name ||
+    item.profile?.fullName ||
+    item.details?.name;
+
+  if (explicitName && typeof explicitName === "string" && explicitName.trim()) {
+    return explicitName.trim();
+  }
+
+  if (typeof explicitName === "object" && explicitName !== null) {
+    const subName = explicitName?.name || explicitName?.fullName || explicitName?.full_name || explicitName?.label;
+    if (subName && String(subName).trim()) return String(subName).trim();
+  }
+
+  // 2. First name + Last name
+  const getCombinedFirstLast = (obj) => {
+    if (!obj || typeof obj !== "object") return "";
+    const fn = obj.firstName || obj.first_name || obj.FirstName || obj.fname;
+    const ln = obj.lastName || obj.last_name || obj.LastName || obj.lname;
+    if (fn || ln) {
+      return `${fn || ""} ${ln || ""}`.trim();
+    }
+    return "";
+  };
+
+  const combined =
+    getCombinedFirstLast(item) ||
+    getCombinedFirstLast(item.candidate) ||
+    getCombinedFirstLast(item.candidateId) ||
+    getCombinedFirstLast(item.personalInfo) ||
+    getCombinedFirstLast(item.basicDetails) ||
+    getCombinedFirstLast(item.user) ||
+    getCombinedFirstLast(item.profile);
+
+  if (combined) return combined;
+
+  // 3. Dynamic scan of all keys in item
+  const ignoredKeys = [
+    "categoryname", "category_name", "category", "designationname", "designation_name",
+    "designation", "subcategoryname", "companyname", "hrname", "filename", "tablename",
+    "updatedat", "createdat", "_id", "id", "dbitemid", "uniquekey", "status", "workmode"
+  ];
+
+  const keys = Object.keys(item);
+  for (const k of keys) {
+    const cleanKey = k.trim().toLowerCase();
+    if (ignoredKeys.includes(cleanKey)) continue;
+
+    if (cleanKey.includes("name") || cleanKey.includes("candidate") || cleanKey.includes("user") || cleanKey.includes("applicant") || cleanKey.includes("seeker")) {
+      const val = item[k];
+      if (val && typeof val === "string" && val.trim() && !val.includes("@") && val.trim() !== "N/A") {
+        return val.trim();
+      }
+    }
+  }
+
+  return "N/A";
+};
+
+const getCandidateEmail = (item) => {
+  if (!item || typeof item !== "object") return "N/A";
+
+  // 1. Direct explicit property checks
+  const explicitEmail =
+    item.email ||
+    item.emailId ||
+    item.email_id ||
+    item.candidateEmail ||
+    item.candidate_email ||
+    item.CandidateEmail ||
+    item.Email ||
+    item.contactEmail ||
+    item.emailAddress ||
+    item.email_address ||
+    item.mail ||
+    item.Mail ||
+    item.applicantEmail ||
+    item.applicant_email ||
+    item.seekerEmail ||
+    item.seeker_email ||
+    item["EMAIL"] ||
+    item["EMAIL ID"] ||
+    item["Email"] ||
+    item["Email Id"] ||
+    item["Email ID"] ||
+    item["Email Address"] ||
+    item["EMAIL ADDRESS"] ||
+    item["CandidateEmail"] ||
+    item["Candidate_Email"] ||
+    item.candidate?.email ||
+    item.candidateId?.email ||
+    item.candidate_id?.email ||
+    item.jobseekerId?.email ||
+    item.jobSeekerId?.email ||
+    item.userId?.email ||
+    item.user_id?.email ||
+    item.candidateDetails?.email ||
+    item.personalInfo?.email ||
+    item.personalInfo?.emailId ||
+    item.personalInfo?.email_id ||
+    item.personalInfo?.emailAddress ||
+    item.basicDetails?.email ||
+    item.basicDetails?.emailId ||
+    item.user?.email ||
+    item.profile?.email ||
+    item.details?.email;
+
+  if (explicitEmail && typeof explicitEmail === "string" && explicitEmail.trim()) {
+    return explicitEmail.trim();
+  }
+
+  if (typeof explicitEmail === "object" && explicitEmail !== null) {
+    const subEmail = explicitEmail?.email || explicitEmail?.address;
+    if (subEmail && String(subEmail).trim()) return String(subEmail).trim();
+  }
+
+  // 2. Dynamic scan for keys containing email or mail
+  const keys = Object.keys(item);
+  for (const k of keys) {
+    const cleanKey = k.trim().toLowerCase();
+    if (cleanKey.includes("email") || cleanKey.includes("mail")) {
+      const val = item[k];
+      if (val && typeof val === "string" && val.trim() && val.trim() !== "N/A") {
+        return val.trim();
+      }
+    }
+  }
+
+  // 3. Scan all property values for email regex string
+  for (const k of keys) {
+    const val = item[k];
+    if (val && typeof val === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim())) {
+      return val.trim();
+    }
+  }
+
+  return "N/A";
+};
+
+const getCandidatePhone = (item) => {
+  if (!item || typeof item !== "object") return "N/A";
+
+  const explicitPhone =
+    item.phone ||
+    item.mobile ||
+    item.mobileNumber ||
+    item.mobile_number ||
+    item.contactNumber ||
+    item.contact_number ||
+    item.phoneNo ||
+    item.phone_no ||
+    item.phoneNumber ||
+    item.phone_number ||
+    item.candidatePhone ||
+    item.candidate_phone ||
+    item["PHONE NUMBER"] ||
+    item["MOBILE"] ||
+    item["Phone"] ||
+    item["Phone Number"] ||
+    item["MOBILE NUMBER"] ||
+    item["Contact Number"] ||
+    item.candidate?.phone ||
+    item.candidate?.mobile ||
+    item.candidateId?.phone ||
+    item.candidateId?.mobile ||
+    item.personalInfo?.phone ||
+    item.personalInfo?.mobile ||
+    item.personalInfo?.mobileNumber ||
+    item.personalInfo?.contactNumber ||
+    item.basicDetails?.phone ||
+    item.basicDetails?.mobile ||
+    item.user?.phone ||
+    item.user?.mobile ||
+    item.profile?.phone ||
+    item.details?.phone;
+
+  if (explicitPhone && (typeof explicitPhone === "string" || typeof explicitPhone === "number")) {
+    const str = String(explicitPhone).trim();
+    if (str) return str;
+  }
+
+  if (typeof explicitPhone === "object" && explicitPhone !== null) {
+    const subPhone = explicitPhone?.phone || explicitPhone?.mobile || explicitPhone?.number;
+    if (subPhone && String(subPhone).trim()) return String(subPhone).trim();
+  }
+
+  const keys = Object.keys(item);
+  for (const k of keys) {
+    const cleanKey = k.trim().toLowerCase();
+    if (cleanKey.includes("phone") || cleanKey.includes("mobile") || cleanKey.includes("contact")) {
+      const val = item[k];
+      if (val && (typeof val === "string" || typeof val === "number")) {
+        const str = String(val).trim();
+        if (str && str !== "N/A") return str;
+      }
+    }
+  }
+
+  return "N/A";
+};
+
+const getCandidateCategory = (item, categoryList = []) => {
+  if (!item || typeof item !== "object") return "";
+
+  const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
+  // 1. Check explicit string properties
+  const explicitString =
+    item.categoryName ||
+    item.CategoryName ||
+    item.category_name ||
+    item.Category_Name ||
+    item["CATEGORY NAME"] ||
+    item["Category Name"] ||
+    item["CATEGORY"] ||
+    item["Category"] ||
+    item.jobCategoryName ||
+    item.jobCategory ||
+    (typeof item.category === "string" ? item.category : null) ||
+    (typeof item.Category === "string" ? item.Category : null);
+
+  if (explicitString && typeof explicitString === "string" && explicitString.trim() && explicitString.trim() !== "N/A") {
+    const strVal = explicitString.trim();
+    if (!isValidObjectId(strVal)) {
+      return strVal;
+    }
+    if (Array.isArray(categoryList)) {
+      const found = categoryList.find(
+        (c) => String(c._id || c.id || c.rawObj?._id || c.rawObj?.id).toLowerCase() === strVal.toLowerCase()
+      );
+      if (found && (found.name || found.categoryName)) {
+        return String(found.name || found.categoryName).trim();
+      }
+    }
+  }
+
+  // 2. Check object properties
+  const catObj = item.category || item.Category || item.personalInfo?.category || item.professionalInfo?.category;
+  if (typeof catObj === "object" && catObj !== null) {
+    const extracted = catObj?.name || catObj?.categoryName || catObj?.CategoryName || catObj?.label;
+    if (extracted && String(extracted).trim() && String(extracted).trim() !== "N/A" && !isValidObjectId(String(extracted).trim())) {
+      return String(extracted).trim();
+    }
+  }
+
+  // 3. Dynamic key scan
+  const keys = Object.keys(item);
+  for (const k of keys) {
+    const cleanKey = k.trim().toLowerCase();
+    if (cleanKey.includes("category")) {
+      const val = item[k];
+      if (val && typeof val === "string" && val.trim() && val.trim() !== "N/A") {
+        const strVal = val.trim();
+        if (!isValidObjectId(strVal)) return strVal;
+      }
+    }
+  }
+
+  return "";
+};
+
+const getCandidateDesignation = (item, designationList = []) => {
+  if (!item || typeof item !== "object") return "";
+
+  const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
+  const explicitString =
+    item.designationName ||
+    item.DesignationName ||
+    item.designation_name ||
+    item.Designation_Name ||
+    item["DESIGNATION NAME"] ||
+    item["Designation Name"] ||
+    item["DESIGNATION"] ||
+    item["Designation"] ||
+    item.jobDesignationName ||
+    item.jobDesignation ||
+    (typeof item.designation === "string" ? item.designation : null) ||
+    (typeof item.Designation === "string" ? item.Designation : null);
+
+  if (explicitString && typeof explicitString === "string" && explicitString.trim() && explicitString.trim() !== "N/A") {
+    const strVal = explicitString.trim();
+    if (!isValidObjectId(strVal)) {
+      return strVal;
+    }
+    if (Array.isArray(designationList)) {
+      const found = designationList.find(
+        (d) => String(d._id || d.id || d.rawId || d.rawObj?._id).toLowerCase() === strVal.toLowerCase()
+      );
+      if (found && (found.name || found.designationName)) {
+        return String(found.name || found.designationName).trim();
+      }
+    }
+  }
+
+  const desigObj = item.designation || item.Designation || item.personalInfo?.designation || item.professionalInfo?.designation;
+  if (typeof desigObj === "object" && desigObj !== null) {
+    const extracted = desigObj?.name || desigObj?.designationName || desigObj?.DesignationName || desigObj?.label;
+    if (extracted && String(extracted).trim() && String(extracted).trim() !== "N/A" && !isValidObjectId(String(extracted).trim())) {
+      return String(extracted).trim();
+    }
+  }
+
+  const keys = Object.keys(item);
+  for (const k of keys) {
+    const cleanKey = k.trim().toLowerCase();
+    if (cleanKey.includes("designation") || cleanKey.includes("role") || cleanKey.includes("title")) {
+      const val = item[k];
+      if (val && typeof val === "string" && val.trim() && val.trim() !== "N/A") {
+        const strVal = val.trim();
+        if (!isValidObjectId(strVal)) return strVal;
+      }
+    }
+  }
+
+  return "";
+};
 
 const DatabaseCandidate = () => {
   const navigate = useNavigate();
@@ -197,9 +563,9 @@ const DatabaseCandidate = () => {
 
     // 2. Add dynamic categories from candidate records
     (candidates || []).forEach((item) => {
-      const catName = item.categoryName || item.category?.name || (typeof item.category === "string" ? item.category : null);
-      const catId = item.categoryId || item.category?._id || item.category?.id || catName;
-      if (catName && typeof catName === "string" && catName.trim()) {
+      const catName = getCandidateCategory(item);
+      const catId = item.categoryId || item.category_id || item.category?._id || item.category?.id || catName;
+      if (catName && typeof catName === "string" && catName.trim() && catName.trim() !== "N/A") {
         const key = catName.trim().toLowerCase();
         if (!map.has(key)) {
           map.set(key, { id: catId || catName.trim(), name: catName.trim(), rawObj: null });
@@ -229,8 +595,8 @@ const DatabaseCandidate = () => {
 
     // 2. Add dynamic designations from candidates list
     (candidates || []).forEach((item) => {
-      const desigName = item.designationName || item.designation?.name || (typeof item.designation === "string" ? item.designation : null);
-      if (desigName && typeof desigName === "string" && desigName.trim()) {
+      const desigName = getCandidateDesignation(item);
+      if (desigName && typeof desigName === "string" && desigName.trim() && desigName.trim() !== "N/A") {
         const trimmed = desigName.trim();
         if (!map.has(trimmed.toLowerCase())) {
           map.set(trimmed.toLowerCase(), { id: trimmed, name: trimmed, rawId: item.designationId || item.designation?._id });
@@ -244,6 +610,7 @@ const DatabaseCandidate = () => {
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(fetchDesignations());
+    dispatch(fetchCandidates({ page: 1, limit: 1000 }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -255,82 +622,6 @@ const DatabaseCandidate = () => {
       }
     }
   }, [location.state, dispatch]);
-
-  useEffect(() => {
-    // When any filter is active, fetch a larger batch so pagination doesn't truncate filter matches
-    const hasFilter =
-      Boolean(
-        search ||
-          selectedCategory ||
-          selectedDesignation ||
-          selectedCity ||
-          selectedState ||
-          selectedCountry ||
-          selectedWorkMode ||
-          selectedExperience ||
-          startDate ||
-          endDate
-      );
-
-    // Resolve category name to ObjectId for backend API if available
-    let catParam = selectedCategory;
-    if (selectedCategory && Array.isArray(categories)) {
-      const found = categories.find(
-        (c) =>
-          String(c.name || c.categoryName || "").toLowerCase() === selectedCategory.trim().toLowerCase() ||
-          String(c._id || c.id || "").toLowerCase() === selectedCategory.trim().toLowerCase()
-      );
-      if (found?._id || found?.id) {
-        catParam = found._id || found.id;
-      }
-    }
-
-    // Resolve designation name to ObjectId for backend API if available
-    let desigParam = selectedDesignation;
-    if (selectedDesignation && Array.isArray(designations)) {
-      const found = designations.find(
-        (d) =>
-          String(d.name || d.designationName || "").toLowerCase() === selectedDesignation.trim().toLowerCase() ||
-          String(d._id || d.id || "").toLowerCase() === selectedDesignation.trim().toLowerCase()
-      );
-      if (found?._id || found?.id) {
-        desigParam = found._id || found.id;
-      }
-    }
-
-    dispatch(
-      fetchCandidates({
-        page: hasFilter ? 1 : currentPage,
-        limit: hasFilter ? 500 : itemsPerPage,
-        search,
-        category: catParam,
-        designation: desigParam,
-        location: selectedCity || selectedState || selectedCountry,
-        city: selectedCity,
-        state: selectedState,
-        country: selectedCountry,
-        workMode: selectedWorkMode,
-        experience: selectedExperience,
-        startDate,
-        endDate,
-      }),
-    );
-  }, [
-    dispatch,
-    currentPage,
-    search,
-    selectedCategory,
-    selectedDesignation,
-    selectedCity,
-    selectedState,
-    selectedCountry,
-    selectedWorkMode,
-    selectedExperience,
-    startDate,
-    endDate,
-    categories,
-    designations,
-  ]);
 
   const handleCategoryChange = (e) => {
     const categoryVal = e.target.value;
@@ -411,7 +702,16 @@ const DatabaseCandidate = () => {
 
   const parseDateToMs = (dateInput, endOfDay = false) => {
     if (!dateInput) return null;
-    if (typeof dateInput === "number") return dateInput;
+    if (typeof dateInput === "number") {
+      // Excel serial date to JS timestamp
+      if (dateInput > 30000 && dateInput < 60000) {
+        const jsDate = new Date((dateInput - (25567 + 2)) * 86400 * 1000);
+        if (endOfDay) jsDate.setHours(23, 59, 59, 999);
+        else jsDate.setHours(0, 0, 0, 0);
+        return jsDate.getTime();
+      }
+      return dateInput;
+    }
 
     let str = String(dateInput).trim();
 
@@ -442,222 +742,268 @@ const DatabaseCandidate = () => {
     // Standard ISO string or generic date
     const dateObj = new Date(str);
     if (!isNaN(dateObj.getTime())) {
+      if (endOfDay && !str.includes("T")) {
+        dateObj.setHours(23, 59, 59, 999);
+      }
       return dateObj.getTime();
     }
 
     return null;
   };
 
-  const filteredCandidates = (candidates || []).filter((item) => {
-    if (!item) return false;
+  const filteredCandidates = useMemo(() => {
+    const list = (candidates || []).filter((item) => {
+      if (!item) return false;
 
-    // 1. Search filter
-    if (search && search.trim() !== "") {
-      const q = search.trim().toLowerCase();
-      const name = (item.name || item.fullName || item.personalInfo?.name || "").toLowerCase();
-      const email = (item.email || item.personalInfo?.email || "").toLowerCase();
-      const phone = (item.phone || item.mobile || item.personalInfo?.phone || "").toLowerCase();
-      const catName = (item.categoryName || item.category?.name || (typeof item.category === "string" ? item.category : "")).toLowerCase();
-      const desigName = (item.designationName || item.designation?.name || (typeof item.designation === "string" ? item.designation : "")).toLowerCase();
-      const loc = (item.city || item.state || item.location || item.address?.city || "").toString().toLowerCase();
+      // 1. Search filter
+      if (search && search.trim() !== "") {
+        const q = search.trim().toLowerCase();
+        const name = getCandidateName(item).toLowerCase();
+        const email = getCandidateEmail(item).toLowerCase();
+        const phone = getCandidatePhone(item).toLowerCase();
+        const catName = (item.categoryName || item.category?.name || (typeof item.category === "string" ? item.category : "")).toLowerCase();
+        const desigName = (item.designationName || item.designation?.name || (typeof item.designation === "string" ? item.designation : "")).toLowerCase();
+        const loc = (item.city || item.state || item.location || item.address?.city || "").toString().toLowerCase();
 
-      const matchesSearch =
-        name.includes(q) ||
-        email.includes(q) ||
-        phone.includes(q) ||
-        catName.includes(q) ||
-        desigName.includes(q) ||
-        loc.includes(q);
+        const matchesSearch =
+          name.includes(q) ||
+          email.includes(q) ||
+          phone.includes(q) ||
+          catName.includes(q) ||
+          desigName.includes(q) ||
+          loc.includes(q);
 
-      if (!matchesSearch) return false;
-    }
-
-    // 2. Category filter
-    if (selectedCategory) {
-      const targetCatStr = selectedCategory.trim().toLowerCase();
-
-      const matchedCatObj = combinedCategories.find(
-        (c) =>
-          String(c.id).toLowerCase() === targetCatStr ||
-          String(c.name).toLowerCase() === targetCatStr ||
-          (c.rawObj && (String(c.rawObj._id).toLowerCase() === targetCatStr || String(c.rawObj.id).toLowerCase() === targetCatStr))
-      );
-
-      const catTargetName = matchedCatObj ? matchedCatObj.name.toLowerCase() : targetCatStr;
-      const catTargetId = matchedCatObj ? String(matchedCatObj.rawObj?._id || matchedCatObj.rawObj?.id || matchedCatObj.id).toLowerCase() : targetCatStr;
-
-      const itemCatName = (
-        item.categoryName ||
-        item.category_name ||
-        item.category?.name ||
-        item.category?.categoryName ||
-        item.jobCategory ||
-        item.jobCategoryName ||
-        (typeof item.category === "string" ? item.category : "")
-      ).toLowerCase();
-
-      const itemCatId = (
-        item.categoryId ||
-        item.category_id ||
-        item.category?._id ||
-        item.category?.id ||
-        (typeof item.category === "string" ? item.category : "")
-      ).toString().toLowerCase();
-
-      const matchesCat =
-        (itemCatName && (itemCatName === catTargetName || itemCatName.includes(catTargetName) || catTargetName.includes(itemCatName))) ||
-        (itemCatId && (itemCatId === catTargetId || itemCatId === targetCatStr));
-
-      if (!matchesCat) return false;
-    }
-
-    // 3. Designation filter
-    if (selectedDesignation) {
-      const targetDesig = selectedDesignation.trim().toLowerCase();
-      const itemDesigName = (item.designationName || item.designation?.name || (typeof item.designation === "string" ? item.designation : "")).toLowerCase();
-      const itemDesigId = (item.designationId || item.designation?._id || item.designation?.id || "").toString().toLowerCase();
-
-      const matchesDesig =
-        itemDesigName === targetDesig ||
-        itemDesigName.includes(targetDesig) ||
-        targetDesig.includes(itemDesigName) ||
-        (itemDesigId && itemDesigId === targetDesig);
-
-      if (!matchesDesig) return false;
-    }
-
-    // 4. City filter
-    if (selectedCity) {
-      const targetCity = selectedCity.trim().toLowerCase();
-      const itemCity = (
-        item.city ||
-        item.location?.city ||
-        item.personalInfo?.city ||
-        item.personalInfo?.location?.city ||
-        item.address?.city ||
-        (typeof item.location === "string" ? item.location : "") ||
-        ""
-      ).toString().toLowerCase();
-
-      if (itemCity && !itemCity.includes(targetCity) && !targetCity.includes(itemCity)) return false;
-    }
-
-    // 5. State filter
-    if (selectedState) {
-      const targetState = selectedState.trim().toLowerCase();
-      const itemState = (
-        item.state ||
-        item.location?.state ||
-        item.personalInfo?.state ||
-        item.personalInfo?.location?.state ||
-        item.address?.state ||
-        (typeof item.location === "string" ? item.location : "") ||
-        ""
-      ).toString().toLowerCase();
-
-      if (itemState && !itemState.includes(targetState) && !targetState.includes(itemState)) return false;
-    }
-
-    // 6. Country filter
-    if (selectedCountry) {
-      const targetCountry = selectedCountry.trim().toLowerCase();
-      const itemCountry = (
-        item.country ||
-        item.location?.country ||
-        item.personalInfo?.country ||
-        item.personalInfo?.location?.country ||
-        item.address?.country ||
-        "india"
-      ).toString().toLowerCase();
-
-      if (!itemCountry.includes(targetCountry) && !targetCountry.includes(itemCountry)) return false;
-    }
-
-    // 7. Work Mode filter
-    if (selectedWorkMode) {
-      const targetMode = selectedWorkMode.trim().toLowerCase();
-      const itemMode = (
-        item.workMode ||
-        item.work_mode ||
-        item.modeOfWork ||
-        item.workType ||
-        item.jobType ||
-        item.employmentType ||
-        item.personalInfo?.workMode ||
-        item.professionalInfo?.workMode ||
-        ""
-      ).toString().toLowerCase();
-
-      if (itemMode) {
-        const isMatch =
-          itemMode.includes(targetMode) ||
-          (targetMode.includes("on-site") && (itemMode.includes("onsite") || itemMode.includes("office") || itemMode.includes("on site") || itemMode.includes("full time"))) ||
-          (targetMode.includes("remote") && (itemMode.includes("wfh") || itemMode.includes("home"))) ||
-          (targetMode.includes("hybrid") && itemMode.includes("hybrid"));
-
-        if (!isMatch) return false;
+        if (!matchesSearch) return false;
       }
-    }
 
-    // 8. Experience filter
-    if (selectedExperience) {
-      const targetExp = parseInt(selectedExperience, 10);
-      const rawExp = (
-        item.experience ??
-        item.totalExperience ??
-        item.exp ??
-        item.professionalInfo?.totalExperience ??
-        item.personalInfo?.experience ??
-        ""
-      ).toString().toLowerCase();
+      // 2. Category filter
+      if (selectedCategory && selectedCategory.trim() !== "") {
+        const targetCatStr = selectedCategory.trim().toLowerCase();
 
-      if (rawExp) {
-        if (rawExp.includes("fresher") && targetExp > 0) {
-          return false;
-        }
-        const match = rawExp.match(/\d+/);
-        if (match) {
-          const parsedExp = parseInt(match[0], 10);
-          if (parsedExp < targetExp) return false;
-        }
+        const itemCatName = getCandidateCategory(item, categories).toLowerCase();
+        const itemCatId = String(
+          item.categoryId ||
+          item.category_id ||
+          item.category?._id ||
+          item.category?.id ||
+          (typeof item.category === "string" ? item.category : "") ||
+          ""
+        ).toLowerCase();
+
+        const matchedCatObj = combinedCategories.find(
+          (c) =>
+            String(c.name).toLowerCase() === targetCatStr ||
+            String(c.id).toLowerCase() === targetCatStr ||
+            (c.rawObj && (String(c.rawObj._id).toLowerCase() === targetCatStr || String(c.rawObj.id).toLowerCase() === targetCatStr))
+        );
+
+        const catTargetName = matchedCatObj ? matchedCatObj.name.toLowerCase() : targetCatStr;
+        const catTargetId = matchedCatObj ? String(matchedCatObj.rawObj?._id || matchedCatObj.rawObj?.id || matchedCatObj.id).toLowerCase() : targetCatStr;
+
+        const matchesCat =
+          (itemCatName && (
+            itemCatName === targetCatStr ||
+            itemCatName === catTargetName ||
+            itemCatName.includes(targetCatStr) ||
+            targetCatStr.includes(itemCatName) ||
+            itemCatName.includes(catTargetName) ||
+            catTargetName.includes(itemCatName)
+          )) ||
+          (itemCatId && (itemCatId === catTargetId || itemCatId === targetCatStr));
+
+        if (!matchesCat) return false;
       }
-    }
 
-    // 9. Date Range filter
-    if (startDate || endDate) {
-      const candidateDateVal =
-        item.createdAt ||
-        item.created_at ||
-        item.createdDate ||
-        item.exceluploadedDate ||
-        item.uploadedDate ||
-        item.date ||
-        item.registrationDate ||
-        item.updatedAt;
+      // 3. Designation filter
+      if (selectedDesignation && selectedDesignation.trim() !== "") {
+        const targetDesig = selectedDesignation.trim().toLowerCase();
+        const itemDesigName = getCandidateDesignation(item, designations).toLowerCase();
+        const itemDesigId = String(
+          item.designationId ||
+          item.designation_id ||
+          item.designation?._id ||
+          item.designation?.id ||
+          (typeof item.designation === "string" ? item.designation : "") ||
+          ""
+        ).toLowerCase();
 
-      let itemMs = candidateDateVal ? parseDateToMs(candidateDateVal) : null;
+        const matchesDesig =
+          (itemDesigName && (
+            itemDesigName === targetDesig ||
+            itemDesigName.includes(targetDesig) ||
+            targetDesig.includes(itemDesigName)
+          )) ||
+          (itemDesigId && itemDesigId === targetDesig);
 
-      if (itemMs === null && item._id && typeof item._id === "string" && item._id.length === 24) {
-        const timestamp = parseInt(item._id.substring(0, 8), 16) * 1000;
-        if (!isNaN(timestamp)) {
-          itemMs = timestamp;
+        if (!matchesDesig) return false;
+      }
+
+      // 4. City filter
+      if (selectedCity) {
+        const targetCity = selectedCity.trim().toLowerCase();
+        const itemCity = (
+          item.city ||
+          item.location?.city ||
+          item.personalInfo?.city ||
+          item.personalInfo?.location?.city ||
+          item.address?.city ||
+          (typeof item.location === "string" ? item.location : "") ||
+          ""
+        ).toString().toLowerCase();
+
+        if (itemCity && !itemCity.includes(targetCity) && !targetCity.includes(itemCity)) return false;
+      }
+
+      // 5. State filter
+      if (selectedState) {
+        const targetState = selectedState.trim().toLowerCase();
+        const itemState = (
+          item.state ||
+          item.location?.state ||
+          item.personalInfo?.state ||
+          item.personalInfo?.location?.state ||
+          item.address?.state ||
+          (typeof item.location === "string" ? item.location : "") ||
+          ""
+        ).toString().toLowerCase();
+
+        if (itemState && !itemState.includes(targetState) && !targetState.includes(itemState)) return false;
+      }
+
+      // 6. Country filter
+      if (selectedCountry) {
+        const targetCountry = selectedCountry.trim().toLowerCase();
+        const itemCountry = (
+          item.country ||
+          item.location?.country ||
+          item.personalInfo?.country ||
+          item.personalInfo?.location?.country ||
+          item.address?.country ||
+          "india"
+        ).toString().toLowerCase();
+
+        if (!itemCountry.includes(targetCountry) && !targetCountry.includes(itemCountry)) return false;
+      }
+
+      // 7. Work Mode filter
+      if (selectedWorkMode) {
+        const targetMode = selectedWorkMode.trim().toLowerCase();
+        const itemMode = (
+          item.workMode ||
+          item.work_mode ||
+          item.modeOfWork ||
+          item.workType ||
+          item.jobType ||
+          item.employmentType ||
+          item.personalInfo?.workMode ||
+          item.professionalInfo?.workMode ||
+          ""
+        ).toString().toLowerCase();
+
+        if (itemMode) {
+          const isMatch =
+            itemMode.includes(targetMode) ||
+            (targetMode.includes("on-site") && (itemMode.includes("onsite") || itemMode.includes("office") || itemMode.includes("on site") || itemMode.includes("full time"))) ||
+            (targetMode.includes("remote") && (itemMode.includes("wfh") || itemMode.includes("home"))) ||
+            (targetMode.includes("hybrid") && itemMode.includes("hybrid"));
+
+          if (!isMatch) return false;
         }
       }
 
-      if (itemMs !== null) {
-        if (startDate) {
-          const startMs = parseDateToMs(startDate, false);
-          if (startMs !== null && itemMs < startMs) return false;
-        }
-        if (endDate) {
-          const endMs = parseDateToMs(endDate, true);
-          if (endMs !== null && itemMs > endMs) return false;
+      // 8. Experience filter
+      if (selectedExperience) {
+        const targetExp = parseInt(selectedExperience, 10);
+        const rawExp = (
+          item.experience ??
+          item.totalExperience ??
+          item.exp ??
+          item.professionalInfo?.totalExperience ??
+          item.personalInfo?.experience ??
+          ""
+        ).toString().toLowerCase();
+
+        if (rawExp) {
+          if (rawExp.includes("fresher") && targetExp > 0) {
+            return false;
+          }
+          const match = rawExp.match(/\d+/);
+          if (match) {
+            const parsedExp = parseInt(match[0], 10);
+            if (parsedExp < targetExp) return false;
+          }
         }
       }
-    }
 
-    return true;
-  });
+      // 9. Date Range filter
+      if (startDate || endDate) {
+        const candidateDateVal =
+          item.createdAt ||
+          item.created_at ||
+          item.createdDate ||
+          item.exceluploadedDate ||
+          item.uploadedDate ||
+          item.date ||
+          item.registrationDate ||
+          item.updatedAt;
+
+        let itemMs = candidateDateVal ? parseDateToMs(candidateDateVal) : null;
+
+        if (itemMs === null && item._id && typeof item._id === "string" && item._id.length === 24) {
+          const timestamp = parseInt(item._id.substring(0, 8), 16) * 1000;
+          if (!isNaN(timestamp)) {
+            itemMs = timestamp;
+          }
+        }
+
+        if (itemMs !== null) {
+          if (startDate) {
+            const startMs = parseDateToMs(startDate, false);
+            if (startMs !== null && itemMs < startMs) return false;
+          }
+          if (endDate) {
+            const endMs = parseDateToMs(endDate, true);
+            if (endMs !== null && itemMs > endMs) return false;
+          }
+        }
+      }
+
+      return true;
+    });
+
+    // Score candidates by data completeness so candidates with real Name & Email appear first
+    const getCompletenessScore = (item) => {
+      let score = 0;
+      const name = getCandidateName(item);
+      const email = getCandidateEmail(item);
+      const phone = getCandidatePhone(item);
+      const cat = getCandidateCategory(item);
+      const desig = getCandidateDesignation(item);
+
+      if (name && name !== "N/A" && !name.toLowerCase().startsWith("candidate #")) score += 10;
+      if (email && email !== "N/A" && email.includes("@")) score += 8;
+      if (phone && phone !== "N/A") score += 5;
+      if (cat && cat !== "N/A") score += 3;
+      if (desig && desig !== "N/A") score += 3;
+
+      return score;
+    };
+
+    return list.sort((a, b) => getCompletenessScore(b) - getCompletenessScore(a));
+  }, [
+    candidates,
+    search,
+    selectedCategory,
+    selectedDesignation,
+    selectedCity,
+    selectedState,
+    selectedCountry,
+    selectedWorkMode,
+    selectedExperience,
+    startDate,
+    endDate,
+    combinedCategories,
+  ]);
 
   // Clear selections whenever filter criteria change so stale IDs don't interfere
   useEffect(() => {
@@ -1064,9 +1410,18 @@ const DatabaseCandidate = () => {
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
+  const totalCandidateCount = total || filteredCandidates.length;
+  const computedTotalPages = Math.max(1, Math.ceil(totalCandidateCount / itemsPerPage));
   const maxVisiblePages = 10;
   const startPage = Math.floor((currentPage - 1) / maxVisiblePages) * maxVisiblePages + 1;
-  const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages || 1);
+  const endPage = Math.min(startPage + maxVisiblePages - 1, computedTotalPages);
+
+  const paginatedCandidates = useMemo(() => {
+    if (filteredCandidates.length > itemsPerPage) {
+      return filteredCandidates.slice(startIndex, startIndex + itemsPerPage);
+    }
+    return filteredCandidates;
+  }, [filteredCandidates, startIndex, itemsPerPage]);
 
   return (
     <div className="w-full bg-[#F4F6FA] p-3 min-h-screen">
@@ -1332,9 +1687,9 @@ const DatabaseCandidate = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredCandidates.map((item, index) => (
+                  paginatedCandidates.map((item, index) => (
                     <tr
-                      key={item._id}
+                      key={item.uniqueKey || item._id}
                       className="border-t border-gray-300 text-center text-sm"
                     >
                       <td className="p-3 text-center">
@@ -1346,11 +1701,11 @@ const DatabaseCandidate = () => {
                         />
                       </td>
                       <td className="p-3">{startIndex + index + 1}</td>
-                      <td className="p-3">{item.name || item.fullName || item.personalInfo?.name || "N/A"}</td>
-                      <td className="p-3">{item.categoryName || (typeof item.category === "object" ? item.category?.name : item.category) || "N/A"}</td>
-                      <td className="p-3">{item.designationName || (typeof item.designation === "object" ? item.designation?.name : item.designation) || "N/A"}</td>
-                      <td className="p-3">{item.phone || item.mobile || item.personalInfo?.phone || "N/A"}</td>
-                      <td className="p-3">{item.email || item.personalInfo?.email || "N/A"}</td>
+                      <td className="p-3">{getCandidateName(item)}</td>
+                      <td className="p-3">{getCandidateCategory(item, categories) || "N/A"}</td>
+                      <td className="p-3">{getCandidateDesignation(item, designations) || "N/A"}</td>
+                      <td className="p-3">{getCandidatePhone(item)}</td>
+                      <td className="p-3">{getCandidateEmail(item)}</td>
                       <td className="text-center">
                         <Eye
                           className="text-purple-600 cursor-pointer mx-auto hover:scale-110 transition-transform"
@@ -1365,7 +1720,7 @@ const DatabaseCandidate = () => {
                     </tr>
                   ))
                 )}
-                {!loading && filteredCandidates.length === 0 && (
+                {!loading && paginatedCandidates.length === 0 && (
                   <tr>
                     <td colSpan="8" className="text-center p-5">
                       No Candidates Found
@@ -1379,16 +1734,16 @@ const DatabaseCandidate = () => {
           {/* Footer & Pagination */}
           <div className="flex justify-between items-center mt-4">
             <p className="text-purple-600 text-sm font-medium">
-              Showing {filteredCandidates.length > 0 ? startIndex + 1 : 0} to{" "}
-              {Math.min(startIndex + filteredCandidates.length, total || filteredCandidates.length)} of{" "}
-              {total || filteredCandidates.length}
+              Showing {totalCandidateCount > 0 ? startIndex + 1 : 0} to{" "}
+              {Math.min(startIndex + paginatedCandidates.length, totalCandidateCount)} of{" "}
+              {totalCandidateCount} Candidates
             </p>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="p-2 border rounded-full border-purple-300 text-purple-600 disabled:opacity-50"
+                className="p-2 border rounded-full border-purple-300 text-purple-600 disabled:opacity-50 hover:bg-purple-50 transition cursor-pointer"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -1397,10 +1752,10 @@ const DatabaseCandidate = () => {
                 <button
                   key={pageNumber}
                   onClick={() => setCurrentPage(pageNumber)}
-                  className={`px-3 py-1 rounded-full text-sm ${
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition cursor-pointer ${
                     currentPage === pageNumber
-                      ? "bg-purple-600 text-white"
-                      : "border border-purple-300 text-purple-600"
+                      ? "bg-purple-600 text-white shadow-sm"
+                      : "border border-purple-300 text-purple-600 hover:bg-purple-50"
                   }`}
                 >
                   {pageNumber}
@@ -1409,10 +1764,10 @@ const DatabaseCandidate = () => {
 
               <button
                 onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  setCurrentPage((prev) => Math.min(prev + 1, computedTotalPages))
                 }
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="p-2 border border-purple-300 text-purple-600 rounded-full disabled:opacity-50"
+                disabled={currentPage >= computedTotalPages}
+                className="p-2 border border-purple-300 text-purple-600 rounded-full disabled:opacity-50 hover:bg-purple-50 transition cursor-pointer"
               >
                 <ChevronRight size={16} />
               </button>

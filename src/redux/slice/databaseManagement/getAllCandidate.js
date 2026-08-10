@@ -45,11 +45,28 @@ export const fetchCandidates = createAsyncThunk(
 
       // Build parameters object with non-empty values only
       const params = {};
+      const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
       if (page) params.page = page;
       if (limit) params.limit = limit;
       if (search && search.trim()) params.search = search.trim();
-      if (category) params.category = category;
-      if (designation) params.designation = designation;
+
+      if (category) {
+        if (isValidObjectId(String(category))) {
+          params.category = category;
+        } else {
+          params.categoryName = category;
+        }
+      }
+
+      if (designation) {
+        if (isValidObjectId(String(designation))) {
+          params.designation = designation;
+        } else {
+          params.designationName = designation;
+        }
+      }
+
       if (location) params.location = location;
       if (city) params.city = city;
       if (state) params.state = state;
@@ -147,6 +164,248 @@ const getAllCandidateSlice = createSlice({
           dbList = databaseData.databases;
         }
 
+        const extractName = (item) => {
+          if (!item || typeof item !== "object") return "";
+          const explicitName =
+            item.name ||
+            item.fullName ||
+            item.full_name ||
+            item.candidateName ||
+            item.candidate_name ||
+            item.CandidateName ||
+            item.Candidate_Name ||
+            item.HRName ||
+            item.hrName ||
+            item.userName ||
+            item.user_name ||
+            item.applicantName ||
+            item.applicant_name ||
+            item.seekerName ||
+            item.seeker_name ||
+            item.contactPerson ||
+            item["FULL NAME"] ||
+            item["Full Name"] ||
+            item["Candidate Name"] ||
+            item["CANDIDATE NAME"] ||
+            item["Candidate_Name"] ||
+            item["CandidateName"] ||
+            item["Name"] ||
+            item["NAME"] ||
+            item.candidate?.name ||
+            item.candidate?.fullName ||
+            item.candidateId?.name ||
+            item.candidateId?.fullName ||
+            item.candidate_id?.name ||
+            item.candidate_id?.fullName ||
+            item.jobseekerId?.name ||
+            item.jobSeekerId?.name ||
+            item.userId?.name ||
+            item.user_id?.name ||
+            item.candidateDetails?.name ||
+            item.candidate_details?.name ||
+            item.personalInfo?.name ||
+            item.personalInfo?.fullName ||
+            item.personalInfo?.full_name ||
+            item.personalInfo?.candidateName ||
+            item.basicDetails?.name ||
+            item.basicDetails?.fullName ||
+            item.basicDetails?.full_name ||
+            item.user?.name ||
+            item.user?.fullName ||
+            item.user?.userName ||
+            item.profile?.name ||
+            item.profile?.fullName ||
+            item.details?.name;
+
+          if (explicitName && typeof explicitName === "string" && explicitName.trim()) {
+            return explicitName.trim();
+          }
+
+          if (typeof explicitName === "object" && explicitName !== null) {
+            const subName = explicitName?.name || explicitName?.fullName || explicitName?.full_name || explicitName?.label;
+            if (subName && String(subName).trim()) return String(subName).trim();
+          }
+
+          const getCombinedFirstLast = (obj) => {
+            if (!obj || typeof obj !== "object") return "";
+            const fn = obj.firstName || obj.first_name || obj.FirstName || obj.fname;
+            const ln = obj.lastName || obj.last_name || obj.LastName || obj.lname;
+            if (fn || ln) {
+              return `${fn || ""} ${ln || ""}`.trim();
+            }
+            return "";
+          };
+
+          const combined =
+            getCombinedFirstLast(item) ||
+            getCombinedFirstLast(item.candidate) ||
+            getCombinedFirstLast(item.candidateId) ||
+            getCombinedFirstLast(item.personalInfo) ||
+            getCombinedFirstLast(item.basicDetails) ||
+            getCombinedFirstLast(item.user) ||
+            getCombinedFirstLast(item.profile);
+
+          if (combined) return combined;
+
+          const ignoredKeys = [
+            "categoryname", "category_name", "category", "designationname", "designation_name",
+            "designation", "subcategoryname", "companyname", "hrname", "filename", "tablename",
+            "updatedat", "createdat", "_id", "id", "dbitemid", "uniquekey", "status", "workmode"
+          ];
+
+          const keys = Object.keys(item);
+          for (const k of keys) {
+            const cleanKey = k.trim().toLowerCase();
+            if (ignoredKeys.includes(cleanKey)) continue;
+
+            if (cleanKey.includes("name") || cleanKey.includes("candidate") || cleanKey.includes("user") || cleanKey.includes("applicant") || cleanKey.includes("seeker")) {
+              const val = item[k];
+              if (val && typeof val === "string" && val.trim() && !val.includes("@") && val.trim() !== "N/A") {
+                return val.trim();
+              }
+            }
+          }
+
+          return "";
+        };
+
+        const extractEmail = (item) => {
+          if (!item || typeof item !== "object") return "";
+          const explicitEmail =
+            item.email ||
+            item.emailId ||
+            item.email_id ||
+            item.candidateEmail ||
+            item.candidate_email ||
+            item.CandidateEmail ||
+            item.Email ||
+            item.contactEmail ||
+            item.emailAddress ||
+            item.email_address ||
+            item.mail ||
+            item.Mail ||
+            item.applicantEmail ||
+            item.applicant_email ||
+            item.seekerEmail ||
+            item.seeker_email ||
+            item["EMAIL"] ||
+            item["EMAIL ID"] ||
+            item["Email"] ||
+            item["Email Id"] ||
+            item["Email ID"] ||
+            item["Email Address"] ||
+            item["EMAIL ADDRESS"] ||
+            item["CandidateEmail"] ||
+            item["Candidate_Email"] ||
+            item.candidate?.email ||
+            item.candidateId?.email ||
+            item.candidate_id?.email ||
+            item.jobseekerId?.email ||
+            item.jobSeekerId?.email ||
+            item.userId?.email ||
+            item.user_id?.email ||
+            item.candidateDetails?.email ||
+            item.personalInfo?.email ||
+            item.personalInfo?.emailId ||
+            item.personalInfo?.email_id ||
+            item.personalInfo?.emailAddress ||
+            item.basicDetails?.email ||
+            item.basicDetails?.emailId ||
+            item.user?.email ||
+            item.profile?.email ||
+            item.details?.email;
+
+          if (explicitEmail && typeof explicitEmail === "string" && explicitEmail.trim()) {
+            return explicitEmail.trim();
+          }
+
+          if (typeof explicitEmail === "object" && explicitEmail !== null) {
+            const subEmail = explicitEmail?.email || explicitEmail?.address;
+            if (subEmail && String(subEmail).trim()) return String(subEmail).trim();
+          }
+
+          const keys = Object.keys(item);
+          for (const k of keys) {
+            const cleanKey = k.trim().toLowerCase();
+            if (cleanKey.includes("email") || cleanKey.includes("mail")) {
+              const val = item[k];
+              if (val && typeof val === "string" && val.trim() && val.trim() !== "N/A") {
+                return val.trim();
+              }
+            }
+          }
+
+          for (const k of keys) {
+            const val = item[k];
+            if (val && typeof val === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim())) {
+              return val.trim();
+            }
+          }
+
+          return "";
+        };
+
+        const extractPhone = (item) => {
+          if (!item || typeof item !== "object") return "";
+          const explicitPhone =
+            item.phone ||
+            item.mobile ||
+            item.mobileNumber ||
+            item.mobile_number ||
+            item.contactNumber ||
+            item.contact_number ||
+            item.phoneNo ||
+            item.phone_no ||
+            item.phoneNumber ||
+            item.phone_number ||
+            item.candidatePhone ||
+            item.candidate_phone ||
+            item["PHONE NUMBER"] ||
+            item["MOBILE"] ||
+            item["Phone"] ||
+            item["Phone Number"] ||
+            item["MOBILE NUMBER"] ||
+            item["Contact Number"] ||
+            item.candidate?.phone ||
+            item.candidate?.mobile ||
+            item.candidateId?.phone ||
+            item.candidateId?.mobile ||
+            item.personalInfo?.phone ||
+            item.personalInfo?.mobile ||
+            item.personalInfo?.mobileNumber ||
+            item.personalInfo?.contactNumber ||
+            item.basicDetails?.phone ||
+            item.basicDetails?.mobile ||
+            item.user?.phone ||
+            item.user?.mobile ||
+            item.profile?.phone ||
+            item.details?.phone;
+
+          if (explicitPhone && (typeof explicitPhone === "string" || typeof explicitPhone === "number")) {
+            const str = String(explicitPhone).trim();
+            if (str) return str;
+          }
+
+          if (typeof explicitPhone === "object" && explicitPhone !== null) {
+            const subPhone = explicitPhone?.phone || explicitPhone?.mobile || explicitPhone?.number;
+            if (subPhone && String(subPhone).trim()) return String(subPhone).trim();
+          }
+
+          const keys = Object.keys(item);
+          for (const k of keys) {
+            const cleanKey = k.trim().toLowerCase();
+            if (cleanKey.includes("phone") || cleanKey.includes("mobile") || cleanKey.includes("contact")) {
+              const val = item[k];
+              if (val && (typeof val === "string" || typeof val === "number")) {
+                const str = String(val).trim();
+                if (str && str !== "N/A") return str;
+              }
+            }
+          }
+
+          return "";
+        };
+
         const combinedCandidates = [];
         const seenIds = new Set();
 
@@ -155,29 +414,40 @@ const getAllCandidateSlice = createSlice({
           if (!c) return;
           const cId = c._id || c.id;
           if (cId) seenIds.add(String(cId));
-          combinedCandidates.push(c);
+
+          const normName = extractName(c);
+          const normEmail = extractEmail(c);
+          const normPhone = extractPhone(c);
+
+          combinedCandidates.push({
+            ...c,
+            name: c.name || normName || "N/A",
+            email: c.email || normEmail || "N/A",
+            phone: c.phone || normPhone || "N/A",
+          });
         });
 
-        // Process approved candidate databases from Accept/Reject module
+        // Process candidate databases from Accept/Reject module
         dbList.forEach((dbItem) => {
           if (!dbItem) return;
 
-          // Must be approved / accepted
-          const isApproved =
-            dbItem.isApproved ||
-            dbItem.status === "Approved" ||
-            dbItem.status === "Accepted" ||
-            dbItem.approvalStatus === "Approved" ||
-            dbItem.approved === true;
+          // Skip explicitly rejected items
+          const isRejected =
+            dbItem.status === "Rejected" ||
+            dbItem.approvalStatus === "Rejected" ||
+            dbItem.isApproved === false ||
+            dbItem.approved === false;
 
-          if (!isApproved) return;
+          if (isRejected) return;
 
           // Check for inner candidate rows (e.g. from uploaded Excel file)
           const rows =
             (Array.isArray(dbItem.excelData) && dbItem.excelData.length > 0 && dbItem.excelData) ||
             (Array.isArray(dbItem.candidates) && dbItem.candidates.length > 0 && dbItem.candidates) ||
             (Array.isArray(dbItem.excel_data) && dbItem.excel_data.length > 0 && dbItem.excel_data) ||
-            (Array.isArray(dbItem.parsedData) && dbItem.parsedData.length > 0 && dbItem.parsedData);
+            (Array.isArray(dbItem.parsedData) && dbItem.parsedData.length > 0 && dbItem.parsedData) ||
+            (Array.isArray(dbItem.rows) && dbItem.rows.length > 0 && dbItem.rows) ||
+            (Array.isArray(dbItem.data) && dbItem.data.length > 0 && dbItem.data);
 
           if (rows) {
             rows.forEach((row, rIdx) => {
@@ -193,44 +463,48 @@ const getAllCandidateSlice = createSlice({
                 ? String(dbItem._id)
                 : uniqueKey;
 
-              const name =
-                row["FULL NAME"] ||
-                row["Candidate Name"] ||
-                row.name ||
-                row.fullName ||
-                row.Name ||
-                `Candidate #${rIdx + 1}`;
-
-              const email =
-                row["EMAIL"] ||
-                row["EMAIL ID"] ||
-                row.email ||
-                row.Email ||
-                "N/A";
-
-              const phone =
-                row["PHONE NUMBER"] ||
-                row["MOBILE"] ||
-                row.phone ||
-                row.mobile ||
-                row.Phone ||
-                "N/A";
+              const name = extractName(row) || extractName(dbItem) || `Candidate #${rIdx + 1}`;
+              const email = extractEmail(row) || extractEmail(dbItem) || "N/A";
+              const phone = extractPhone(row) || extractPhone(dbItem) || "N/A";
 
               const catName =
+                row.CategoryName ||
+                row.categoryName ||
+                row.category_name ||
+                row.Category_Name ||
+                row.Category ||
+                row.category ||
+                row["CATEGORY"] ||
+                row["Category"] ||
+                row["CATEGORY NAME"] ||
+                row["Category Name"] ||
+                (typeof row.category === "object" ? row.category?.name || row.category?.categoryName : "") ||
                 dbItem.CategoryName ||
                 dbItem.categoryName ||
+                dbItem.category_name ||
                 (typeof dbItem.category === "object" ? dbItem.category?.name || dbItem.category?.categoryName : dbItem.category) ||
-                row.categoryName ||
                 "N/A";
 
               const desigName =
+                row.DesignationName ||
+                row.designationName ||
+                row.designation_name ||
+                row.Designation_Name ||
+                row.Designation ||
+                row.designation ||
+                row["DESIGNATION"] ||
+                row["Designation"] ||
+                row["DESIGNATION NAME"] ||
+                row["Designation Name"] ||
+                (typeof row.designation === "object" ? row.designation?.name || row.designation?.designationName : "") ||
                 dbItem.DesignationName ||
                 dbItem.designationName ||
+                dbItem.designation_name ||
                 (typeof dbItem.designation === "object" ? dbItem.designation?.name || dbItem.designation?.designationName : dbItem.designation) ||
-                row.designationName ||
                 "N/A";
 
               combinedCandidates.push({
+                ...row,
                 _id: validMongoId,
                 uniqueKey: uniqueKey,
                 dbItemId: dbItem._id,
@@ -239,6 +513,8 @@ const getAllCandidateSlice = createSlice({
                 phone,
                 categoryName: catName,
                 designationName: desigName,
+                category: catName,
+                designation: desigName,
                 city: row["CITY"] || row.city || dbItem.city || "N/A",
                 state: row["STATE"] || row.state || dbItem.state || "N/A",
                 country: row["COUNTRY"] || row.country || dbItem.country || "India",
@@ -246,7 +522,6 @@ const getAllCandidateSlice = createSlice({
                 experience: row["EXPERIENCE"] || row.experience || dbItem.experience || "N/A",
                 createdAt: dbItem.createdAt || dbItem.exceluploadedDate || dbItem.uploadedDate || new Date().toISOString(),
                 isApproved: true,
-                ...row,
               });
             });
           } else {
@@ -258,11 +533,11 @@ const getAllCandidateSlice = createSlice({
                 _id: idVal,
                 uniqueKey: String(idVal),
                 dbItemId: idVal,
-                name: dbItem.name || dbItem.fullName || dbItem.HRName || "Candidate",
+                name: extractName(dbItem) || "Candidate",
                 categoryName: dbItem.CategoryName || dbItem.categoryName || "N/A",
                 designationName: dbItem.DesignationName || dbItem.designationName || "N/A",
-                phone: dbItem.phone || dbItem.mobile || "N/A",
-                email: dbItem.email || "N/A",
+                phone: extractPhone(dbItem) || "N/A",
+                email: extractEmail(dbItem) || "N/A",
                 isApproved: true,
                 ...dbItem,
               });

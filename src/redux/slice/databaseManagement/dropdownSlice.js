@@ -23,7 +23,11 @@ export const fetchDesignations = createAsyncThunk(
   async (categoryId, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const params = categoryId ? { categoryId } : {};
+      const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+      const params = {};
+      if (categoryId && isValidObjectId(String(categoryId))) {
+        params.categoryId = String(categoryId);
+      }
       const response = await axios.get(
         `${BASE_URL}/api/admin/candidate-database/getallDesignation`,
         { 

@@ -312,6 +312,7 @@ function Dashboard() {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem("token");
+        console.log(token,"token");
         const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const response = await axios.get(`${BASE_URL}/api/admin/dashboard`, {
           headers: {

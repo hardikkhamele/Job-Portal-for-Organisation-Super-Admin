@@ -19,7 +19,6 @@ function EditHR() {
     designation: "",
     email: "",
     password: "",
-    mobileNumber: "",
     image: null,
   });
 
@@ -39,8 +38,7 @@ function EditHR() {
         hrName: hr.hrName || "",
         designation: hr.designation || "",
         email: hr.email || "",
-        password: "",
-        mobileNumber: hr.mobileNumber || hr.mobile || "",
+        password: hr.password || hr.plainPassword || "",
         image: null,
       });
     }
@@ -98,13 +96,6 @@ function EditHR() {
       }
     }
 
-    // Mobile Number validation
-    if (!formData.mobileNumber.trim()) {
-      newErrors.mobileNumber = "Mobile number is required";
-    } else if (!/^(?!00)[0-9]{10}$/.test(formData.mobileNumber)) {
-      newErrors.mobileNumber = "Mobile number must be exactly 10 digits and cannot start with '00'";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -114,11 +105,7 @@ function EditHR() {
     if (files) {
       setFormData({ ...formData, image: files[0] });
     } else {
-      let sanitizedValue = value;
-      if (name === "mobileNumber") {
-        sanitizedValue = value.replace(/[^0-9]/g, "");
-      }
-      setFormData({ ...formData, [name]: sanitizedValue });
+      setFormData({ ...formData, [name]: value });
       // Clear validation error when typing
       if (errors[name]) {
         setErrors((prev) => {
@@ -139,7 +126,6 @@ function EditHR() {
       data.append("hrName", formData.hrName);
       data.append("designation", formData.designation);
       data.append("email", formData.email);
-      data.append("mobileNumber", formData.mobileNumber);
       if (formData.password) data.append("password", formData.password);
       if (formData.image) data.append("image", formData.image);
 
@@ -221,12 +207,12 @@ function EditHR() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-700 font-medium">Password (Leave Blank To Keep Current)</label>
+              <label className="text-sm text-gray-700 font-medium">Password</label>
               <div className="relative mt-2">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  placeholder="Enter New Password"
+                  placeholder="Enter Password"
                   value={formData.password}
                   onChange={handleChange}
                   maxLength={20}
@@ -244,25 +230,6 @@ function EditHR() {
               </div>
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-700 font-medium">Mobile Number</label>
-              <input
-                type="text"
-                name="mobileNumber"
-                placeholder="Enter Mobile Number"
-                value={formData.mobileNumber}
-                onChange={handleChange}
-                maxLength={10}
-                className={`w-full mt-2 bg-gray-100 border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 transition-all ${
-                  errors.mobileNumber ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
-                }`}
-                required
-              />
-              {errors.mobileNumber && (
-                <p className="text-red-500 text-xs mt-1">{errors.mobileNumber}</p>
               )}
             </div>
 
