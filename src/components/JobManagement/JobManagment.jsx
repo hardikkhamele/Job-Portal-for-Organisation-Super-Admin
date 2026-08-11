@@ -24,6 +24,12 @@ import defaultLogo from "../../assets/Technokreat.svg";
 import Footer from "../Footer";
 import { addNotification } from "../../utils/notificationHelper";
 import { updateJob } from "../../redux/slice/jobManagement/updateJobSlice";
+import {
+  CountrySelect,
+  StateSelect,
+  CitySelect,
+} from "react-country-state-city";
+import "react-country-state-city/dist/react-country-state-city.css";
 
 const JobManagement = () => {
   const navigate = useNavigate();
@@ -48,11 +54,17 @@ const JobManagement = () => {
     maxSalary: "",
     salaryType: "Monthly",
     location: "",
+    country: "",
+    state: "",
+    city: "",
     jobLevel: "",
     jobType: "",
     experience: "",
     jobDescription: "",
   });
+
+  const [countryid, setCountryid] = useState(0);
+  const [stateid, setStateid] = useState(0);
 
   const [pagination, setPagination] = useState({
     pageIndex: 0, 
@@ -119,17 +131,27 @@ const JobManagement = () => {
 
   const handleEditClick = (row) => {
     setEditingJob(row);
+    const locObj = (row.jobLocation && typeof row.jobLocation === "object") ? row.jobLocation : {};
+    const locName = typeof row.jobLocation === "string" ? row.jobLocation : (locObj.name || row.location || "");
+
     setEditFormData({
       jobTitle: row.jobTitle || "",
-      minSalary: row.salaryRange?.minSalary || "",
-      maxSalary: row.salaryRange?.maxSalary || "",
+      minSalary: row.salaryRange?.minSalary ?? "",
+      maxSalary: row.salaryRange?.maxSalary ?? "",
       salaryType: row.salaryType || "Monthly",
-      location: row.jobLocation?.name || row.location || "",
-      jobLevel: row.advanceInformation?.jobLevel || "",
-      jobType: row.advanceInformation?.jobType || "",
-      experience: row.advanceInformation?.experience || "",
+      location: locName,
+      country: locObj.countryName || locObj.country || "",
+      countryCode: locObj.countryCode || "",
+      state: locObj.stateName || locObj.state || "",
+      stateCode: locObj.stateCode || "",
+      city: locObj.city || "",
+      jobLevel: row.advanceInformation?.jobLevel || row.jobLevel || "",
+      jobType: row.advanceInformation?.jobType || row.jobType || "",
+      experience: row.advanceInformation?.experience || row.experience || "",
       jobDescription: row.jobDescription || "",
     });
+    setCountryid(0);
+    setStateid(0);
     setIsEditModalOpen(true);
   };
 
@@ -138,6 +160,26 @@ const JobManagement = () => {
     if (!editingJob) return;
     setEditLoading(true);
     const jobId = editingJob._id || editingJob.id;
+    const origLoc = (editingJob.jobLocation && typeof editingJob.jobLocation === "object") ? editingJob.jobLocation : {};
+
+    const cityVal = editFormData.city || origLoc.city || "";
+    const stateVal = editFormData.state || origLoc.stateName || origLoc.state || "";
+    const countryVal = editFormData.country || origLoc.countryName || origLoc.country || "";
+    const stateCodeVal = editFormData.stateCode || origLoc.stateCode || "MH";
+    const countryCodeVal = editFormData.countryCode || origLoc.countryCode || "IN";
+
+    const selectedParts = [cityVal, stateVal, countryVal].filter(Boolean);
+    const fullLocation = selectedParts.length > 0 ? selectedParts.join(", ") : (editFormData.location || origLoc.name || "");
+
+    const jobLocationPayload = {
+      city: cityVal || (fullLocation.split(",")[0] || "").trim(),
+      stateName: stateVal || (fullLocation.split(",")[1] || "").trim(),
+      stateCode: stateCodeVal,
+      countryName: countryVal || (fullLocation.split(",")[2] || "").trim(),
+      countryCode: countryCodeVal,
+      name: fullLocation,
+    };
+
     const payload = {
       jobTitle: editFormData.jobTitle,
       salaryRange: {
@@ -145,7 +187,7 @@ const JobManagement = () => {
         maxSalary: Number(editFormData.maxSalary),
       },
       salaryType: editFormData.salaryType,
-      jobLocation: { name: editFormData.location },
+      jobLocation: jobLocationPayload,
       advanceInformation: {
         ...(editingJob.advanceInformation || {}),
         jobLevel: editFormData.jobLevel,
@@ -220,11 +262,30 @@ const JobManagement = () => {
     {
       header: "Employer",
       cell: ({ row }) => {
-        const logo = row.original.companyLogo?.[0] || defaultLogo;
+        const empName = row.original.employerName || row.original.companyName || "N/A";
+        const initial = empName !== "N/A" ? empName.trim().charAt(0).toUpperCase() : "?";
+        const logoUrl = Array.isArray(row.original.companyLogo) ? row.original.companyLogo[0] : row.original.companyLogo;
+
         return (
           <div className="flex items-center gap-3">
-            <img src={logo} alt="logo" className="w-9 h-9 rounded-full bg-gray-100 p-1 object-contain border border-gray-300" />
-            <span className="font-medium text-gray-800">{row.original.employerName || "N/A"}</span>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={empName}
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "flex";
+                }}
+                className="w-9 h-9 rounded-full bg-gray-100 object-cover border border-gray-300 shrink-0"
+              />
+            ) : null}
+            <div
+              style={{ display: logoUrl ? "none" : "flex" }}
+              className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 font-bold text-sm items-center justify-center border border-purple-300 shadow-sm shrink-0"
+            >
+              {initial}
+            </div>
+            <span className="font-medium text-gray-800">{empName}</span>
           </div>
         );
       },
@@ -524,25 +585,31 @@ const JobManagement = () => {
                   <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
                     Job Level
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={editFormData.jobLevel}
                     onChange={(e) => setEditFormData({ ...editFormData, jobLevel: e.target.value })}
-                    placeholder="e.g. Senior / Mid-level"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                  />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                  >
+                    <option value="">Select Job Level</option>
+                    <option value="Entry-Level">Entry-Level</option>
+                    <option value="Mid-Level">Mid-Level</option>
+                    <option value="Senior-Level">Senior-Level</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
                     Job Type
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={editFormData.jobType}
                     onChange={(e) => setEditFormData({ ...editFormData, jobType: e.target.value })}
-                    placeholder="e.g. Full-Time / Remote"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                  />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                  >
+                    <option value="">Select Job Type</option>
+                    <option value="Full-Time">Full-Time</option>
+                    <option value="Part-Time">Part-Time</option>
+                    <option value="Internship">Internship</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
@@ -559,16 +626,66 @@ const JobManagement = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-                  Location
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">
+                  Location (Country, State, City)
                 </label>
-                <input
-                  type="text"
-                  value={editFormData.location}
-                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
-                  placeholder="e.g. Mumbai, Maharashtra"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 mb-1">Country</label>
+                    <CountrySelect
+                      onChange={(e) => {
+                        const cId = e ? e.id : 0;
+                        setCountryid(cId);
+                        setStateid(0);
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          country: e ? e.name : "",
+                          countryCode: e ? (e.iso2 || e.country_code || e.code || "IN") : "",
+                          state: "",
+                          stateCode: "",
+                          city: "",
+                        }));
+                      }}
+                      placeHolder="Select Country"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 mb-1">State</label>
+                    <StateSelect
+                      countryid={countryid}
+                      onChange={(e) => {
+                        const sId = e ? e.id : 0;
+                        setStateid(sId);
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          state: e ? e.name : "",
+                          stateCode: e ? (e.state_code || e.code || "") : "",
+                          city: "",
+                        }));
+                      }}
+                      placeHolder="Select State"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 mb-1">City</label>
+                    <CitySelect
+                      countryid={countryid}
+                      stateid={stateid}
+                      onChange={(e) => {
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          city: e ? e.name : "",
+                        }));
+                      }}
+                      placeHolder="Select City"
+                    />
+                  </div>
+                </div>
+                {editFormData.location && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    <span className="font-semibold text-gray-700">Current Location:</span> {editFormData.location}
+                  </p>
+                )}
               </div>
 
               <div>

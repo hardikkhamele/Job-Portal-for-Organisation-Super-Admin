@@ -17,20 +17,24 @@ export const updateJob = createAsyncThunk(
       };
 
       let response;
-      // 1. Primary Endpoint: PUT /api/admin/jobs/updateJob/:jobId
       try {
+        // 1. Primary Endpoint: PUT /api/admin/jobs/updateJob/:jobId
         response = await axios.put(
           `${BASE_URL}/api/admin/jobs/updateJob/${jobId}`,
           jobData,
           authHeader
         );
       } catch (err1) {
-        // 2. Fallback Endpoint: PUT /api/admin/employer/updateJob/:jobId
-        response = await axios.put(
-          `${BASE_URL}/api/admin/employer/updateJob/${jobId}`,
-          jobData,
-          authHeader
-        );
+        // Only fallback if status is 404 (Route not found)
+        if (err1.response && err1.response.status === 404) {
+          response = await axios.put(
+            `${BASE_URL}/api/admin/employer/updateJob/${jobId}`,
+            jobData,
+            authHeader
+          );
+        } else {
+          throw err1;
+        }
       }
 
       toast.success("Job updated successfully!", {
