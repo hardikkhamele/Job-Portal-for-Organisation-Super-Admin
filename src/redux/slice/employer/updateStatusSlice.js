@@ -7,19 +7,42 @@ export const updateEmployerStatus = createAsyncThunk(
   async ({ id, status }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token"); 
-      const response = await axios.put(
-        `${BASE_URL}/api/admin/employer/updateStatus/${id}`,
-        { status },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const headers = { Authorization: `Bearer ${token}` };
+      let response;
+
+      if (status === "active" || status === "approved" || status === "accepted") {
+        const endpoints = [
+          { method: "patch", url: `${BASE_URL}/api/admin/employer/${id}/accepted` },
+          { method: "patch", url: `${BASE_URL}/api/admin/employer/${id}/approve` },
+          { method: "put", url: `${BASE_URL}/api/admin/employer/updateStatus/${id}`, data: { status } },
+        ];
+
+        let lastErr;
+        for (const ep of endpoints) {
+          try {
+            if (ep.method === "patch") {
+              response = await axios.patch(ep.url, { status: "active", isApproved: true }, { headers });
+            } else {
+              response = await axios.put(ep.url, ep.data, { headers });
+            }
+            if (response?.data) break;
+          } catch (err) {
+            lastErr = err;
+          }
         }
-      );
-      toast.success(`Employer status updated to ${status} successfully!`);
+        if (!response && lastErr) throw lastErr;
+      } else {
+        response = await axios.put(
+          `${BASE_URL}/api/admin/employer/updateStatus/${id}`,
+          { status },
+          { headers }
+        );
+      }
+
+      toast.success(`Employer status updated successfully!`);
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.message || "Something went wrong";
+      const message = error.response?.data?.message || "Failed to update employer status";
       toast.error(message);
       return rejectWithValue(message);
     }
