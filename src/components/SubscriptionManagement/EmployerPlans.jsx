@@ -249,38 +249,47 @@ const EmployerPlans = () => {
 
 
           {/* Pagination Section */}
-<div className="flex justify-between items-center mt-6">
-  <p className="text-sm text-purple-600 font-medium">
-    {/* Correct range calculation */}
-    Showing {total === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1} to{" "}
-    {Math.min((pagination.pageIndex + 1) * pagination.pageSize, total)} of {total} Plans
-  </p>
+          <div className="flex justify-between items-center mt-6">
+            <p className="text-sm text-purple-600 font-medium">
+              Showing {total === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1} to{" "}
+              {Math.min((pagination.pageIndex + 1) * pagination.pageSize, total)} of {total} Plans
+            </p>
 
-  <div className="flex items-center gap-2">
-    {/* Previous Button */}
-    <button
-      onClick={() => table.previousPage()}
-      disabled={!table.getCanPreviousPage()}
-      className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-purple-50"
-    >
-      <ChevronLeft size={18} />
-    </button>
+            <div className="flex items-center gap-2">
+              {/* Previous Button */}
+              <button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+              >
+                <ChevronLeft size={16} />
+              </button>
 
-    {/* Current Page Number Display */}
-    <span className="text-sm font-semibold text-purple-600 px-2">
-      Page {pagination.pageIndex + 1} of {totalPages}
-    </span>
+              {/* Circle Page Buttons */}
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPagination((prev) => ({ ...prev, pageIndex: i }))}
+                  className={`w-8 h-8 rounded-full text-sm font-semibold flex items-center justify-center transition
+                    ${pagination.pageIndex === i
+                      ? "bg-purple-600 text-white shadow-md"
+                      : "border border-gray-300 text-gray-600 hover:border-purple-400 hover:text-purple-600"
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
 
-    {/* Next Button */}
-    <button
-      onClick={() => table.nextPage()}
-      disabled={!table.getCanNextPage()}
-      className="w-8 h-8 rounded-full border flex items-center justify-center text-purple-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-purple-50"
-    >
-      <ChevronRight size={18} />
-    </button>
-  </div>
-</div>
+              {/* Next Button */}
+              <button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
 
         </div>
       </div>
