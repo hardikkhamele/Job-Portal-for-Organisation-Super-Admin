@@ -5,13 +5,13 @@ export const fetchCandidateById = createAsyncThunk(
   "candidate/fetchById",
   async (id, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/admin/candidate-database/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data.data; 
+      // const token = localStorage.getItem("token");
+      // const response = await axios.get(`${BASE_URL}/api/admin/candidate-database/${id}`, {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //   },
+      // });
+      // return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch candidate");
     }

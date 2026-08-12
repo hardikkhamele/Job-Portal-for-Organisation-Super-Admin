@@ -12,7 +12,7 @@ export const fetchCandidateProfile = createAsyncThunk(
       // Transferred candidates come from the candidate-database collection.
       // Try that endpoint first, then fall back to the HR-specific one.
       const endpointsToTry = [
-        `${BASE_URL}/api/admin/candidate-database/getCandidateById/${id}`,
+        // `${BASE_URL}/api/admin/candidate-database/getCandidateById/${id}`,
         `${BASE_URL}/api/admin/candidate-database/${id}`,
         `${BASE_URL}/api/admin/hr/getCandidateProfile/${id}`,
       ];

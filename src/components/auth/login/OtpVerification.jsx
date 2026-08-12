@@ -272,7 +272,10 @@ export default function OtpVerification() {
                 Didn't receive the code?{" "}
                 <span
                   className="cursor-pointer text-purple-600 hover:underline"
-                  onClick={() => navigate("/login")}
+                  onClick={() => {
+                    dispatch(resetOtpState());
+                    navigate("/login");
+                  }}
                 >
                   Go back &amp; resend
                 </span>
@@ -281,7 +284,10 @@ export default function OtpVerification() {
 
             <div className="flex justify-center text-xs">
               <span
-                onClick={() => navigate("/login")}
+                onClick={() => {
+                  dispatch(resetOtpState());
+                  navigate("/login");
+                }}
                 className="text-purple-600 font-medium cursor-pointer hover:underline"
               >
                 Go back to <span className="text-orange-400">Login</span>
