@@ -181,9 +181,26 @@ function JobViewDetails() {
                 </div>
                 <div>
                   <p className="text-gray-500 leading-5">Location</p>
-                  <p className="text-gray-800 font-semibold">{job.jobLocation?.name}</p>
+                  <p className="text-gray-800 font-semibold">
+                    {(() => {
+                      const loc = job.jobLocation;
+                      if (!loc) return "N/A";
+                      // Try the pre-built name first
+                      if (loc.name && typeof loc.name === "string" && loc.name.trim()) {
+                        return loc.name.trim();
+                      }
+                      // Build from parts
+                      const parts = [
+                        loc.city,
+                        loc.stateName || loc.state,
+                        loc.countryName || loc.country,
+                      ].filter((p) => p && typeof p === "string" && p.trim());
+                      return parts.length > 0 ? parts.join(", ") : "N/A";
+                    })()}
+                  </p>
                 </div>
               </div>
+
 
               <div className="flex gap-3 items-start">
                 <div className="h-5 flex items-center flex-shrink-0">

@@ -40,7 +40,7 @@ const JobSeeker = () => {
         {/* Button */}
         <div className="flex justify-center mt-6 ">
           <button
-            onClick={() => navigate("/job-seeker/edit")}
+            onClick={() => navigate("/jobseeker/edit")}
             className="bg-purple-700 text-white px-25 py-2 rounded-md cursor-pointer"
           >
             Edit

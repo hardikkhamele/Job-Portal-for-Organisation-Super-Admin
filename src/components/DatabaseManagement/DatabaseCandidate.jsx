@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Eye, ChevronLeft, ChevronRight, Send, X, ChevronDown } from "lucide-react";
 import { toast } from "react-toastify";
+import axios from "axios";
 import { fetchCandidates } from "../../redux/slice/databaseManagement/getAllCandidate";
 import {
   fetchCategories,

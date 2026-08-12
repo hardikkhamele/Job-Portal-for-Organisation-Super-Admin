@@ -38,7 +38,7 @@ function CandidateProfile() {
           <AlertCircle size={48} className="text-purple-600 mx-auto mb-3" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">Candidate Not Found</h2>
           <p className="text-gray-500 text-sm mb-5">
-            {error || "The requested candidate profile details could not be loaded."}
+            {typeof error === "string" ? error : "The requested candidate profile details could not be loaded."}
           </p>
           <button
             onClick={() => navigate(-1)}
@@ -51,6 +51,7 @@ function CandidateProfile() {
       </div>
     );
   }
+
 
   return (
     <div className="w-full bg-[#F4F6FA] p-4 min-h-screen">

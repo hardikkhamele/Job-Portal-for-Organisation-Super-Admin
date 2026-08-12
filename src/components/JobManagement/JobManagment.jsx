@@ -458,48 +458,117 @@ const JobManagement = () => {
           </div>
 
           {/* Pagination UI */}
-          <div className="flex justify-between items-center mt-6">
-            <p className="text-sm text-gray-500">
-              Showing <span className="font-medium text-purple-600">
-                {filteredJobs.length > 0 ? (pagination.pageIndex * pagination.pageSize) + 1 : 0}
-              </span> to{" "}
-              <span className="font-medium text-purple-600">
-                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, filteredJobs.length)}
-              </span> of {filteredJobs.length} Jobs
-            </p>
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3">
+            {/* Left: showing info + rows per page */}
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <p>
+                Showing{" "}
+                <span className="font-medium text-purple-600">
+                  {filteredJobs.length > 0 ? pagination.pageIndex * pagination.pageSize + 1 : 0}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium text-purple-600">
+                  {Math.min((pagination.pageIndex + 1) * pagination.pageSize, filteredJobs.length)}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-purple-600">{filteredJobs.length}</span> Jobs
+              </p>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-400">Rows:</label>
+                <select
+                  value={pagination.pageSize}
+                  onChange={(e) =>
+                    setPagination((prev) => ({
+                      ...prev,
+                      pageSize: Number(e.target.value),
+                      pageIndex: 0,
+                    }))
+                  }
+                  className="border border-gray-200 rounded-md px-2 py-1 text-xs text-gray-600 outline-none focus:ring-2 focus:ring-purple-300 bg-white cursor-pointer"
+                >
+                  {[5, 10, 20, 50].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-            <div className="flex items-center gap-2">
+            {/* Right: page buttons */}
+            <div className="flex items-center gap-1">
+              {/* Prev button */}
               <button
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
                 className="w-9 h-9 rounded-full border flex items-center justify-center text-purple-600 border-purple-200 hover:bg-purple-50 disabled:opacity-30 transition"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={16} />
               </button>
 
-              <div className="flex gap-1">
-                {Array.from({ length: table.getPageCount() }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => table.setPageIndex(i)}
-                    className={`w-9 h-9 rounded-lg text-sm font-medium transition ${
-                      pagination.pageIndex === i ? "bg-purple-600 text-white shadow-md" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
+              {/* Windowed page buttons */}
+              {(() => {
+                const totalPages = table.getPageCount();
+                const current = pagination.pageIndex;
+                const delta = 1; // pages on each side of current
+                const pages = [];
 
+                // Always show page 1
+                pages.push(0);
+
+                // Left ellipsis threshold
+                if (current - delta > 1) pages.push("...");
+
+                // Window around current page
+                for (
+                  let i = Math.max(1, current - delta);
+                  i <= Math.min(totalPages - 2, current + delta);
+                  i++
+                ) {
+                  pages.push(i);
+                }
+
+                // Right ellipsis threshold
+                if (current + delta < totalPages - 2) pages.push("...");
+
+                // Always show last page (if more than 1 page)
+                if (totalPages > 1) pages.push(totalPages - 1);
+
+                return pages.map((page, idx) =>
+                  page === "..." ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm select-none"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => table.setPageIndex(page)}
+                      className={`w-9 h-9 rounded-full text-sm font-medium transition ${
+                        pagination.pageIndex === page
+                          ? "bg-purple-600 text-white shadow-md"
+                          : "border border-gray-200 text-gray-600 hover:bg-purple-50 hover:border-purple-300"
+                      }`}
+                    >
+                      {page + 1}
+                    </button>
+                  )
+                );
+              })()}
+
+              {/* Next button */}
               <button
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
                 className="w-9 h-9 rounded-full border flex items-center justify-center text-purple-600 border-purple-200 hover:bg-purple-50 disabled:opacity-30 transition"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={16} />
               </button>
             </div>
           </div>
+
         </div>
       </div>
       <Footer/>
