@@ -120,9 +120,9 @@ function EmployeeTable() {
       return {
         ...emp,
         // `status` represents the account state (for example, active), while
-        // `companyApprovalStatus` is the admin approval decision.
+        // `approvalStatus` / `companyApprovalStatus` is the admin approval decision.
         status: normalizeEmployerStatus(
-          overrideStatus ?? emp.companyApprovalStatus ?? emp.status,
+          overrideStatus ?? emp.approvalStatus ?? emp.companyApprovalStatus ?? emp.status,
         ),
       };
     });
@@ -131,7 +131,7 @@ function EmployeeTable() {
   // Calculate Metrics & Counts
   const approvedList = useMemo(() => {
     return allProcessedEmployers.filter(
-      (e) => e.status === "active" || e.status === "approved"
+      (e) => e.status === "active" || e.status === "approved" || e.status === "accepted"
     );
   }, [allProcessedEmployers]);
 
@@ -216,16 +216,34 @@ function EmployeeTable() {
     const { company, actionType, reason } = approvalModal;
     if (!company) return;
 
-    const newStatus = actionType === "approve" ? "active" : "rejected";
+    let newStatus;
+    let dispatchStatus;
+    if (actionType === "approve") {
+      newStatus = "accepted";
+      dispatchStatus = "accepted";
+    } else if (actionType === "reject") {
+      newStatus = "rejected";
+      dispatchStatus = "rejected";
+    } else if (actionType === "reapprove") {
+      newStatus = "pending";
+      dispatchStatus = "reapprove";
+    }
 
     // Update local state immediately for instant feedback
     setLocalStatusUpdates((prev) => ({ ...prev, [company._id]: newStatus }));
 
-    // Dispatch redux update if real ID
-    dispatch(updateEmployerStatus({ id: company._id, status: newStatus }));
+    // Dispatch redux update with reason and email
+    dispatch(updateEmployerStatus({ 
+      id: company._id, 
+      status: dispatchStatus, 
+      reason: reason, 
+      email: company.email 
+    }));
 
     if (actionType === "approve") {
       toast.success(`"${company.companyName}" has been Accepted & Published to Employee Management!`);
+    } else if (actionType === "reapprove") {
+      toast.success(`"${company.companyName}" has been moved back to Pending Approvals.`);
     } else {
       toast.info(`"${company.companyName}" Job/Registration Request was Rejected.`);
     }
@@ -233,8 +251,30 @@ function EmployeeTable() {
     setApprovalModal({ isOpen: false, company: null, actionType: "approve", reason: "" });
   };
 
+  const getColumnWidthClass = (id) => {
+    switch (id) {
+      case "srNo":
+        return "w-[60px] min-w-[60px]";
+      case "company":
+        return "w-[280px] min-w-[280px]";
+      case "companyType":
+        return "w-[120px] min-w-[120px]";
+      case "totalJobs":
+        return "w-[110px] min-w-[110px]";
+      case "creditsLeft":
+        return "w-[160px] min-w-[160px]";
+      case "status":
+        return "w-[160px] min-w-[160px]";
+      case "action":
+        return "w-[220px] min-w-[220px]";
+      default:
+        return "";
+    }
+  };
+
   const columns = [
     {
+      id: "srNo",
       header: "Sr.No.",
       cell: ({ row }) => (page - 1) * pageSize + row.index + 1,
     },
@@ -276,6 +316,7 @@ function EmployeeTable() {
       },
     },
     {
+      id: "companyType",
       accessorKey: "companyType",
       header: "Type",
       cell: ({ row }) => {
@@ -293,6 +334,14 @@ function EmployeeTable() {
           : lowerType.includes("external")
           ? "external"
           : "";
+
+        if (activeTab !== "approved") {
+          return (
+            <span className="text-sm font-medium text-gray-500 capitalize">
+              {normalizedType || "N/A"}
+            </span>
+          );
+        }
 
         return (
           <div className="flex justify-center">
@@ -318,6 +367,7 @@ function EmployeeTable() {
       },
     },
     { 
+      id: "totalJobs",
       accessorKey: "totalJobs", 
       header: "Posted Jobs",
       cell: ({ row }) => (
@@ -327,6 +377,7 @@ function EmployeeTable() {
       ),
     },
     {
+      id: "creditsLeft",
       header: "Credits Left",
       cell: ({ row }) => (
         <div className="text-sm leading-5 text-center">
@@ -336,6 +387,7 @@ function EmployeeTable() {
       ),
     },
     {
+      id: "status",
       header: "Status",
       cell: ({ row }) => {
         const st = row.original.status;
@@ -364,6 +416,7 @@ function EmployeeTable() {
       },
     },
     {
+      id: "action",
       header: "Action",
       cell: ({ row }) => {
         const st = row.original.status;
@@ -405,7 +458,7 @@ function EmployeeTable() {
           return (
             <div className="flex gap-2 items-center justify-center">
               <button
-                onClick={() => openApprovalActionModal(row.original, "approve")}
+                onClick={() => openApprovalActionModal(row.original, "reapprove")}
                 className="flex items-center gap-1 px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 border border-purple-300 rounded-lg text-xs font-medium transition-all cursor-pointer"
                 title="Re-approve Company"
               >
@@ -489,7 +542,7 @@ function EmployeeTable() {
 
   const table = useReactTable({
     data: displayEmployers || [],
-    columns,
+    columns: columns.filter(col => activeTab === "approved" || col.accessorKey !== "companyType"),
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -625,7 +678,7 @@ function EmployeeTable() {
                       key={header.id}
                       className={`py-3.5 px-4 font-semibold text-[14px] text-gray-600 ${
                         header.id === "company" ? "text-left" : "text-center"
-                      }`}
+                      } ${getColumnWidthClass(header.id)}`}
                     >
                       {flexRender(
                         header.column.columnDef.header,
@@ -663,7 +716,7 @@ function EmployeeTable() {
                         key={cell.id}
                         className={`py-3 px-4 align-middle ${
                           cell.column.id === "company" ? "text-left" : "text-center"
-                        }`}
+                        } ${getColumnWidthClass(cell.column.id)}`}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -747,7 +800,7 @@ function EmployeeTable() {
             <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-100 transform transition-all animate-scaleIn">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  {approvalModal.actionType === "approve" ? (
+                  {approvalModal.actionType === "approve" || approvalModal.actionType === "reapprove" ? (
                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
                       <ThumbsUp size={22} />
                     </div>
@@ -759,6 +812,8 @@ function EmployeeTable() {
                   <h3 className="text-xl font-bold text-gray-900">
                     {approvalModal.actionType === "approve"
                       ? "Accept Company Request"
+                      : approvalModal.actionType === "reapprove"
+                      ? "Re-Approve Company Request"
                       : "Reject Company Request"}
                   </h3>
                 </div>
@@ -775,6 +830,11 @@ function EmployeeTable() {
                   <>
                     Are you sure you want to <strong className="text-emerald-700">ACCEPT</strong> company{" "}
                     <strong>"{approvalModal.company?.companyName}"</strong>? Upon acceptance, this company will be published directly to <strong>Employee Management</strong>.
+                  </>
+                ) : approvalModal.actionType === "reapprove" ? (
+                  <>
+                    Are you sure you want to <strong className="text-purple-700">RE-APPROVE</strong> company{" "}
+                    <strong>"{approvalModal.company?.companyName}"</strong>? It will be moved back to the <strong>Pending Approvals</strong> section.
                   </>
                 ) : (
                   <>
@@ -813,10 +873,16 @@ function EmployeeTable() {
                   className={`px-5 py-2 rounded-xl text-xs font-bold text-white shadow-sm transition ${
                     approvalModal.actionType === "approve"
                       ? "bg-emerald-600 hover:bg-emerald-700"
+                      : approvalModal.actionType === "reapprove"
+                      ? "bg-purple-600 hover:bg-purple-700"
                       : "bg-red-600 hover:bg-red-700"
                   }`}
                 >
-                  {approvalModal.actionType === "approve" ? "Confirm Accept" : "Confirm Reject"}
+                  {approvalModal.actionType === "approve"
+                    ? "Confirm Accept"
+                    : approvalModal.actionType === "reapprove"
+                    ? "Confirm Re-Approve"
+                    : "Confirm Reject"}
                 </button>
               </div>
             </div>

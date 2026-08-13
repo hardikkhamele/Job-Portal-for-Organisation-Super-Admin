@@ -4,13 +4,31 @@ import { toast } from "react-toastify";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const updateEmployerStatus = createAsyncThunk(
   "employer/updateStatus",
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status, reason, email }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token"); 
       const headers = { Authorization: `Bearer ${token}` };
       let response;
 
-      if (status === "active" || status === "approved" || status === "accepted") {
+      if (status === "accepted") {
+        response = await axios.patch(
+          `${BASE_URL}/api/admin/employer/${id}/accepted`,
+          { status: "accepted", isApproved: true, email },
+          { headers }
+        );
+      } else if (status === "rejected") {
+        response = await axios.patch(
+          `${BASE_URL}/api/admin/employer/${id}/reject`,
+          { status: "rejected", reason, email },
+          { headers }
+        );
+      } else if (status === "reapprove") {
+        response = await axios.patch(
+          `${BASE_URL}/api/admin/employer/${id}/reapprove`,
+          { email },
+          { headers }
+        );
+      } else if (status === "active" || status === "approved") {
         const endpoints = [
           { method: "patch", url: `${BASE_URL}/api/admin/employer/${id}/accepted` },
           { method: "patch", url: `${BASE_URL}/api/admin/employer/${id}/approve` },
