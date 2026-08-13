@@ -39,6 +39,16 @@ import {
 import { deleteEmployer, resetDeleteState } from "../../redux/slice/employer/deleteEmployeeSlice";
 import { toast } from "react-toastify";
 
+// A newly registered employer may not have a status in older API responses.
+// Treat it as pending until an admin explicitly approves it.
+const normalizeEmployerStatus = (status) =>
+  String(status || "pending").trim().toLowerCase();
+
+// Approval tabs must be calculated from the complete employer list. Fetching
+// only the current API page could hide a pending company that belongs to a
+// different page from both the Pending Approvals count and its table.
+const EMPLOYERS_FETCH_LIMIT = 1000;
+
 function EmployeeTable() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -75,15 +85,16 @@ function EmployeeTable() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Fetch employers from API whenever page, pageSize, or search term changes
+  // Fetch the complete list so approval-status tabs are accurate. Pagination
+  // below is then applied after the approval-status filter.
   useEffect(() => {
-    dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
-  }, [dispatch, page, pageSize, searchTerm]);
+    dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, search: searchTerm }));
+  }, [dispatch, searchTerm]);
 
   // ✅ Refresh data automatically when update or delete is successful
   useEffect(() => {
     if (updateSuccess || deleteSuccess) {
-      dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
+      dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, search: searchTerm }));
 
       // Cleanup states
       if (updateSuccess) dispatch(resetUpdateStatus());
@@ -93,7 +104,7 @@ function EmployeeTable() {
         setSelectedRow(null);
       }
     }
-  }, [updateSuccess, deleteSuccess, dispatch, page, pageSize, searchTerm]);
+  }, [updateSuccess, deleteSuccess, dispatch, searchTerm]);
 
   // Reset page to 1 whenever activeTab, pageSize, or searchTerm changes
   useEffect(() => {
@@ -108,7 +119,11 @@ function EmployeeTable() {
       const overrideStatus = localStatusUpdates[emp._id];
       return {
         ...emp,
-        status: overrideStatus || emp.status || "active",
+        // `status` represents the account state (for example, active), while
+        // `companyApprovalStatus` is the admin approval decision.
+        status: normalizeEmployerStatus(
+          overrideStatus ?? emp.companyApprovalStatus ?? emp.status,
+        ),
       };
     });
   }, [employers, localStatusUpdates]);
@@ -159,7 +174,7 @@ function EmployeeTable() {
     ) {
       setSelectedCompanyTypes((prev) => ({ ...prev, [id]: newType }));
       dispatch(updateCompanyType({ id, companyType: newType })).then(() => {
-        dispatch(fetchEmployers({ page, limit: pageSize, search: searchTerm }));
+        dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, search: searchTerm }));
       });
     }
   };
@@ -178,7 +193,7 @@ function EmployeeTable() {
         .unwrap()
         .then(() => {
           dispatch(
-            fetchEmployers({ page, limit: pageSize, search: searchTerm })
+            fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, search: searchTerm })
           );
         });
     }
