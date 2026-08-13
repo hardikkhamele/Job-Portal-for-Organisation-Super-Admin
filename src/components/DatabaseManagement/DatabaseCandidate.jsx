@@ -639,9 +639,32 @@ const DatabaseCandidate = () => {
       );
       const catIdForApi = catObj?.rawObj?._id || catObj?.rawObj?.id || catObj?.id || categoryVal;
       dispatch(fetchDesignations(catIdForApi));
+      dispatch(fetchCandidates({ category: categoryVal, page: 1, limit: 1000 }));
     } else {
       dispatch(fetchDesignations());
+      dispatch(fetchCandidates({ page: 1, limit: 1000 }));
     }
+  };
+
+  const handleExperienceChange = (e) => {
+    const expVal = e.target.value;
+    setSelectedExperience(expVal);
+    setCurrentPage(1);
+
+    dispatch(
+      fetchCandidates({
+        category: selectedCategory,
+        designation: selectedDesignation,
+        experience: expVal,
+        workMode: selectedWorkMode,
+        city: selectedCity,
+        state: selectedState,
+        country: selectedCountry,
+        search: search,
+        page: 1,
+        limit: 1000,
+      })
+    );
   };
 
   const formatDateToYYYYMMDD = (date) => {
@@ -699,6 +722,7 @@ const DatabaseCandidate = () => {
     setCurrentPage(1);
     setSelectedCandidates([]);
     dispatch(fetchDesignations());
+    dispatch(fetchCandidates({ page: 1, limit: 1000 }));
   };
 
   const parseDateToMs = (dateInput, endOfDay = false) => {
@@ -913,7 +937,7 @@ const DatabaseCandidate = () => {
       }
 
       // 8. Experience filter
-      if (selectedExperience) {
+      if (selectedExperience && selectedExperience !== "") {
         const targetExp = parseInt(selectedExperience, 10);
         const rawExp = (
           item.experience ??
@@ -922,9 +946,11 @@ const DatabaseCandidate = () => {
           item.professionalInfo?.totalExperience ??
           item.personalInfo?.experience ??
           ""
-        ).toString().toLowerCase();
+        ).toString().trim().toLowerCase();
 
-        if (rawExp) {
+        if (!rawExp || rawExp === "n/a" || rawExp === "undefined" || rawExp === "null") {
+          if (targetExp > 0) return false;
+        } else {
           if (rawExp.includes("fresher") && targetExp > 0) {
             return false;
           }
@@ -932,6 +958,8 @@ const DatabaseCandidate = () => {
           if (match) {
             const parsedExp = parseInt(match[0], 10);
             if (parsedExp < targetExp) return false;
+          } else if (targetExp > 0) {
+            return false;
           }
         }
       }
@@ -1564,10 +1592,7 @@ const DatabaseCandidate = () => {
 
                 <select
                   value={selectedExperience}
-                  onChange={(e) => {
-                    setSelectedExperience(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={handleExperienceChange}
                   className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[150px]"
                 >
                   <option value="">Select Experience</option>
@@ -1575,7 +1600,9 @@ const DatabaseCandidate = () => {
                   <option value="1">1+ Year</option>
                   <option value="2">2+ Years</option>
                   <option value="3">3+ Years</option>
+                  <option value="4">4+ Years</option>
                   <option value="5">5+ Years</option>
+                  <option value="6">6+ Years</option>
                 </select>
 
                 {(search ||

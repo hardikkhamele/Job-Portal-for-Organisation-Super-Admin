@@ -34,6 +34,7 @@ export const fetchCandidateProfile = createAsyncThunk(
                 "N/A",
               email:
                 payload.email ||
+                payload.mailId ||
                 payload.candidateEmail ||
                 payload.candidateInfo?.email ||
                 "N/A",
@@ -43,6 +44,15 @@ export const fetchCandidateProfile = createAsyncThunk(
                 payload.mobileNumber ||
                 payload.mobile ||
                 payload.candidateInfo?.phone ||
+                "N/A",
+              candidateStatus:
+                payload.candidateStatus ||
+                payload.status ||
+                "N/A",
+              interactionType:
+                payload.interactionType ||
+                payload.interaction ||
+                payload.assignedToType ||
                 "N/A",
             };
             return { data: normalised };

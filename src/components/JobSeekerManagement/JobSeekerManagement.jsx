@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Search, Code, Briefcase, Loader2 } from "lucide-react";
+import { Search, Code, Briefcase, Loader2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import CreateCategoryModal from "../common/CreateCategoryModal";
 import DeleteModal from "../common/DeleteModal";
@@ -34,10 +34,14 @@ function JobSeekerManagement() {
 
   const handleDelete = () => {
     if (categoryToDelete) {
-      dispatch(deleteCategory(categoryToDelete.id)).then(() => {
-        setDeleteOpen(false);
-        setCategoryToDelete(null);
-      });
+      const targetId = categoryToDelete._id || categoryToDelete.id;
+      if (targetId) {
+        dispatch(deleteCategory(targetId)).then(() => {
+          setDeleteOpen(false);
+          setCategoryToDelete(null);
+          dispatch(getAllCategories());
+        });
+      }
     }
   };
 
@@ -66,7 +70,7 @@ function JobSeekerManagement() {
             />
           </div>
           <button
-            className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded-md"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded-md cursor-pointer"
             onClick={() => { setMode("create"); setSelectedCategory(null); setOpen(true); }}
           >
             + Create Category
@@ -84,9 +88,21 @@ function JobSeekerManagement() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((cat) => (
               <div
-                key={cat.id}
-                className="bg-white border border-[#D3D3D3] shadow-[0px_4px_4px_0px_#00000040] rounded-lg p-5 relative"
+                key={cat.id || cat._id}
+                className="bg-white border border-[#D3D3D3] shadow-[0px_4px_4px_0px_#00000040] rounded-lg p-5 relative group"
               >
+                {/* Delete button (Trash Icon) */}
+                <button
+                  onClick={() => {
+                    setCategoryToDelete(cat);
+                    setDeleteOpen(true);
+                  }}
+                  title="Delete Category"
+                  className="absolute top-3 right-3 text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 p-2 rounded-full transition cursor-pointer"
+                >
+                  <Trash2 size={18} />
+                </button>
+
                 <div className="flex justify-center mb-3">
                   {cat.image ? (
                     <img
@@ -120,8 +136,8 @@ function JobSeekerManagement() {
                   <button
                     className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-1 w-28 rounded transition cursor-pointer"
                     onClick={() => {
-                      dispatch(setActiveCategoryId(cat.id));
-                      navigate(`/job-seeker/view-job-seeker/${cat.id}`);
+                      dispatch(setActiveCategoryId(cat.id || cat._id));
+                      navigate(`/job-seeker/view-job-seeker/${cat.id || cat._id}`);
                     }}
                   >
                     View

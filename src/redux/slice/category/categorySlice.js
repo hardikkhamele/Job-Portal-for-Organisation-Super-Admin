@@ -59,16 +59,27 @@ export const updateCategory = createAsyncThunk(
 
 export const deleteCategory = createAsyncThunk(
   "category/deleteCategory",
-  async (id, { rejectWithValue }) => {
-    try {
-      await axios.delete(
-        `${BASE_URL}/api/admin/jobSeeker/deleteCategory/${id}`,
-        { headers: getAuthHeader() }
-      );
-      return id;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Something went wrong");
+  async (id, { dispatch, rejectWithValue }) => {
+    const endpointsToTry = [
+      `${BASE_URL}/api/admin/jobSeeker/deleteCategory/${id}`,
+      `${BASE_URL}/api/admin/jobSeeker/category/${id}`,
+      `${BASE_URL}/api/admin/jobSeeker/deleteCategory?id=${id}`,
+      `${BASE_URL}/api/admin/category/deleteCategory/${id}`,
+    ];
+
+    let lastErr = null;
+    for (const url of endpointsToTry) {
+      try {
+        await axios.delete(url, { headers: getAuthHeader() });
+        dispatch(getAllCategories());
+        return id;
+      } catch (err) {
+        lastErr = err;
+      }
     }
+    return rejectWithValue(
+      lastErr?.response?.data?.message || lastErr?.message || "Failed to delete category"
+    );
   }
 );
 
@@ -244,11 +255,19 @@ const categorySlice = createSlice({
       })
       .addCase(getAllCategories.fulfilled, (state, action) => {
         state.categoriesLoading = false;
-        state.categories = Array.isArray(action.payload?.data)
+        const rawList = Array.isArray(action.payload?.data)
           ? action.payload.data
           : Array.isArray(action.payload)
           ? action.payload
           : [];
+        state.categories = rawList.map((item) => ({
+          ...item,
+          id: item.id || item._id,
+          _id: item._id || item.id,
+          categoryName: item.categoryName || item.name || item.title || "Category",
+          image: item.image || item.icon || item.categoryImage,
+          description: item.description || item.desc,
+        }));
       })
       .addCase(getAllCategories.rejected, (state, action) => {
         state.categoriesLoading = false;
@@ -300,7 +319,7 @@ const categorySlice = createSlice({
       .addCase(deleteCategory.pending, (state) => { state.categoryActionLoading = true; })
       .addCase(deleteCategory.fulfilled, (state, action) => {
         state.categoryActionLoading = false;
-        state.categories = state.categories.filter((c) => c.id !== action.payload);
+        state.categories = state.categories.filter((c) => c.id !== action.payload && c._id !== action.payload);
         toast.success("Category deleted successfully!", { autoClose: 1500 });
       })
       .addCase(deleteCategory.rejected, (state, action) => {

@@ -52,11 +52,8 @@ export const fetchCandidates = createAsyncThunk(
       if (search && search.trim()) params.search = search.trim();
 
       if (category) {
-        if (isValidObjectId(String(category))) {
-          params.category = category;
-        } else {
-          params.categoryName = category;
-        }
+        params.category = category;
+        params.categoryName = category;
       }
 
       if (designation) {
@@ -72,7 +69,10 @@ export const fetchCandidates = createAsyncThunk(
       if (state) params.state = state;
       if (country) params.country = country;
       if (workMode) params.workMode = workMode;
-      if (experience) params.experience = experience;
+      if (experience !== undefined && experience !== null && experience !== "") {
+        params.experience = experience;
+        params.totalExperience = experience;
+      }
       if (startDate) {
         const formattedStart = formatToDDMMYYYY(startDate);
         params.startDate = formattedStart;
