@@ -301,26 +301,22 @@ export const exportInvoice = async (transaction) => {
 
       <!-- BILLED TO BLOCK -->
       <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 16px; background: #ffffff;">
-        <div style="background: #f1f5f9; padding: 6px 16px 9px; border-bottom: 1px solid #4b5563; text-align: center;">
+        <div style="background: #f1f5f9; padding: 6px 16px 9px; border-bottom: 1px solid #4b5563; text-align: left;">
           <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px; display: inline-block; line-height: 1.2;">BILLED TO</span>
         </div>
-        <div style="padding: 12px 16px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a; table-layout: fixed;">
+        <div style="padding: 10px 16px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
             <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">Company:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a;">${customerCompany}</td>
+              <td style="width: 110px; text-align: left; padding: 5px 8px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Company:</td>
+              <td style="text-align: left; padding: 5px 8px; color: #0f172a;">${customerCompany}</td>
             </tr>
             <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">Mobile:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a;">${customerMobile}</td>
+              <td style="width: 110px; text-align: left; padding: 5px 8px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Email:</td>
+              <td style="text-align: left; padding: 5px 8px; color: #0f172a; word-break: break-all;">${customerEmail}</td>
             </tr>
             <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">Email:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a; word-break: break-all;">${customerEmail}</td>
-            </tr>
-            <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">City/State:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a;">${customerCityState}</td>
+              <td style="width: 110px; text-align: left; padding: 5px 8px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">City/State:</td>
+              <td style="text-align: left; padding: 5px 8px; color: #0f172a;">${customerCityState}</td>
             </tr>
           </table>
         </div>
@@ -328,30 +324,30 @@ export const exportInvoice = async (transaction) => {
 
       <!-- INVOICE DETAILS BLOCK -->
       <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 22px; background: #ffffff;">
-        <div style="background: #f1f5f9; padding: 6px 16px 9px; border-bottom: 1px solid #4b5563; text-align: center;">
+        <div style="background: #f1f5f9; padding: 6px 16px 9px; border-bottom: 1px solid #4b5563; text-align: left;">
           <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px; display: inline-block; line-height: 1.2;">INVOICE DETAILS</span>
         </div>
-        <div style="padding: 12px 16px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a; table-layout: fixed;">
+        <div style="padding: 10px 16px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
             <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">Invoice No.:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a;">${invoiceNumber}</td>
+              <td style="width: 130px; text-align: left; padding: 5px 8px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Invoice No.:</td>
+              <td style="text-align: left; padding: 5px 8px; color: #0f172a;">${invoiceNumber}</td>
             </tr>
             <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">Transaction ID:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a;">${transactionNumber}</td>
+              <td style="width: 130px; text-align: left; padding: 5px 8px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Transaction ID:</td>
+              <td style="text-align: left; padding: 5px 8px; color: #0f172a;">${transactionNumber}</td>
             </tr>
             <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">Payment Date:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a;">${dateStr}</td>
+              <td style="width: 130px; text-align: left; padding: 5px 8px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Date:</td>
+              <td style="text-align: left; padding: 5px 8px; color: #0f172a;">${dateStr}</td>
             </tr>
             <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">Payment Status:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a;">${paymentStatus}</td>
+              <td style="width: 130px; text-align: left; padding: 5px 8px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Status:</td>
+              <td style="text-align: left; padding: 5px 8px; color: #0f172a;">${paymentStatus}</td>
             </tr>
             <tr>
-              <td style="width: 50%; text-align: right; padding: 5px 12px; font-weight: 600; color: #334155; white-space: nowrap;">Payment Method:</td>
-              <td style="width: 50%; text-align: left; padding: 5px 12px; color: #0f172a;">${paymentMethod}</td>
+              <td style="width: 130px; text-align: left; padding: 5px 8px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Method:</td>
+              <td style="text-align: left; padding: 5px 8px; color: #0f172a;">${paymentMethod}</td>
             </tr>
           </table>
         </div>
