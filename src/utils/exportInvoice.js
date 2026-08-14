@@ -299,68 +299,63 @@ export const exportInvoice = async (transaction) => {
         <h1 style="margin: 0; font-size: 16px; line-height: 1.2; color: #0f172a; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">TAX INVOICE</h1>
       </div>
 
-      <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 22px;">
-        <tr>
-          <td style="width: 50%; padding-right: 10px; vertical-align: top;">
-            <div style="border: 1px solid #4b5563; border-radius: 0; background: #ffffff; min-height: 180px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
-              <div style="background: #f1f5f9; padding: 8px 12px; border-bottom: 1px solid #4b5563; text-align: center;">
-                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">BILLED TO</span>
-              </div>
-              <div style="padding: 12px; font-size: 13px; color: #0f172a; flex: 1;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
-                  <tr>
-                    <td style="width: 90px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Company:</td>
-                    <td style="padding: 5px 0; color: #0f172a;">${customerCompany}</td>
-                  </tr>
-                  <tr>
-                    <td style="width: 90px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Mobile:</td>
-                    <td style="padding: 5px 0; color: #0f172a;">${customerMobile}</td>
-                  </tr>
-                  <tr>
-                    <td style="width: 90px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Email:</td>
-                    <td style="padding: 5px 0; color: #0f172a; word-break: break-all;">${customerEmail}</td>
-                  </tr>
-                  <tr>
-                    <td style="width: 90px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">City/State:</td>
-                    <td style="padding: 5px 0; color: #0f172a;">${customerCityState}</td>
-                  </tr>
-                </table>
-              </div>
-            </div>
-          </td>
-          <td style="width: 50%; padding-left: 10px; vertical-align: top;">
-            <div style="border: 1px solid #4b5563; border-radius: 0; background: #ffffff; min-height: 180px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
-              <div style="background: #f1f5f9; padding: 8px 12px; border-bottom: 1px solid #4b5563; text-align: center;">
-                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">INVOICE DETAILS</span>
-              </div>
-              <div style="padding: 12px; font-size: 13px; color: #0f172a; flex: 1;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
-                  <tr>
-                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Invoice No.:</td>
-                    <td style="padding: 5px 0; color: #0f172a;">${invoiceNumber}</td>
-                  </tr>
-                  <tr>
-                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Transaction ID:</td>
-                    <td style="padding: 5px 0; color: #0f172a;">${transactionNumber}</td>
-                  </tr>
-                  <tr>
-                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Date:</td>
-                    <td style="padding: 5px 0; color: #0f172a;">${dateStr}</td>
-                  </tr>
-                  <tr>
-                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Status:</td>
-                    <td style="padding: 5px 0; color: #0f172a;">${paymentStatus}</td>
-                  </tr>
-                  <tr>
-                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Method:</td>
-                    <td style="padding: 5px 0; color: #0f172a;">${paymentMethod}</td>
-                  </tr>
-                </table>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </table>
+      <!-- BILLED TO BLOCK -->
+      <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 16px; background: #ffffff;">
+        <div style="background: #f1f5f9; padding: 8px 16px; border-bottom: 1px solid #4b5563;">
+          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">BILLED TO</span>
+        </div>
+        <div style="padding: 12px 16px;">
+          <table style="width: 100%; max-width: 480px; margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #0f172a;">
+            <tr>
+              <td style="width: 120px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Company:</td>
+              <td style="padding: 5px 8px; color: #0f172a;">${customerCompany}</td>
+            </tr>
+            <tr>
+              <td style="width: 120px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Mobile:</td>
+              <td style="padding: 5px 8px; color: #0f172a;">${customerMobile}</td>
+            </tr>
+            <tr>
+              <td style="width: 120px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Email:</td>
+              <td style="padding: 5px 8px; color: #0f172a; word-break: break-all;">${customerEmail}</td>
+            </tr>
+            <tr>
+              <td style="width: 120px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">City/State:</td>
+              <td style="padding: 5px 8px; color: #0f172a;">${customerCityState}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- INVOICE DETAILS BLOCK -->
+      <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 22px; background: #ffffff;">
+        <div style="background: #f1f5f9; padding: 8px 16px; border-bottom: 1px solid #4b5563;">
+          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">INVOICE DETAILS</span>
+        </div>
+        <div style="padding: 12px 16px;">
+          <table style="width: 100%; max-width: 480px; margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #0f172a;">
+            <tr>
+              <td style="width: 135px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Invoice No.:</td>
+              <td style="padding: 5px 8px; color: #0f172a;">${invoiceNumber}</td>
+            </tr>
+            <tr>
+              <td style="width: 135px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Transaction ID:</td>
+              <td style="padding: 5px 8px; color: #0f172a;">${transactionNumber}</td>
+            </tr>
+            <tr>
+              <td style="width: 135px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Payment Date:</td>
+              <td style="padding: 5px 8px; color: #0f172a;">${dateStr}</td>
+            </tr>
+            <tr>
+              <td style="width: 135px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Payment Status:</td>
+              <td style="padding: 5px 8px; color: #0f172a;">${paymentStatus}</td>
+            </tr>
+            <tr>
+              <td style="width: 135px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Payment Method:</td>
+              <td style="padding: 5px 8px; color: #0f172a;">${paymentMethod}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
 
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 22px;">
         <thead>
