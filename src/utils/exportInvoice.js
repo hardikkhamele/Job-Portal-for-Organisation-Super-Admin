@@ -130,8 +130,8 @@ export const exportInvoice = async (transaction) => {
 
   const logoUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/Singup1logo.svg`
-      : "/Singup1logo.svg";
+      ? `${window.location.origin}/technokrate_logo.png`
+      : "/technokrate_logo.png";
 
   const preloadLogo = async (src) => {
     if (!src) return false;
@@ -276,20 +276,20 @@ export const exportInvoice = async (transaction) => {
 
   element.innerHTML = `
     <div style="max-width: 780px; margin: 0 auto; padding: 24px; border: none; border-radius: 0; background: #ffffff;">
-      <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 18px; background: #ffffff;">
-        <table style="width: 100%; border-collapse: collapse; margin: 0; background: #ffffff;">
+      <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 18px; background: #ffffff; box-sizing: border-box; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; margin: 0; background: #ffffff; table-layout: fixed;">
           <tr>
-            <td style="vertical-align: top; padding: 10px 16px 12px;">
-              <div style="font-size: 28px; font-weight: 600; color: #ea580c; letter-spacing: -0.5px;">TECH NOHIRE</div>
+            <td style="vertical-align: middle; padding: 14px 16px;">
+              <div style="font-size: 26px; font-weight: 700; color: #ea580c; letter-spacing: -0.5px;">TECHNOKRATE HIRE</div>
               <div style="margin-top: 8px; color: #475569; font-size: 12px; line-height: 1.6;">
                 123 Business Park, Sector 21, Nagpur, Maharashtra - 440015<br />
-                support@technohire.com | +91 997575050
+                support@technokratehire.com | +91 997575050
               </div>
             </td>
-            <td style="width: 260px; padding: 10px 0 12px 0; vertical-align: top; text-align: right;">
+            <td style="width: 260px; vertical-align: middle; padding: 14px 16px; text-align: right;">
               ${useLogo
-                ? `<img src="${useLogo}" alt="Company Logo" style="max-width: 260px; max-height: 160px; width: auto; height: auto; object-fit: contain; display: inline-block; border: none;" />`
-                : `<div style="width: 260px; height: 160px; display: inline-flex; align-items: center; justify-content: center; color: #64748b; font-size: 12px;">Company Logo</div>`}
+                ? `<img src="${useLogo}" alt="Company Logo" style="max-width: 240px; max-height: 85px; width: auto; height: auto; object-fit: contain; display: inline-block; border: none; vertical-align: middle;" />`
+                : `<div style="width: 240px; height: 80px; display: inline-flex; align-items: center; justify-content: center; color: #64748b; font-size: 12px;">Company Logo</div>`}
             </td>
           </tr>
         </table>
@@ -299,61 +299,65 @@ export const exportInvoice = async (transaction) => {
         <h1 style="margin: 0; font-size: 16px; line-height: 1.2; color: #0f172a; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">TAX INVOICE</h1>
       </div>
 
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
+      <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 22px;">
         <tr>
-          <td style="vertical-align: top; padding: 0; border: 1px solid #4b5563; border-radius: 0;">
-            <div style="background: #f1f5f9; padding: 6px 12px; border-bottom: 1px solid #4b5563;">
-              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">Billed To</span>
+          <td style="width: 50%; padding-right: 10px; vertical-align: top;">
+            <div style="border: 1px solid #4b5563; border-radius: 0; background: #ffffff; min-height: 180px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
+              <div style="background: #f1f5f9; padding: 8px 12px; border-bottom: 1px solid #4b5563; text-align: center;">
+                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">BILLED TO</span>
+              </div>
+              <div style="padding: 12px; font-size: 13px; color: #0f172a; flex: 1;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
+                  <tr>
+                    <td style="width: 90px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Company:</td>
+                    <td style="padding: 5px 0; color: #0f172a;">${customerCompany}</td>
+                  </tr>
+                  <tr>
+                    <td style="width: 90px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Mobile:</td>
+                    <td style="padding: 5px 0; color: #0f172a;">${customerMobile}</td>
+                  </tr>
+                  <tr>
+                    <td style="width: 90px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Email:</td>
+                    <td style="padding: 5px 0; color: #0f172a; word-break: break-all;">${customerEmail}</td>
+                  </tr>
+                  <tr>
+                    <td style="width: 90px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">City/State:</td>
+                    <td style="padding: 5px 0; color: #0f172a;">${customerCityState}</td>
+                  </tr>
+                </table>
+              </div>
             </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
-              <tr>
-                <td style="width: 70px; padding: 4px 2px 4px 8px; color: #0f172a; white-space: nowrap;">Company:</td>
-                <td style="padding: 4px 8px;">${customerCompany}</td>
-              </tr>
-              <tr>
-                <td style=" width:50px;padding: 4px  8px; color: #0f172a; white-space: nowrap;">Mobile:</td>
-                <td style="padding: 4px 8px;">${customerMobile}</td>
-              </tr>
-              <tr>
-                <td style="padding: 4px 8px; color: #0f172a; white-space: nowrap;">Email:</td>
-                <td style="padding: 4px 8px;">${customerEmail}</td>
-              </tr>
-              <tr>
-                <td style="padding: 4px 8px 8px 8px; color: #0f172a; white-space: nowrap;">City/State:</td>
-                <td style="padding: 4px 8px 8px 8px;">${customerCityState}</td>
-              </tr>
-            </table>
           </td>
-        </tr>
-      </table>
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
-        <tr>
-          <td style="vertical-align: top; padding: 0; border: 1px solid #4b5563; border-radius: 0; background: #ffffff;">
-            <div style="background: #f1f5f9; padding: 6px 12px; border-bottom: 1px solid #4b5563;">
-              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">Invoice Details</span>
+          <td style="width: 50%; padding-left: 10px; vertical-align: top;">
+            <div style="border: 1px solid #4b5563; border-radius: 0; background: #ffffff; min-height: 180px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
+              <div style="background: #f1f5f9; padding: 8px 12px; border-bottom: 1px solid #4b5563; text-align: center;">
+                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">INVOICE DETAILS</span>
+              </div>
+              <div style="padding: 12px; font-size: 13px; color: #0f172a; flex: 1;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
+                  <tr>
+                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Invoice No.:</td>
+                    <td style="padding: 5px 0; color: #0f172a;">${invoiceNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Transaction ID:</td>
+                    <td style="padding: 5px 0; color: #0f172a;">${transactionNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Date:</td>
+                    <td style="padding: 5px 0; color: #0f172a;">${dateStr}</td>
+                  </tr>
+                  <tr>
+                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Status:</td>
+                    <td style="padding: 5px 0; color: #0f172a;">${paymentStatus}</td>
+                  </tr>
+                  <tr>
+                    <td style="width: 115px; padding: 5px 6px 5px 0; font-weight: 600; color: #334155; white-space: nowrap;">Payment Method:</td>
+                    <td style="padding: 5px 0; color: #0f172a;">${paymentMethod}</td>
+                  </tr>
+                </table>
+              </div>
             </div>
-            <table style="width: 100%; border-collapse: collapse; margin: 0; font-size: 13px; color: #0f172a;">
-              <tr>
-                <td style="width: 96px; padding: 4px 8px; color: #1e293b; white-space: nowrap;">Invoice No.:</td>
-                <td style="padding: 4px 8px;">${invoiceNumber}</td>
-              </tr>
-              <tr>
-                <td style="padding: 4px 8px; color: #1e293b; white-space: nowrap;">Transaction ID:</td>
-                <td style="padding: 4px 8px;">${transactionNumber}</td>
-              </tr>
-              <tr>
-                <td style="padding: 4px 8px; color: #1e293b; white-space: nowrap;">Payment Date:</td>
-                <td style="padding: 4px 8px;">${dateStr}</td>
-              </tr>
-              <tr>
-                <td style="padding: 4px 8px; color: #1e293b; white-space: nowrap;">Payment Status:</td>
-                <td style="padding: 4px 8px;">${paymentStatus}</td>
-              </tr>
-              <tr>
-                <td style="padding: 4px 8px 8px 8px; color: #1e293b; white-space: nowrap;">Payment Method:</td>
-                <td style="padding: 4px 8px 8px 8px;">${paymentMethod}</td>
-              </tr>
-            </table>
           </td>
         </tr>
       </table>
@@ -383,7 +387,7 @@ export const exportInvoice = async (transaction) => {
         <tr>
           <td style="width: 50%; padding-right: 10px; vertical-align: top;">
             <div style="border: 1px solid #4b5563; border-radius: 0; background: #ffffff; min-height: 150px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
-              <div style="background: #f1f5f9; padding: 8px 12px; border-bottom: 1px solid #4b5563;">
+              <div style="background: #f1f5f9; padding: 8px 12px; border-bottom: 1px solid #4b5563; text-align: center;">
                 <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">Amount in Words</span>
               </div>
               <div style="padding: 12px; font-size: 13px; color: #0f172a; line-height: 1.6; flex: 1;">${amountInWords}</div>
@@ -411,7 +415,7 @@ export const exportInvoice = async (transaction) => {
       </table>
 
       <div style="margin-top: 28px; padding-top: 14px; border-top: 1px solid #4b5563; text-align: center; font-size: 11px; color: #64748b;">
-        Thank you for your business with TechnoHire. This is an electronically generated invoice and does not require a signature.
+        Thank you for your business with Technokrate Hire. This is an electronically generated invoice and does not require a signature.
       </div>
     </div>
   `;
