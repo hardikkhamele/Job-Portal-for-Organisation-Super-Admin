@@ -309,8 +309,14 @@ export const exportInvoice = async (transaction) => {
 
       <!-- BILLED TO BLOCK -->
       <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 16px; background: #ffffff;">
-        <div style="background: #f1f5f9; padding: 6px 16px 9px; border-bottom: 1px solid #4b5563; text-align: left;">
-          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px; display: inline-block; line-height: 1.2;">BILLED TO</span>
+        <div style="background: #f1f5f9; border-bottom: 1px solid #4b5563;">
+          <table style="width: 100%; border-collapse: collapse; margin: 0; background: transparent; height: 32px;">
+            <tr>
+              <td style="vertical-align: middle; text-align: left; padding: 0 16px 3px 16px; font-size: 12px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">
+                BILLED TO
+              </td>
+            </tr>
+          </table>
         </div>
         <div style="padding: 10px 16px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
@@ -332,8 +338,14 @@ export const exportInvoice = async (transaction) => {
 
       <!-- INVOICE DETAILS BLOCK -->
       <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 22px; background: #ffffff;">
-        <div style="background: #f1f5f9; padding: 6px 16px 9px; border-bottom: 1px solid #4b5563; text-align: left;">
-          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px; display: inline-block; line-height: 1.2;">INVOICE DETAILS</span>
+        <div style="background: #f1f5f9; border-bottom: 1px solid #4b5563;">
+          <table style="width: 100%; border-collapse: collapse; margin: 0; background: transparent; height: 32px;">
+            <tr>
+              <td style="vertical-align: middle; text-align: left; padding: 0 16px 3px 16px; font-size: 12px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">
+                INVOICE DETAILS
+              </td>
+            </tr>
+          </table>
         </div>
         <div style="padding: 10px 16px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #0f172a;">
