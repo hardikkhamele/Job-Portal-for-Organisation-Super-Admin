@@ -295,17 +295,17 @@ export const exportInvoice = async (transaction) => {
         </table>
       </div>
 
-      <div style="border: 1px solid #4b5563; border-radius: 0; padding: 0; margin-bottom: 22px; background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 36px;">
-        <h1 style="margin: 0; font-size: 16px; line-height: 1.2; color: #0f172a; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">TAX INVOICE</h1>
+      <div style="border: 1px solid #4b5563; border-radius: 0; padding: 0; margin-bottom: 22px; background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 36px; text-align: center;">
+        <h1 style="margin: 0; font-size: 16px; line-height: 1.2; color: #0f172a; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; width: 100%;">TAX INVOICE</h1>
       </div>
 
       <!-- BILLED TO BLOCK -->
       <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 16px; background: #ffffff;">
-        <div style="background: #f1f5f9; padding: 8px 16px; border-bottom: 1px solid #4b5563;">
+        <div style="background: #f1f5f9; padding: 8px 16px; border-bottom: 1px solid #4b5563; text-align: center;">
           <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">BILLED TO</span>
         </div>
         <div style="padding: 12px 16px;">
-          <table style="width: 100%; max-width: 480px; margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #0f172a;">
+          <table style="width: 100%; max-width: 440px; margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #0f172a;">
             <tr>
               <td style="width: 120px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Company:</td>
               <td style="padding: 5px 8px; color: #0f172a;">${customerCompany}</td>
@@ -328,11 +328,11 @@ export const exportInvoice = async (transaction) => {
 
       <!-- INVOICE DETAILS BLOCK -->
       <div style="border: 1px solid #4b5563; border-radius: 0; margin-bottom: 22px; background: #ffffff;">
-        <div style="background: #f1f5f9; padding: 8px 16px; border-bottom: 1px solid #4b5563;">
+        <div style="background: #f1f5f9; padding: 8px 16px; border-bottom: 1px solid #4b5563; text-align: center;">
           <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e293b; letter-spacing: 0.5px;">INVOICE DETAILS</span>
         </div>
         <div style="padding: 12px 16px;">
-          <table style="width: 100%; max-width: 480px; margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #0f172a;">
+          <table style="width: 100%; max-width: 440px; margin: 0 auto; border-collapse: collapse; font-size: 13px; color: #0f172a;">
             <tr>
               <td style="width: 135px; padding: 5px 8px; font-weight: 600; color: #334155; white-space: nowrap;">Invoice No.:</td>
               <td style="padding: 5px 8px; color: #0f172a;">${invoiceNumber}</td>
