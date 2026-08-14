@@ -284,7 +284,7 @@ export const exportInvoice = async (transaction) => {
                 <span style="color: #000000;">TECHNOKRATE </span><span style="color: #8931ba;">HIRE</span>
               </div>
               <div style="margin-top: 8px; color: #475569; font-size: 12px; line-height: 1.6;">
-                123 Business Park, Sector 21, Nagpur, Maharashtra - 440015<br />
+                Narendra Nagar Extension, Madhuban Layout, Nagpur, Maharashtra 440015<br />
                 support@technokratehire.com
               </div>
             </td>
