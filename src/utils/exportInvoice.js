@@ -280,10 +280,12 @@ export const exportInvoice = async (transaction) => {
         <table style="width: 100%; border-collapse: collapse; margin: 0; background: #ffffff; table-layout: fixed;">
           <tr>
             <td style="vertical-align: middle; padding: 14px 16px;">
-              <div style="font-size: 26px; font-weight: 700; color: #ea580c; letter-spacing: -0.5px;">TECHNOKRATE HIRE</div>
+              <div style="font-size: 26px; font-weight: 700; letter-spacing: -0.5px;">
+                <span style="color: #000000;">TECHNOKRATE </span><span style="color: #2563eb;">HIRE</span>
+              </div>
               <div style="margin-top: 8px; color: #475569; font-size: 12px; line-height: 1.6;">
                 123 Business Park, Sector 21, Nagpur, Maharashtra - 440015<br />
-                support@technokratehire.com | +91 997575050
+                support@technokratehire.com
               </div>
             </td>
             <td style="width: 260px; vertical-align: middle; padding: 14px 16px; text-align: right;">
