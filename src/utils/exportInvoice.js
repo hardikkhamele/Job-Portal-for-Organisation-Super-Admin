@@ -295,8 +295,8 @@ export const exportInvoice = async (transaction) => {
         </table>
       </div>
 
-      <div style="border: 1px solid #4b5563; border-radius: 0; padding: 0; margin-bottom: 22px; background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 36px; text-align: center;">
-        <h1 style="margin: 0; font-size: 16px; line-height: 1.2; color: #0f172a; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; width: 100%;">TAX INVOICE</h1>
+      <div style="border: 1px solid #4b5563; border-radius: 0; padding: 8px 12px; margin-bottom: 22px; background: #f8fafc; text-align: center; box-sizing: border-box;">
+        <h1 style="margin: 0; font-size: 16px; line-height: 1.4; color: #0f172a; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; width: 100%;">TAX INVOICE</h1>
       </div>
 
       <!-- BILLED TO BLOCK -->
