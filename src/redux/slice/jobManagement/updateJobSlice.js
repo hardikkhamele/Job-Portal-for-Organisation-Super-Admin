@@ -16,26 +16,27 @@ export const updateJob = createAsyncThunk(
         },
       };
 
+      // Jobs are updated by the job service. The admin routes remain as
+      // fallbacks for older API deployments.
+      const updateEndpoints = [
+        `/api/job/updatejob/${jobId}`,
+        `/api/admin/jobs/updateJob/${jobId}`,
+        `/api/admin/employer/updateJob/${jobId}`,
+      ];
+
       let response;
-      try {
-        // 1. Primary Endpoint: PUT /api/admin/jobs/updateJob/:jobId
-        response = await axios.put(
-          `${BASE_URL}/api/admin/jobs/updateJob/${jobId}`,
-          jobData,
-          authHeader
-        );
-      } catch (err1) {
-        // Only fallback if status is 404 (Route not found)
-        if (err1.response && err1.response.status === 404) {
-          response = await axios.put(
-            `${BASE_URL}/api/admin/employer/updateJob/${jobId}`,
-            jobData,
-            authHeader
-          );
-        } else {
-          throw err1;
+      let lastError;
+      for (const endpoint of updateEndpoints) {
+        try {
+          response = await axios.put(`${BASE_URL}${endpoint}`, jobData, authHeader);
+          break;
+        } catch (error) {
+          lastError = error;
+          if (error.response?.status !== 404) throw error;
         }
       }
+
+      if (!response) throw lastError;
 
       toast.success("Job updated successfully!", {
         position: "top-right",

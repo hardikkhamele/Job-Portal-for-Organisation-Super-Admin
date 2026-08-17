@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/admin/blog`;
 
@@ -48,6 +49,12 @@ export const updateBlog = createAsyncThunk(
         headers: { ...getHeaders(), "Content-Type": "multipart/form-data" },
       });
       toast.success("Blog updated successfully!");
+      const blogTitle = formData.get ? formData.get('title') : (formData.title || 'Blog');
+      addNotification(
+        "Blog Updated Successfully",
+        `Blog post "${blogTitle}" has been updated successfully.`,
+        "success"
+      );
       return response.data;
     } catch (error) {
       toast.error(error.response?.data?.message || "Update failed");
@@ -63,6 +70,11 @@ export const deleteBlog = createAsyncThunk(
     try {
       await axios.delete(`${BASE_URL}/delete/${id}`, { headers: getHeaders() });
       toast.success("Blog deleted successfully!");
+      addNotification(
+        "Blog Deleted Successfully",
+        `Blog post (ID: ${id}) has been deleted successfully.`,
+        "success"
+      );
       return id;
     } catch (error) {
       toast.error(error.response?.data?.message || "Delete failed");

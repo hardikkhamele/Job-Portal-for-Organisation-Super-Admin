@@ -1,6 +1,6 @@
 import React from "react";
 
-function HrModal({ isOpen, onClose, onConfirm }) {
+function HrModal({ isOpen, onClose, onConfirm, loading = false }) {
   if (!isOpen) return null;
 
   return (
@@ -21,6 +21,7 @@ function HrModal({ isOpen, onClose, onConfirm }) {
         <div className="flex justify-center gap-4">
           <button
             onClick={onClose}
+            disabled={loading}
             className="w-40 py-2 rounded-lg bg-purple-200 text-purple-700 font-medium"
           >
             Cancel
@@ -28,9 +29,10 @@ function HrModal({ isOpen, onClose, onConfirm }) {
 
           <button
             onClick={onConfirm}
+            disabled={loading}
             className="w-40 py-2 rounded-lg bg-purple-700 text-white font-medium"
           >
-            Delete
+            {loading ? "Deleting..." : "Delete"}
           </button>
         </div>
       </div>

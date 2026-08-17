@@ -194,22 +194,24 @@ const JobManagement = () => {
         jobType: editFormData.jobType,
         experience: editFormData.experience,
       },
+      // Older list responses read these values from the top level.
+      jobLevel: editFormData.jobLevel,
+      jobType: editFormData.jobType,
+      experience: editFormData.experience,
       jobDescription: editFormData.jobDescription,
     };
 
-    dispatch(updateJob({ jobId, jobData: payload }))
-      .unwrap()
-      .then(() => {
-        setIsEditModalOpen(false);
-        setEditingJob(null);
-        dispatch(fetchAllJobs({ page: 1, limit: 150 }));
-      })
-      .catch((err) => {
-        console.error("Error updating job:", err);
-      })
-      .finally(() => {
-        setEditLoading(false);
-      });
+    try {
+      await dispatch(updateJob({ jobId, jobData: payload })).unwrap();
+      // Do not close the editor until the table has received the saved data.
+      await dispatch(fetchAllJobs({ page: 1, limit: 150 })).unwrap();
+      setIsEditModalOpen(false);
+      setEditingJob(null);
+    } catch (err) {
+      console.error("Error updating job:", err);
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const handleDeleteClick = (row) => {
@@ -297,7 +299,10 @@ const JobManagement = () => {
         <div className="text-left">
           <p className="font-medium">{row.original.jobTitle}</p>
           <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-            <span>{row.original.jobType} {row.original.subCategory?.name ? `• ${row.original.subCategory?.name}` : ''}</span>
+            <span>
+              {row.original.advanceInformation?.jobType || row.original.jobType || "N/A"}
+              {row.original.subCategory?.name ? ` • ${row.original.subCategory.name}` : ""}
+            </span>
           </div>
         </div>
       ),

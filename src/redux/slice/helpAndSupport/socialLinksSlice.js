@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -45,6 +46,11 @@ export const updateSocialLinks = createAsyncThunk(
         position: "top-right",
         autoClose: 3000,
       });
+      addNotification(
+        "Social Links Updated",
+        "System help & support social links were updated successfully.",
+        "success"
+      );
       return response.data;
     } catch (error) {
       const message =

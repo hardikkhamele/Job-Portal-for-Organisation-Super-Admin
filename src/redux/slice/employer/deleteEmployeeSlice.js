@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const deleteEmployer = createAsyncThunk(
   "employer/delete",
@@ -17,6 +18,11 @@ export const deleteEmployer = createAsyncThunk(
       );
 
       toast.success(response.data.message || "Employer deleted successfully!");
+      addNotification(
+        "Employer Deleted",
+        `Employer account (ID: ${id}) was deleted successfully.`,
+        "success"
+      );
       return id;
     } catch (error) {
       const message = error.response?.data?.message || "Failed to delete employer";

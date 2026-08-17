@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const approveCandidate = createAsyncThunk(
   "candidate/approve",
@@ -22,6 +23,12 @@ export const approveCandidate = createAsyncThunk(
         position: "top-right",
         autoClose: 10000,
       });
+
+      addNotification(
+        "Candidate Approved",
+        `Candidate (ID: ${id}) has been approved in the database.`,
+        "success"
+      );
 
       return response.data;
     } catch (error) {

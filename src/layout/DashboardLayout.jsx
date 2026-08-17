@@ -68,6 +68,7 @@ import CustomPlans from "../components/SubscriptionManagement/customPlan/CustomP
 import CustomPlanDetail from "../components/SubscriptionManagement/customPlan/CustomPlanDetail";
 import EditCreditModel from "../components/CreditManagement/EditCreditModel";
 import MyProfile from "../components/auth/MyProfile";
+import SendNotification from "../components/NotificationManagement/SendNotification";
 
 function DashboardLayout() {
   return (
@@ -225,6 +226,8 @@ function DashboardLayout() {
             />
             {/* My Profile */}
             <Route path="/my-profile" element={<MyProfile />} />
+            {/* Send Notification */}
+            <Route path="/notification-management/send-notification" element={<SendNotification />} />
             {/* Fallback */}
             {/* <Route path="*" element={<Dashboard />} /> */}
           </Routes>

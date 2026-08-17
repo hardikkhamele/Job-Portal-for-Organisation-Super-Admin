@@ -16,10 +16,7 @@ import {
 } from "@tanstack/react-table";
 import HrModal from "../common/HrModal";
 import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
-// import {
-//   deleteHr,
-//   resetDeleteState,
-// } from "../../redux/slice/hrManagement/deleteHr";
+import { deleteHr } from "../../redux/slice/hrManagement/deleteHr";
 import { toggleHrStatus } from "../../redux/slice/hrManagement/updateStatus"; // Import Toggle Action
 import Footer from "../Footer";
 
@@ -29,9 +26,7 @@ function HRManagement() {
 
   // Redux States
   const { hrList, total, loading } = useSelector((state) => state.allHr);
-  // const { loading: deleting, success: deleteSuccess } = useSelector(
-  //   (state) => state.deleteHr,
-  // );
+  const { loading: deleting } = useSelector((state) => state.deleteHr);
   const { loadingId } = useSelector((state) => state.updateStatus); // Toggle loading state
 
   // Local States
@@ -63,6 +58,24 @@ function HRManagement() {
     dispatch(toggleHrStatus(id)).then(() => {
       loadHrData();
     });
+  };
+
+  const handleDelete = async () => {
+    if (!selectedId) return;
+
+    const result = await dispatch(deleteHr(selectedId));
+
+    if (deleteHr.fulfilled.match(result)) {
+      setIsModalOpen(false);
+      setSelectedId(null);
+
+      // If the last record on a page is deleted, move to the previous page.
+      if (hrList?.length === 1 && pagination.pageIndex > 0) {
+        setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }));
+      } else {
+        loadHrData();
+      }
+    }
   };
 
   const columns = [
@@ -135,14 +148,15 @@ function HRManagement() {
               }
               title="Edit HR"
             />
-            {/* <Trash2
+            <Trash2
               size={18}
               className="cursor-pointer text-red-500 hover:scale-110 transition"
               onClick={() => {
                 setSelectedId(hr._id);
                 setIsModalOpen(true);
               }}
-            /> */}
+              title="Delete HR"
+            />
           </div>
         );
       },
@@ -313,8 +327,8 @@ function HRManagement() {
             setIsModalOpen(false);
             setSelectedId(null);
           }}
-          // onConfirm={handleDelete}
-          // loading={deleting}
+          onConfirm={handleDelete}
+          loading={deleting}
         />
       </div>
       <Footer />

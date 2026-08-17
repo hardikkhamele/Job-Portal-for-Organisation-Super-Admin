@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -48,6 +49,11 @@ export const createFAQ = createAsyncThunk(
         { headers: getAuthHeaders() }
       );
       toast.success("FAQ created successfully!", { position: "top-right", autoClose: 3000 });
+      addNotification(
+        "FAQ Created Successfully",
+        `FAQ for ${userType} was successfully created.`,
+        "success"
+      );
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message || "Failed to create FAQ";
@@ -70,6 +76,11 @@ export const updateFAQ = createAsyncThunk(
         { headers: getAuthHeaders() }
       );
       toast.success("FAQ updated successfully!", { position: "top-right", autoClose: 3000 });
+      addNotification(
+        "FAQ Updated Successfully",
+        `FAQ (ID: ${id}) was successfully updated.`,
+        "success"
+      );
       return response.data?.data || response.data;
     } catch (error) {
       const message = error.response?.data?.message || "Failed to update FAQ";
@@ -90,6 +101,11 @@ export const deleteFAQ = createAsyncThunk(
         { headers: getAuthHeaders() }
       );
       toast.success("FAQ deleted successfully!", { position: "top-right", autoClose: 3000 });
+      addNotification(
+        "FAQ Deleted Successfully",
+        `FAQ (ID: ${id}) was deleted.`,
+        "success"
+      );
       return id;
     } catch (error) {
       const message = error.response?.data?.message || "Failed to delete FAQ";

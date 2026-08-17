@@ -12,6 +12,7 @@ import {
   clearTermsState,
 } from "../../redux/slice/terms/termsSlice";
 import { toast } from "react-toastify";
+import { addNotification } from "../../utils/notificationHelper";
 
 const DEFAULT_EMPLOYER_TERMS = `<p>1) Employers must be legally authorized to hire and operate in their jurisdiction.</p>
 <p>2) Employers must provide accurate, complete, and up-to-date company information during registration and usage of the platform.</p>
@@ -84,6 +85,11 @@ const EditEmployer = () => {
   useEffect(() => {
     if (success) {
       toast.success("Terms And Service saved successfully!");
+      addNotification(
+        "Employer Terms Updated",
+        "Terms and Services for employers were successfully updated.",
+        "success"
+      );
       dispatch(clearTermsState());
       navigate(-1);
     }

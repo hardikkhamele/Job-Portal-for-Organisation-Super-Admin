@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const rejectCandidate = createAsyncThunk(
   "candidate/reject",
@@ -22,6 +23,12 @@ export const rejectCandidate = createAsyncThunk(
         position: "top-right",
         autoClose: 10000,
       });
+
+      addNotification(
+        "Candidate Rejected",
+        `Candidate (ID: ${id}) was rejected in the database.`,
+        "warning"
+      );
 
       return response.data;
     } catch (error) {

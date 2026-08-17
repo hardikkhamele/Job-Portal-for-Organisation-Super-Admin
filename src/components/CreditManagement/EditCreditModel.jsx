@@ -4,6 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { addNotification } from "../../utils/notificationHelper";
 import {
   updateCredits,
   clearUpdateStatus,
@@ -95,6 +96,11 @@ const EditCreditModal = ({ onClose }) => {
         autoClose: 3000,
         theme: "colored",
       });
+      addNotification(
+        "Credit Settings Updated",
+        "System-wide credit settings and thresholds were updated successfully.",
+        "success"
+      );
       dispatch(clearUpdateStatus());
       onClose();
     }

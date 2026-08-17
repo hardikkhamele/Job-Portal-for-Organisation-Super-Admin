@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import {toast} from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const getHrForEdit = createAsyncThunk("hr/getHrForEdit", async (id, { rejectWithValue }) => {
   try {
@@ -70,7 +71,12 @@ const updateHrSlice = createSlice({
         state.success = true;
         toast.success("HR Update Successfully!",{
           autoClose:1500
-        })
+        });
+        addNotification(
+          "HR Account Updated",
+          "HR Recruiter details were updated successfully.",
+          "success"
+        );
       })
       .addCase(updateHrDetails.rejected, (state, action) => {
         state.updateLoading = false;

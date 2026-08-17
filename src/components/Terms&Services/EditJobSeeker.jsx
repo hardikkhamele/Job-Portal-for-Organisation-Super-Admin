@@ -12,6 +12,7 @@ import {
   clearTermsState,
 } from "../../redux/slice/terms/termsSlice";
 import { toast } from "react-toastify";
+import { addNotification } from "../../utils/notificationHelper";
 
 const DEFAULT_JOBSEEKER_TERMS = `<p>1) Users must be at least 18 years old or the minimum age required for employment in their jurisdiction.</p>
 <p>2) Users must provide accurate and truthful information during registration and when using the App.</p>
@@ -96,6 +97,11 @@ const EditJobSeeker = () => {
   useEffect(() => {
     if (success) {
       toast.success("Terms And Service saved successfully!");
+      addNotification(
+        "Job Seeker Terms Updated",
+        "Terms and Services for job seekers were successfully updated.",
+        "success"
+      );
       dispatch(clearTermsState());
       navigate(-1);
     }

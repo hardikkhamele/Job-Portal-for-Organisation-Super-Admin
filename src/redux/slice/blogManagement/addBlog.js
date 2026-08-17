@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { addNotification } from '../../../utils/notificationHelper';
 
 // Base URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -25,6 +26,12 @@ export const createBlog = createAsyncThunk(
       );
 
       toast.success(response.data.message || 'Blog created successfully!');
+      const blogTitle = formData.get ? formData.get('title') : (formData.title || 'New Blog');
+      addNotification(
+        "Blog Created Successfully",
+        `Blog post "${blogTitle}" has been created and published.`,
+        "success"
+      );
       return response.data.data;
     } catch (error) {
       const message =

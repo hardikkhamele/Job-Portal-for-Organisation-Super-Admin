@@ -113,10 +113,17 @@ export const clearNotifications = () => {
   saveNotifications([]);
 };
 
+export const deleteNotification = (id) => {
+  const notifications = getNotifications();
+  const updated = notifications.filter((n) => n.id !== id);
+  saveNotifications(updated);
+};
+
 // Expose helper methods to the window object for simulation and QA testing
 if (typeof window !== "undefined") {
   window.addNotification = addNotification;
   window.clearNotifications = clearNotifications;
+  window.deleteNotification = deleteNotification;
   window.getNotifications = getNotifications;
   window.getUnreadCount = getUnreadCount;
   window.triggerJobPostedNotification = () => addNotification("Job Posted Successfully", "The new Senior React Developer job listing has been published successfully.", "success");

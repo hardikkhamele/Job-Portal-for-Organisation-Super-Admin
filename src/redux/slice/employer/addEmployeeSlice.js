@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { toast } from 'react-toastify'; 
+import { addNotification } from '../../../utils/notificationHelper';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const createEmployer = createAsyncThunk(
   'employer/create',
@@ -18,6 +19,12 @@ export const createEmployer = createAsyncThunk(
         }
       );
       toast.success('Employer added successfully!');
+      const companyName = formData.get ? formData.get('companyName') : (formData.companyName || 'New Employer');
+      addNotification(
+        "Employer Added Successfully",
+        `Employer "${companyName}" has been registered successfully.`,
+        "success"
+      );
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message || 'Something went wrong';

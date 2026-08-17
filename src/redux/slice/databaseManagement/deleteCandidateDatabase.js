@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,6 +20,11 @@ export const deleteCandidateDatabase = createAsyncThunk(
       );
 
       toast.success(response.data?.message || "Candidate database deleted successfully!");
+      addNotification(
+        "Candidate Record Deleted",
+        `Candidate record (ID: ${id}) was deleted from the database.`,
+        "success"
+      );
       return id;
     } catch (error) {
       const message = error.response?.data?.message || "Failed to delete candidate database";

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { addNotification } from "../../../utils/notificationHelper";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -53,8 +54,18 @@ const updateStatusSlice = createSlice({
         const status = action.payload.data.data?.isActive;
         if (status === false) {
           toast.warn("HR Account has been Inactivated");
+          addNotification(
+            "HR Account Deactivated",
+            `HR Recruiter account (ID: ${action.payload.id}) has been deactivated.`,
+            "warning"
+          );
         } else {
           toast.success("HR Account is now Active");
+          addNotification(
+            "HR Account Activated",
+            `HR Recruiter account (ID: ${action.payload.id}) has been activated.`,
+            "success"
+          );
         }
       })
       .addCase(toggleHrStatus.rejected, (state, action) => {
