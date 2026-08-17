@@ -12,6 +12,7 @@ import {
 } from "../../redux/slice/databaseManagement/dropdownSlice";
 import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
 import { fetchEmployers } from "../../redux/slice/employer/getAllEmployer";
+import { addNotification } from "../../utils/notificationHelper";
 const getCandidateName = (item) => {
   if (!item || typeof item !== "object") return "N/A";
 
@@ -1207,9 +1208,19 @@ const DatabaseCandidate = () => {
       );
 
       if (response.data.success || response.status === 200 || response.status === 201) {
-        toast.success(
-          `${selectedCandidates.length} candidate(s) transferred to ${targetPersonName} successfully!`
+        const destModuleName =
+          transferTarget === "hr_management"
+            ? "HR Management"
+            : "Employee Management";
+        const messageText = `${selectedCandidates.length} candidate(s) transferred to ${targetPersonName} (${destModuleName}) successfully!`;
+
+        toast.success(messageText);
+        addNotification(
+          "Candidate Transferred Successfully",
+          messageText,
+          "success"
         );
+
         setSelectedCandidates([]);
         setTransferTarget("");
         setSelectedPersonId("");

@@ -12,7 +12,8 @@ import {
   Trash2,
   ShieldCheck,
   Mail,
-  CreditCard
+  CreditCard,
+  Users,
 } from "lucide-react";
 
 function Notifications() {
@@ -99,6 +100,12 @@ function NotificationCard({ title, message, time, type }) {
   // Select matching premium icons and colors based on notification title/type
   const getStyle = () => {
     const titleLower = title.toLowerCase();
+    if (titleLower.includes("transfer") || titleLower.includes("candidate")) {
+      return {
+        bgColor: "bg-purple-50 border-purple-150 text-purple-700 hover:bg-purple-100/50",
+        icon: <Users className="w-6 h-6 text-purple-600" />,
+      };
+    }
     if (titleLower.includes("job")) {
       return {
         bgColor: "bg-green-50 border-green-150 text-green-700 hover:bg-green-100/50",
