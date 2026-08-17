@@ -395,6 +395,7 @@ const DatabaseCandidate = () => {
 
   // Local States
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedDesignation, setSelectedDesignation] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -608,11 +609,68 @@ const DatabaseCandidate = () => {
     return Array.from(map.values());
   }, [designations, candidates]);
 
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Fetch initial category & designation dropdown lists
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(fetchDesignations());
-    dispatch(fetchCandidates({ page: 1, limit: 1000 }));
   }, [dispatch]);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    debouncedSearch,
+    selectedCategory,
+    selectedDesignation,
+    selectedCountry,
+    selectedState,
+    selectedCity,
+    selectedWorkMode,
+    selectedExperience,
+    startDate,
+    endDate,
+  ]);
+
+  // Fetch candidates from API whenever any filter or currentPage changes
+  useEffect(() => {
+    dispatch(
+      fetchCandidates({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: debouncedSearch,
+        category: selectedCategory,
+        designation: selectedDesignation,
+        country: selectedCountry,
+        state: selectedState,
+        city: selectedCity,
+        workMode: selectedWorkMode,
+        experience: selectedExperience,
+        startDate: startDate,
+        endDate: endDate,
+      })
+    );
+  }, [
+    dispatch,
+    currentPage,
+    debouncedSearch,
+    selectedCategory,
+    selectedDesignation,
+    selectedCountry,
+    selectedState,
+    selectedCity,
+    selectedWorkMode,
+    selectedExperience,
+    startDate,
+    endDate,
+  ]);
 
   useEffect(() => {
     if (location.state?.category) {
@@ -639,10 +697,8 @@ const DatabaseCandidate = () => {
       );
       const catIdForApi = catObj?.rawObj?._id || catObj?.rawObj?.id || catObj?.id || categoryVal;
       dispatch(fetchDesignations(catIdForApi));
-      dispatch(fetchCandidates({ category: categoryVal, page: 1, limit: 1000 }));
     } else {
       dispatch(fetchDesignations());
-      dispatch(fetchCandidates({ page: 1, limit: 1000 }));
     }
   };
 
@@ -650,21 +706,6 @@ const DatabaseCandidate = () => {
     const expVal = e.target.value;
     setSelectedExperience(expVal);
     setCurrentPage(1);
-
-    dispatch(
-      fetchCandidates({
-        category: selectedCategory,
-        designation: selectedDesignation,
-        experience: expVal,
-        workMode: selectedWorkMode,
-        city: selectedCity,
-        state: selectedState,
-        country: selectedCountry,
-        search: search,
-        page: 1,
-        limit: 1000,
-      })
-    );
   };
 
   const formatDateToYYYYMMDD = (date) => {
@@ -777,262 +818,8 @@ const DatabaseCandidate = () => {
   };
 
   const filteredCandidates = useMemo(() => {
-    const list = (candidates || []).filter((item) => {
-      if (!item) return false;
-
-      // 1. Search filter
-      if (search && search.trim() !== "") {
-        const q = search.trim().toLowerCase();
-        const name = getCandidateName(item).toLowerCase();
-        const email = getCandidateEmail(item).toLowerCase();
-        const phone = getCandidatePhone(item).toLowerCase();
-        const catName = (item.categoryName || item.category?.name || (typeof item.category === "string" ? item.category : "")).toLowerCase();
-        const desigName = (item.designationName || item.designation?.name || (typeof item.designation === "string" ? item.designation : "")).toLowerCase();
-        const loc = (item.city || item.state || item.location || item.address?.city || "").toString().toLowerCase();
-
-        const matchesSearch =
-          name.includes(q) ||
-          email.includes(q) ||
-          phone.includes(q) ||
-          catName.includes(q) ||
-          desigName.includes(q) ||
-          loc.includes(q);
-
-        if (!matchesSearch) return false;
-      }
-
-      // 2. Category filter
-      if (selectedCategory && selectedCategory.trim() !== "") {
-        const targetCatStr = selectedCategory.trim().toLowerCase();
-
-        const itemCatName = getCandidateCategory(item, categories).toLowerCase();
-        const itemCatId = String(
-          item.categoryId ||
-          item.category_id ||
-          item.category?._id ||
-          item.category?.id ||
-          (typeof item.category === "string" ? item.category : "") ||
-          ""
-        ).toLowerCase();
-
-        const matchedCatObj = combinedCategories.find(
-          (c) =>
-            String(c.name).toLowerCase() === targetCatStr ||
-            String(c.id).toLowerCase() === targetCatStr ||
-            (c.rawObj && (String(c.rawObj._id).toLowerCase() === targetCatStr || String(c.rawObj.id).toLowerCase() === targetCatStr))
-        );
-
-        const catTargetName = matchedCatObj ? matchedCatObj.name.toLowerCase() : targetCatStr;
-        const catTargetId = matchedCatObj ? String(matchedCatObj.rawObj?._id || matchedCatObj.rawObj?.id || matchedCatObj.id).toLowerCase() : targetCatStr;
-
-        const matchesCat =
-          (itemCatName && (
-            itemCatName === targetCatStr ||
-            itemCatName === catTargetName ||
-            itemCatName.includes(targetCatStr) ||
-            targetCatStr.includes(itemCatName) ||
-            itemCatName.includes(catTargetName) ||
-            catTargetName.includes(itemCatName)
-          )) ||
-          (itemCatId && (itemCatId === catTargetId || itemCatId === targetCatStr));
-
-        if (!matchesCat) return false;
-      }
-
-      // 3. Designation filter
-      if (selectedDesignation && selectedDesignation.trim() !== "") {
-        const targetDesig = selectedDesignation.trim().toLowerCase();
-        const itemDesigName = getCandidateDesignation(item, designations).toLowerCase();
-        const itemDesigId = String(
-          item.designationId ||
-          item.designation_id ||
-          item.designation?._id ||
-          item.designation?.id ||
-          (typeof item.designation === "string" ? item.designation : "") ||
-          ""
-        ).toLowerCase();
-
-        const matchesDesig =
-          (itemDesigName && (
-            itemDesigName === targetDesig ||
-            itemDesigName.includes(targetDesig) ||
-            targetDesig.includes(itemDesigName)
-          )) ||
-          (itemDesigId && itemDesigId === targetDesig);
-
-        if (!matchesDesig) return false;
-      }
-
-      // 4. City filter
-      if (selectedCity) {
-        const targetCity = selectedCity.trim().toLowerCase();
-        const itemCity = (
-          item.city ||
-          item.location?.city ||
-          item.personalInfo?.city ||
-          item.personalInfo?.location?.city ||
-          item.address?.city ||
-          (typeof item.location === "string" ? item.location : "") ||
-          ""
-        ).toString().toLowerCase();
-
-        if (itemCity && !itemCity.includes(targetCity) && !targetCity.includes(itemCity)) return false;
-      }
-
-      // 5. State filter
-      if (selectedState) {
-        const targetState = selectedState.trim().toLowerCase();
-        const itemState = (
-          item.state ||
-          item.location?.state ||
-          item.personalInfo?.state ||
-          item.personalInfo?.location?.state ||
-          item.address?.state ||
-          (typeof item.location === "string" ? item.location : "") ||
-          ""
-        ).toString().toLowerCase();
-
-        if (itemState && !itemState.includes(targetState) && !targetState.includes(itemState)) return false;
-      }
-
-      // 6. Country filter
-      if (selectedCountry) {
-        const targetCountry = selectedCountry.trim().toLowerCase();
-        const itemCountry = (
-          item.country ||
-          item.location?.country ||
-          item.personalInfo?.country ||
-          item.personalInfo?.location?.country ||
-          item.address?.country ||
-          "india"
-        ).toString().toLowerCase();
-
-        if (!itemCountry.includes(targetCountry) && !targetCountry.includes(itemCountry)) return false;
-      }
-
-      // 7. Work Mode filter
-      if (selectedWorkMode) {
-        const targetMode = selectedWorkMode.trim().toLowerCase();
-        const itemMode = (
-          item.workMode ||
-          item.work_mode ||
-          item.modeOfWork ||
-          item.workType ||
-          item.jobType ||
-          item.employmentType ||
-          item.personalInfo?.workMode ||
-          item.professionalInfo?.workMode ||
-          ""
-        ).toString().toLowerCase();
-
-        if (itemMode) {
-          const isMatch =
-            itemMode.includes(targetMode) ||
-            (targetMode.includes("on-site") && (itemMode.includes("onsite") || itemMode.includes("office") || itemMode.includes("on site") || itemMode.includes("full time"))) ||
-            (targetMode.includes("remote") && (itemMode.includes("wfh") || itemMode.includes("home"))) ||
-            (targetMode.includes("hybrid") && itemMode.includes("hybrid"));
-
-          if (!isMatch) return false;
-        }
-      }
-
-      // 8. Experience filter
-      if (selectedExperience && selectedExperience !== "") {
-        const targetExp = parseInt(selectedExperience, 10);
-        const rawExp = (
-          item.experience ??
-          item.totalExperience ??
-          item.exp ??
-          item.professionalInfo?.totalExperience ??
-          item.personalInfo?.experience ??
-          ""
-        ).toString().trim().toLowerCase();
-
-        if (!rawExp || rawExp === "n/a" || rawExp === "undefined" || rawExp === "null") {
-          if (targetExp > 0) return false;
-        } else {
-          if (rawExp.includes("fresher") && targetExp > 0) {
-            return false;
-          }
-          const match = rawExp.match(/\d+/);
-          if (match) {
-            const parsedExp = parseInt(match[0], 10);
-            if (parsedExp < targetExp) return false;
-          } else if (targetExp > 0) {
-            return false;
-          }
-        }
-      }
-
-      // 9. Date Range filter
-      if (startDate || endDate) {
-        const candidateDateVal =
-          item.createdAt ||
-          item.created_at ||
-          item.createdDate ||
-          item.exceluploadedDate ||
-          item.uploadedDate ||
-          item.date ||
-          item.registrationDate ||
-          item.updatedAt;
-
-        let itemMs = candidateDateVal ? parseDateToMs(candidateDateVal) : null;
-
-        if (itemMs === null && item._id && typeof item._id === "string" && item._id.length === 24) {
-          const timestamp = parseInt(item._id.substring(0, 8), 16) * 1000;
-          if (!isNaN(timestamp)) {
-            itemMs = timestamp;
-          }
-        }
-
-        if (itemMs !== null) {
-          if (startDate) {
-            const startMs = parseDateToMs(startDate, false);
-            if (startMs !== null && itemMs < startMs) return false;
-          }
-          if (endDate) {
-            const endMs = parseDateToMs(endDate, true);
-            if (endMs !== null && itemMs > endMs) return false;
-          }
-        }
-      }
-
-      return true;
-    });
-
-    // Score candidates by data completeness so candidates with real Name & Email appear first
-    const getCompletenessScore = (item) => {
-      let score = 0;
-      const name = getCandidateName(item);
-      const email = getCandidateEmail(item);
-      const phone = getCandidatePhone(item);
-      const cat = getCandidateCategory(item);
-      const desig = getCandidateDesignation(item);
-
-      if (name && name !== "N/A" && !name.toLowerCase().startsWith("candidate #")) score += 10;
-      if (email && email !== "N/A" && email.includes("@")) score += 8;
-      if (phone && phone !== "N/A") score += 5;
-      if (cat && cat !== "N/A") score += 3;
-      if (desig && desig !== "N/A") score += 3;
-
-      return score;
-    };
-
-    return list.sort((a, b) => getCompletenessScore(b) - getCompletenessScore(a));
-  }, [
-    candidates,
-    search,
-    selectedCategory,
-    selectedDesignation,
-    selectedCity,
-    selectedState,
-    selectedCountry,
-    selectedWorkMode,
-    selectedExperience,
-    startDate,
-    endDate,
-    combinedCategories,
-  ]);
+    return candidates || [];
+  }, [candidates]);
 
   // Clear selections whenever filter criteria change so stale IDs don't interfere
   useEffect(() => {
@@ -1439,18 +1226,15 @@ const DatabaseCandidate = () => {
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const totalCandidateCount = total || filteredCandidates.length;
-  const computedTotalPages = Math.max(1, Math.ceil(totalCandidateCount / itemsPerPage));
+  const totalCandidateCount = total || 0;
+  const computedTotalPages = totalPages || 1;
   const maxVisiblePages = 10;
   const startPage = Math.floor((currentPage - 1) / maxVisiblePages) * maxVisiblePages + 1;
   const endPage = Math.min(startPage + maxVisiblePages - 1, computedTotalPages);
 
   const paginatedCandidates = useMemo(() => {
-    if (filteredCandidates.length > itemsPerPage) {
-      return filteredCandidates.slice(startIndex, startIndex + itemsPerPage);
-    }
-    return filteredCandidates;
-  }, [filteredCandidates, startIndex, itemsPerPage]);
+    return candidates || [];
+  }, [candidates]);
 
   return (
     <div className="w-full bg-[#F4F6FA] p-3 min-h-screen">

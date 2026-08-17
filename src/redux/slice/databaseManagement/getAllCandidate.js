@@ -57,11 +57,8 @@ export const fetchCandidates = createAsyncThunk(
       }
 
       if (designation) {
-        if (isValidObjectId(String(designation))) {
-          params.designation = designation;
-        } else {
-          params.designationName = designation;
-        }
+        params.designation = designation;
+        params.designationName = designation;
       }
 
       if (location) params.location = location;
@@ -90,26 +87,16 @@ export const fetchCandidates = createAsyncThunk(
         },
       };
 
-      // Fetch direct candidates AND approved candidate databases from Accept/Reject module concurrently
-      const [resCandidates, resDatabases] = await Promise.allSettled([
-        axios.get(`${BASE_URL}/api/admin/candidate-database/getCandidates`, {
+      const resCandidates = await axios.get(
+        `${BASE_URL}/api/admin/candidate-database/getCandidates`,
+        {
           params,
           ...authHeader,
-        }),
-        axios.get(
-          `${BASE_URL}/api/admin/candidate-database/getCandidateDatabases?page=1&pageSize=1000`,
-          authHeader
-        ),
-      ]);
-
-      const candidateData =
-        resCandidates.status === "fulfilled" ? resCandidates.value.data : null;
-      const databaseData =
-        resDatabases.status === "fulfilled" ? resDatabases.value.data : null;
+        }
+      );
 
       return {
-        candidateData,
-        databaseData,
+        candidateData: resCandidates.data,
         limit: limit || 10,
       };
     } catch (error) {
@@ -406,6 +393,94 @@ const getAllCandidateSlice = createSlice({
           return "";
         };
 
+        const extractWorkMode = (row, dbItem) => {
+          if (!row) return dbItem?.workMode || dbItem?.work_mode || "N/A";
+          const val =
+            row["WORK MODE"] ||
+            row["Work Mode"] ||
+            row["workmode"] ||
+            row["workMode"] ||
+            row["work_mode"] ||
+            row["Mode Of Work"] ||
+            row["Mode of Work"] ||
+            row.workMode ||
+            row.work_mode ||
+            row.modeOfWork ||
+            row.workType ||
+            row.jobType ||
+            row.employmentType ||
+            dbItem?.workMode ||
+            dbItem?.work_mode ||
+            "N/A";
+          return typeof val === "string" ? val.trim() : String(val);
+        };
+
+        const extractExperience = (row, dbItem) => {
+          if (!row) return dbItem?.experience || dbItem?.totalExperience || "N/A";
+          const val =
+            row["EXPERIENCE"] ||
+            row["Experience"] ||
+            row["Total Experience"] ||
+            row["total experience"] ||
+            row["exp"] ||
+            row["Exp"] ||
+            row["work experience"] ||
+            row["Work Experience"] ||
+            row.experience ||
+            row.totalExperience ||
+            row.exp ||
+            dbItem?.experience ||
+            dbItem?.totalExperience ||
+            "N/A";
+          return typeof val === "string" ? val.trim() : String(val);
+        };
+
+        const extractCity = (row, dbItem) => {
+          if (!row) return dbItem?.city || "N/A";
+          const val =
+            row["CITY"] ||
+            row["City"] ||
+            row["city"] ||
+            row.city ||
+            row.location?.city ||
+            row.address?.city ||
+            (typeof row.location === "string" ? row.location.split(",")[0] : null) ||
+            dbItem?.city ||
+            "N/A";
+          return typeof val === "string" ? val.trim() : String(val);
+        };
+
+        const extractState = (row, dbItem) => {
+          if (!row) return dbItem?.state || "N/A";
+          const val =
+            row["STATE"] ||
+            row["State"] ||
+            row["state"] ||
+            row.state ||
+            row.location?.state ||
+            row.address?.state ||
+            (typeof row.location === "string" && row.location.includes(",")
+              ? row.location.split(",")[1]
+              : null) ||
+            dbItem?.state ||
+            "N/A";
+          return typeof val === "string" ? val.trim() : String(val);
+        };
+
+        const extractCountry = (row, dbItem) => {
+          if (!row) return dbItem?.country || "India";
+          const val =
+            row["COUNTRY"] ||
+            row["Country"] ||
+            row["country"] ||
+            row.country ||
+            row.location?.country ||
+            row.address?.country ||
+            dbItem?.country ||
+            "India";
+          return typeof val === "string" ? val.trim() : String(val);
+        };
+
         const combinedCandidates = [];
         const seenIds = new Set();
 
@@ -418,12 +493,14 @@ const getAllCandidateSlice = createSlice({
           const normName = extractName(c);
           const normEmail = extractEmail(c);
           const normPhone = extractPhone(c);
+          const normWorkMode = extractWorkMode(c);
 
           combinedCandidates.push({
             ...c,
             name: c.name || normName || "N/A",
             email: c.email || normEmail || "N/A",
             phone: c.phone || normPhone || "N/A",
+            workMode: c.workMode || normWorkMode || "N/A",
           });
         });
 
@@ -515,11 +592,11 @@ const getAllCandidateSlice = createSlice({
                 designationName: desigName,
                 category: catName,
                 designation: desigName,
-                city: row["CITY"] || row.city || dbItem.city || "N/A",
-                state: row["STATE"] || row.state || dbItem.state || "N/A",
-                country: row["COUNTRY"] || row.country || dbItem.country || "India",
-                workMode: row["WORK MODE"] || row.workMode || dbItem.workMode || "N/A",
-                experience: row["EXPERIENCE"] || row.experience || dbItem.experience || "N/A",
+                city: extractCity(row, dbItem),
+                state: extractState(row, dbItem),
+                country: extractCountry(row, dbItem),
+                workMode: extractWorkMode(row, dbItem),
+                experience: extractExperience(row, dbItem),
                 createdAt: dbItem.createdAt || dbItem.exceluploadedDate || dbItem.uploadedDate || new Date().toISOString(),
                 isApproved: true,
               });
@@ -538,6 +615,11 @@ const getAllCandidateSlice = createSlice({
                 designationName: dbItem.DesignationName || dbItem.designationName || "N/A",
                 phone: extractPhone(dbItem) || "N/A",
                 email: extractEmail(dbItem) || "N/A",
+                city: extractCity(null, dbItem),
+                state: extractState(null, dbItem),
+                country: extractCountry(null, dbItem),
+                workMode: extractWorkMode(null, dbItem),
+                experience: extractExperience(null, dbItem),
                 isApproved: true,
                 ...dbItem,
               });
