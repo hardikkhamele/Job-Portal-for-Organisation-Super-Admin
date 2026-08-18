@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Eye, Trash2, Search, ChevronLeft, ChevronRight,
@@ -59,7 +59,7 @@ function CandidateJobView() {
 
   // ── Excel Export Function ────────────────────────────────
   const exportToExcel = () => {
-    const dataToExport = jobSeekers.map((user, index) => ({
+    const dataToExport = filtered.map((user, index) => ({
       "Sr. No.": (pagination.currentPage - 1) * pagination.limit + index + 1,
       "Full Name": user.fullName,
       "Email": user.email,
@@ -92,10 +92,25 @@ function CandidateJobView() {
     document.body.removeChild(link);
   };
 
-  const filtered = jobSeekers.filter((s) => {
-    const locationStr = typeof s.location === 'object'
-      ? `${s.location.city} ${s.location.state}`
-      : (s.location || "");
+  const filtered = useMemo(() => jobSeekers.filter((s) => {
+    const location = s.location || s.personalInfo?.location;
+    const locationStr = typeof location === "object"
+      ? [location.city, location.state, location.country].filter(Boolean).join(" ")
+      : (location || "");
+    const education = [
+      s.education,
+      s.highestEducation,
+      s.qualification,
+      s.educationalQualification,
+      ...(Array.isArray(s.educationDetails) ? s.educationDetails : []),
+      ...(Array.isArray(s.educations) ? s.educations : []),
+    ]
+      .map((item) => typeof item === "object" ? (item.degree || item.name || item.title || "") : item)
+      .filter(Boolean)
+      .join(" ");
+    const experienceYears = Array.isArray(s.experiences)
+      ? s.experiences.reduce((total, item) => total + Number(item?.years || item?.experienceYears || 0), 0)
+      : Number(s.experienceYears || s.totalExperience || s.experience || 0);
 
     const matchesSearch =
       s.fullName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -103,18 +118,19 @@ function CandidateJobView() {
       locationStr.toLowerCase().includes(search.toLowerCase());
 
     const matchesEducation = !filterValues.education ||
-      s.education?.toLowerCase().includes(filterValues.education.toLowerCase());
+      education.toLowerCase().includes(filterValues.education.toLowerCase());
 
-    const matchesExperience = !filterValues.experience ||
-      (filterValues.experience === "Fresher"
-        ? (s.experiences?.length === 0 || !s.experiences)
-        : s.experiences?.length > 0);
+    const matchesExperience = !filterValues.experience || (() => {
+      if (filterValues.experience === "Fresher") return experienceYears === 0;
+      const [min, max] = filterValues.experience.match(/\d+/g).map(Number);
+      return experienceYears >= min && experienceYears < max;
+    })();
 
     const matchesLocation = !filterValues.location ||
       locationStr.toLowerCase().includes(filterValues.location.toLowerCase());
 
     return matchesSearch && matchesEducation && matchesExperience && matchesLocation;
-  });
+  }), [jobSeekers, search, filterValues]);
 
   const columns = [
     {
@@ -304,6 +320,13 @@ function CandidateJobView() {
                         ))}
                       </tr>
                     ))}
+                    {table.getRowModel().rows.length === 0 && (
+                      <tr>
+                        <td colSpan={columns.length} className="py-10 text-gray-500">
+                          No candidates match the selected filters.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -340,7 +363,12 @@ function CandidateJobView() {
         </div>
       </div>
 
-      <FilterModal isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} onSearch={handleFilterSearch} />
+      <FilterModal
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onSearch={handleFilterSearch}
+        initialValues={filterValues}
+      />
       <DeleteModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}

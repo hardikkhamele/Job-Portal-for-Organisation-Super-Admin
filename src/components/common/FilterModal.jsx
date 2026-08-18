@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, ChevronDown } from "lucide-react";
 
 const Dropdown = ({ label, options, value, setValue }) => {
@@ -45,10 +45,18 @@ const Dropdown = ({ label, options, value, setValue }) => {
   );
 };
 
-function FilterModal({ isOpen, onClose, onSearch }) {
+function FilterModal({ isOpen, onClose, onSearch, initialValues }) {
   const [education, setEducation] = useState("");
   const [experience, setExperience] = useState("");
   const [location, setLocation] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setEducation(initialValues?.education || "");
+      setExperience(initialValues?.experience || "");
+      setLocation(initialValues?.location || "");
+    }
+  }, [isOpen, initialValues]);
 
   if (!isOpen) return null;
 
@@ -60,9 +68,6 @@ function FilterModal({ isOpen, onClose, onSearch }) {
   };
 
   const handleCancel = () => {
-    setEducation("");
-    setExperience("");
-    setLocation("");
     onClose();
   };
 

@@ -726,6 +726,12 @@ const DatabaseCandidate = () => {
       const todayStr = formatDateToYYYYMMDD(today);
       setStartDate(todayStr);
       setEndDate(todayStr);
+    } else if (preset === "yesterday") {
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const yesterdayStr = formatDateToYYYYMMDD(yesterday);
+      setStartDate(yesterdayStr);
+      setEndDate(yesterdayStr);
     } else if (preset === "this_week") {
       const dayOfWeek = today.getDay();
       const distanceToMon = (dayOfWeek + 6) % 7;
@@ -1433,6 +1439,7 @@ const DatabaseCandidate = () => {
               >
                 <option value="">Select Date Range</option>
                 <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
                 <option value="this_week">This Week</option>
                 <option value="this_month">This Month</option>
               </select>

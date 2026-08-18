@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import DeleteModal from "../common/DeleteModal";
 import { fetchAllJobs } from "../../redux/slice/jobManagement/getAllJob";
+import { fetchJobById } from "../../redux/slice/jobManagement/getJobId";
 import { getAllCategories, getSubCategoriesByCategoryId } from "../../redux/slice/category/categorySlice";
 import defaultLogo from "../../assets/Technokreat.svg";
 import Footer from "../Footer";
@@ -28,6 +29,8 @@ import {
   CountrySelect,
   StateSelect,
   CitySelect,
+  GetCountries,
+  GetState,
 } from "react-country-state-city";
 import "react-country-state-city/dist/react-country-state-city.css";
 
@@ -129,15 +132,15 @@ const JobManagement = () => {
     return result;
   }, [jobs, category, subCategories, globalFilter]);
 
-  const handleEditClick = (row) => {
-    setEditingJob(row);
+  const getEditFormData = (job) => {
+    const row = job || {};
     const locObj = (row.jobLocation && typeof row.jobLocation === "object") ? row.jobLocation : {};
     const locName = typeof row.jobLocation === "string" ? row.jobLocation : (locObj.name || row.location || "");
 
-    setEditFormData({
+    return {
       jobTitle: row.jobTitle || "",
-      minSalary: row.salaryRange?.minSalary ?? "",
-      maxSalary: row.salaryRange?.maxSalary ?? "",
+      minSalary: row.salaryRange?.minSalary ?? row.minSalary ?? "",
+      maxSalary: row.salaryRange?.maxSalary ?? row.maxSalary ?? "",
       salaryType: row.salaryType || "Monthly",
       location: locName,
       country: locObj.countryName || locObj.country || "",
@@ -149,10 +152,55 @@ const JobManagement = () => {
       jobType: row.advanceInformation?.jobType || row.jobType || "",
       experience: row.advanceInformation?.experience || row.experience || "",
       jobDescription: row.jobDescription || "",
-    });
+    };
+  };
+
+  const handleEditClick = async (row) => {
+    // The jobs-table response contains only summary data for some jobs. Fetch
+    // the full record first, so opening Edit never clears saved values.
+    let job = row;
+    const jobId = row._id || row.id;
+
+    if (jobId) {
+      try {
+        job = await dispatch(fetchJobById(jobId)).unwrap();
+      } catch (error) {
+        // Keep the editor usable with the table data if the detail API is
+        // temporarily unavailable.
+        console.error("Unable to load full job details for editing:", error);
+      }
+    }
+
+    setEditingJob(job);
+    setEditFormData(getEditFormData(job));
     setCountryid(0);
     setStateid(0);
     setIsEditModalOpen(true);
+
+    // These controls need numeric ids to load dependent state/city lists.
+    // Resolve them from the saved names so all three controls can display the
+    // existing location on first render.
+    const formData = getEditFormData(job);
+    if (formData.country) {
+      try {
+        const countries = await GetCountries();
+        const selectedCountry = countries.find(
+          (item) => item.name === formData.country || item.iso2 === formData.countryCode
+        );
+        if (!selectedCountry) return;
+
+        setCountryid(selectedCountry.id);
+        if (formData.state) {
+          const states = await GetState(selectedCountry.id);
+          const selectedState = states.find(
+            (item) => item.name === formData.state || item.state_code === formData.stateCode
+          );
+          if (selectedState) setStateid(selectedState.id);
+        }
+      } catch (error) {
+        console.error("Unable to resolve saved location ids:", error);
+      }
+    }
   };
 
   const handleConfirmEdit = async (e) => {
@@ -707,6 +755,7 @@ const JobManagement = () => {
                   <div>
                     <label className="block text-[11px] font-medium text-gray-500 mb-1">Country</label>
                     <CountrySelect
+                      defaultValue={editFormData.country || undefined}
                       onChange={(e) => {
                         const cId = e ? e.id : 0;
                         setCountryid(cId);
@@ -727,6 +776,7 @@ const JobManagement = () => {
                     <label className="block text-[11px] font-medium text-gray-500 mb-1">State</label>
                     <StateSelect
                       countryid={countryid}
+                      defaultValue={editFormData.state || undefined}
                       onChange={(e) => {
                         const sId = e ? e.id : 0;
                         setStateid(sId);
@@ -745,6 +795,7 @@ const JobManagement = () => {
                     <CitySelect
                       countryid={countryid}
                       stateid={stateid}
+                      defaultValue={editFormData.city || undefined}
                       onChange={(e) => {
                         setEditFormData((prev) => ({
                           ...prev,

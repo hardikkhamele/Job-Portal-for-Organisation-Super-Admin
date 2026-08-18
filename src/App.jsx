@@ -21,19 +21,10 @@ import ResetSuccess from "./components/auth/login/ResetSuccess";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
-import axios from "axios";
 
-// Global interceptor for unauthorized requests (401/403)
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
+// API authorization failures can also mean that a particular admin action is
+// not permitted. Do not erase a valid login session or redirect the user in
+// that case; the feature that made the request displays its API error instead.
 export default function App() {
   function PublicRoute({ children }) {
     const token = localStorage.getItem("token");

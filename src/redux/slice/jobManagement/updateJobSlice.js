@@ -9,26 +9,28 @@ export const updateJob = createAsyncThunk(
   async ({ jobId, jobData }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const authHeader = {
+      const requestConfig = {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        // An update-route permission error must be shown in the editor. It is
+        // not evidence that the admin's login session has expired.
+        skipAuthLogout: true,
       };
 
-      // Jobs are updated by the job service. The admin routes remain as
-      // fallbacks for older API deployments.
+      // The employer-admin route matches the job detail route used by this
+      // panel. `/api/job/...` is reserved for the employer-panel token.
       const updateEndpoints = [
-        `/api/job/updatejob/${jobId}`,
         `/api/admin/jobs/updateJob/${jobId}`,
-        `/api/admin/employer/updateJob/${jobId}`,
+        `/api/job/updatejob/${jobId}`,
       ];
 
       let response;
       let lastError;
       for (const endpoint of updateEndpoints) {
         try {
-          response = await axios.put(`${BASE_URL}${endpoint}`, jobData, authHeader);
+          response = await axios.put(`${BASE_URL}${endpoint}`, jobData, requestConfig);
           break;
         } catch (error) {
           lastError = error;
