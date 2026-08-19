@@ -429,6 +429,9 @@ const Sidebar = () => {
           {/* 3. Employee Management */}
           <NavItem icon={<Briefcase />} text="Employee Management" active={window.location.pathname.startsWith("/employee")} onClick={() => handleNavigation("/employee")} />
           
+          {/* 3.5. Sales Team Onboarding */}
+          <NavItem icon={<Users />} text="Sales Team Onboarding" active={window.location.pathname.startsWith("/sales-team-onboarding")} onClick={() => handleNavigation("/sales-team-onboarding")} />
+          
           {/* 4. Job Seeker Management */}
           <NavItem icon={<UserSearch />} text="Job Seeker Management" active={window.location.pathname.startsWith("/job-seeker")} onClick={() => handleNavigation("/job-seeker")} />
 

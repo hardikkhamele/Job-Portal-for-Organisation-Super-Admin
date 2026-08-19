@@ -69,6 +69,7 @@ import CustomPlanDetail from "../components/SubscriptionManagement/customPlan/Cu
 import EditCreditModel from "../components/CreditManagement/EditCreditModel";
 import MyProfile from "../components/auth/MyProfile";
 import SendNotification from "../components/NotificationManagement/SendNotification";
+import SalesTeamOnboarding from "../components/SalesTeamOnboarding/SalesTeamOnboarding";
 
 function DashboardLayout() {
   return (
@@ -160,6 +161,7 @@ function DashboardLayout() {
               path="employee/transferred-candidates/:id"
               element={<EmployeeCandidate />}
             />
+            <Route path="sales-team-onboarding" element={<SalesTeamOnboarding />} />
             <Route path="credit-management" element={<CreditModel />} />
             <Route
               path="credit-management/edit"
