@@ -367,7 +367,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdDashboard, MdPostAdd, MdSubscriptions, MdHelpOutline } from "react-icons/md";
 import { RiMoneyDollarCircleLine, RiShieldLine } from "react-icons/ri";
-import { Banknote, Briefcase, ChevronDown, ChevronUp, Database, FolderKanban, ShieldCheck, Users, UserSearch,NotebookPen } from "lucide-react";
+import { Banknote, Briefcase, Building2, ChevronDown, ChevronUp, Database, FolderKanban, ShieldCheck, Users, UserSearch,NotebookPen } from "lucide-react";
 import logo from "../../assets/Logo.svg";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slice/auth/loginSlice";
@@ -431,6 +431,7 @@ const Sidebar = () => {
           
           {/* 3.5. Sales Team Onboarding */}
           <NavItem icon={<Users />} text="Sales Team Onboarding" active={window.location.pathname.startsWith("/sales-team-onboarding")} onClick={() => handleNavigation("/sales-team-onboarding")} />
+          <NavItem icon={<Building2 />} text="Vendor Module" active={isActive("/sales-team-onboarding/vendors")} onClick={() => handleNavigation("/sales-team-onboarding/vendors")} />
           
           {/* 4. Job Seeker Management */}
           <NavItem icon={<UserSearch />} text="Job Seeker Management" active={window.location.pathname.startsWith("/job-seeker")} onClick={() => handleNavigation("/job-seeker")} />
@@ -591,13 +592,13 @@ const DropdownHeader = ({ icon, text, isOpen, active, onClick }) => (
   </div>
 );
 
-const SubNavItem = ({ text, active, onClick }) => (
+const SubNavItem = ({ icon, text, active, onClick }) => (
   <div
     onClick={onClick}
     className={`px-4 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm font-medium
       ${active ? "bg-white text-[#7e22ce] font-bold shadow-sm border-l-4 border-purple-700" : "text-white/90 hover:bg-white/10"}`}
   >
-    {text}
+    <span className="flex items-center gap-2">{icon}{text}</span>
   </div>
 );
 
