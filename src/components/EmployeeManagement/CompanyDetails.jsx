@@ -38,6 +38,22 @@ function CompanyDetails() {
   const companyInfo = employer.companyDetail || {};
   const businessInfo = employer.businessDetail || {};
   const hiringPref = employer.hiringPreference || {};
+  const accountStatus = String(employer.status || "").trim().toLowerCase();
+  const approvalStatus = String(
+    employer.approvalStatus ?? employer.companyApprovalStatus ?? "",
+  )
+    .trim()
+    .toLowerCase();
+  const companyStatus = ["pending", "pending_approval", "verification", "rejected"].includes(
+    approvalStatus,
+  )
+    ? approvalStatus
+    : accountStatus || approvalStatus || "pending";
+  const isActiveCompany = ["active", "approved", "accepted"].includes(companyStatus);
+  const isPendingCompany = ["pending", "pending_approval", "verification"].includes(companyStatus);
+  const companyStatusLabel = isPendingCompany
+    ? "Pending Approval"
+    : companyStatus.replace(/_/g, " ");
 
   const rawType =
     employer.companyType ||
@@ -105,10 +121,14 @@ function CompanyDetails() {
               </div>
 
               <div className={`flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full ${
-                employer.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                isActiveCompany
+                  ? 'bg-green-100 text-green-600'
+                  : isPendingCompany
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-red-100 text-red-600'
               }`}>
-                {employer.status === 'active' ? <CheckCircle size={16} /> : <XCircle size={16} />}
-                <span className="capitalize">{employer.status}</span>
+                {isActiveCompany ? <CheckCircle size={16} /> : <XCircle size={16} />}
+                <span className="capitalize">{companyStatusLabel}</span>
               </div>
             </div>
 
