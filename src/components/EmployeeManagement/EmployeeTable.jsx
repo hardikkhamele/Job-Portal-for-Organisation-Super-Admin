@@ -108,6 +108,7 @@ function EmployeeTable() {
   const [localStatusUpdates, setLocalStatusUpdates] = useState({});
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [companyTypeFilter, setCompanyTypeFilter] = useState("all");
   const [accountStatusFilter, setAccountStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -138,7 +139,14 @@ function EmployeeTable() {
   // Reset page to 1 whenever a table filter changes.
   useEffect(() => {
     setPage(1);
-  }, [activeTab, pageSize, searchTerm, accountStatusFilter]);
+  }, [activeTab, pageSize, searchTerm, companyTypeFilter, accountStatusFilter]);
+
+  // Reset companyTypeFilter when switching to pending tab if it was set from approved tab
+  useEffect(() => {
+    if (activeTab !== "approved" && activeTab !== "pending") {
+      setCompanyTypeFilter("all");
+    }
+  }, [activeTab]);
 
   // Combine fetched employers with local overrides applied
   const allProcessedEmployers = useMemo(() => {
@@ -201,6 +209,28 @@ function EmployeeTable() {
       );
     }
 
+    if (companyTypeFilter !== "all") {
+      filtered = filtered.filter((employer) => {
+        const rawType =
+          selectedCompanyTypes[employer._id] ||
+          employer.companyType ||
+          employer.typeOfCompany ||
+          employer.businessDetail?.typeOfCompany ||
+          employer.businessDetail?.companyType ||
+          employer.type ||
+          "";
+        const normalizedType = String(rawType).trim().toLowerCase();
+        
+        // Show companies without any type (not internal AND not external)
+        if (companyTypeFilter === "pending") {
+          return normalizedType !== "internal" && normalizedType !== "external";
+        }
+        
+        // Show companies with exact type match (internal or external)
+        return normalizedType === companyTypeFilter;
+      });
+    }
+
     return filtered;
   }, [
     activeTab,
@@ -208,7 +238,9 @@ function EmployeeTable() {
     pendingList,
     rejectedList,
     searchTerm,
+    companyTypeFilter,
     accountStatusFilter,
+    selectedCompanyTypes,
   ]);
 
   const handleCompanyTypeChange = (id, newType) => {
@@ -383,7 +415,7 @@ function EmployeeTable() {
           ? "external"
           : "";
 
-        if (activeTab !== "approved") {
+        if (activeTab !== "approved" && activeTab !== "pending") {
           return (
             <span className="text-sm font-medium text-gray-500 capitalize">
               {normalizedType || "N/A"}
@@ -596,7 +628,7 @@ function EmployeeTable() {
 
   const table = useReactTable({
     data: displayEmployers || [],
-    columns: columns.filter(col => activeTab === "approved" || col.accessorKey !== "companyType"),
+    columns: columns.filter(col => (activeTab === "approved" || activeTab === "pending") || col.accessorKey !== "companyType"),
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -703,6 +735,32 @@ function EmployeeTable() {
 
           {/* PAGE SIZE SELECTOR */}
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            {activeTab === "approved" && (
+              <select
+                value={companyTypeFilter}
+                onChange={(e) => setCompanyTypeFilter(e.target.value)}
+                className="h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-xl text-xs font-semibold text-gray-700 outline-none cursor-pointer hover:border-purple-300 transition-colors"
+                aria-label="Filter companies by type"
+              >
+                <option value="all">All Types</option>
+                <option value="internal">Internal</option>
+                <option value="external">External</option>
+                <option value="pending">Pending</option>
+              </select>
+            )}
+            {activeTab === "pending" && (
+              <select
+                value={companyTypeFilter}
+                onChange={(e) => setCompanyTypeFilter(e.target.value)}
+                className="h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-xl text-xs font-semibold text-gray-700 outline-none cursor-pointer hover:border-purple-300 transition-colors"
+                aria-label="Filter pending companies by type"
+              >
+                <option value="all">All Pending</option>
+                <option value="pending">Type Not Selected</option>
+                <option value="internal">Internal</option>
+                <option value="external">External</option>
+              </select>
+            )}
             {activeTab === "approved" && (
               <select
                 value={accountStatusFilter}
