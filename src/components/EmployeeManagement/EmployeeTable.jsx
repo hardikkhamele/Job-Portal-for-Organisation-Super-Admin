@@ -44,6 +44,32 @@ import { toast } from "react-toastify";
 const normalizeEmployerStatus = (status) =>
   String(status || "pending").trim().toLowerCase();
 
+const isActiveEmployerStatus = (status) =>
+  ["active", "approved", "accepted"].includes(
+    normalizeEmployerStatus(status),
+  );
+
+const resolveEmployerStatus = (employer, overrideStatus) => {
+  if (overrideStatus != null) return normalizeEmployerStatus(overrideStatus);
+
+  const accountValue = employer.status;
+  const approvalValue = employer.approvalStatus ?? employer.companyApprovalStatus;
+  const accountStatus = normalizeEmployerStatus(accountValue);
+  const approvalStatus = normalizeEmployerStatus(approvalValue);
+
+  // Pending/rejected approvals are workflow decisions and must not be hidden
+  // when their account-level status is also marked as blocked.
+  if (["pending", "pending_approval", "verification", "rejected"].includes(approvalStatus)) {
+    return approvalStatus;
+  }
+  // Blocking an approved employer is an account-level decision and remains in
+  // Employee Management, where it can be unblocked.
+  if (accountStatus === "blocked") return accountStatus;
+  if (accountValue != null && String(accountValue).trim() !== "") return accountStatus;
+  if (approvalValue != null && String(approvalValue).trim() !== "") return approvalStatus;
+  return "pending";
+};
+
 // Approval tabs must be calculated from the complete employer list. Fetching
 // only the current API page could hide a pending company that belongs to a
 // different page from both the Pending Approvals count and its table.
@@ -53,7 +79,7 @@ function EmployeeTable() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { employers, total, pages, loading } = useSelector(
+  const { employers, loading } = useSelector(
     (state) => state.allEmployer,
   );
   const { success: updateSuccess, loading: updateLoading } = useSelector(
@@ -82,19 +108,22 @@ function EmployeeTable() {
   const [localStatusUpdates, setLocalStatusUpdates] = useState({});
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [accountStatusFilter, setAccountStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   // Fetch the complete list so approval-status tabs are accurate. Pagination
-  // below is then applied after the approval-status filter.
+  // and search are applied locally after the approval-status filter. Do not
+  // include search here: that would replace the full list and make card counts
+  // change whenever a company is searched.
   useEffect(() => {
-    dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, search: searchTerm }));
-  }, [dispatch, searchTerm]);
+    dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, fetchAll: true }));
+  }, [dispatch]);
 
   // ✅ Refresh data automatically when update or delete is successful
   useEffect(() => {
     if (updateSuccess || deleteSuccess) {
-      dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, search: searchTerm }));
+      dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, fetchAll: true }));
 
       // Cleanup states
       if (updateSuccess) dispatch(resetUpdateStatus());
@@ -104,12 +133,12 @@ function EmployeeTable() {
         setSelectedRow(null);
       }
     }
-  }, [updateSuccess, deleteSuccess, dispatch, searchTerm]);
+  }, [updateSuccess, deleteSuccess, dispatch]);
 
-  // Reset page to 1 whenever activeTab, pageSize, or searchTerm changes
+  // Reset page to 1 whenever a table filter changes.
   useEffect(() => {
     setPage(1);
-  }, [activeTab, pageSize, searchTerm]);
+  }, [activeTab, pageSize, searchTerm, accountStatusFilter]);
 
   // Combine fetched employers with local overrides applied
   const allProcessedEmployers = useMemo(() => {
@@ -119,11 +148,7 @@ function EmployeeTable() {
       const overrideStatus = localStatusUpdates[emp._id];
       return {
         ...emp,
-        // `status` represents the account state (for example, active), while
-        // `approvalStatus` / `companyApprovalStatus` is the admin approval decision.
-        status: normalizeEmployerStatus(
-          overrideStatus ?? emp.approvalStatus ?? emp.companyApprovalStatus ?? emp.status,
-        ),
+        status: resolveEmployerStatus(emp, overrideStatus),
       };
     });
   }, [employers, localStatusUpdates]);
@@ -131,7 +156,11 @@ function EmployeeTable() {
   // Calculate Metrics & Counts
   const approvedList = useMemo(() => {
     return allProcessedEmployers.filter(
-      (e) => e.status === "active" || e.status === "approved" || e.status === "accepted"
+      (e) =>
+        e.status === "active" ||
+        e.status === "approved" ||
+        e.status === "accepted" ||
+        e.status === "blocked",
     );
   }, [allProcessedEmployers]);
 
@@ -143,7 +172,7 @@ function EmployeeTable() {
 
   const rejectedList = useMemo(() => {
     return allProcessedEmployers.filter(
-      (e) => e.status === "rejected" || e.status === "blocked"
+      (e) => e.status === "rejected"
     );
   }, [allProcessedEmployers]);
 
@@ -162,8 +191,25 @@ function EmployeeTable() {
           e.email?.toLowerCase().includes(lower)
       );
     }
+
+    if (activeTab === "approved" && accountStatusFilter !== "all") {
+      filtered = filtered.filter(
+        (employer) =>
+          accountStatusFilter === "active"
+            ? isActiveEmployerStatus(employer.status)
+            : employer.status === "blocked",
+      );
+    }
+
     return filtered;
-  }, [activeTab, approvedList, pendingList, rejectedList, searchTerm]);
+  }, [
+    activeTab,
+    approvedList,
+    pendingList,
+    rejectedList,
+    searchTerm,
+    accountStatusFilter,
+  ]);
 
   const handleCompanyTypeChange = (id, newType) => {
     if (!newType) return;
@@ -174,7 +220,7 @@ function EmployeeTable() {
     ) {
       setSelectedCompanyTypes((prev) => ({ ...prev, [id]: newType }));
       dispatch(updateCompanyType({ id, companyType: newType })).then(() => {
-        dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, search: searchTerm }));
+        dispatch(fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, fetchAll: true }));
       });
     }
   };
@@ -187,13 +233,15 @@ function EmployeeTable() {
 
   const handleBlock = () => {
     if (selectedRow) {
-      const newStatus = selectedRow.status === "active" ? "blocked" : "active";
+      const newStatus = isActiveEmployerStatus(selectedRow.status)
+        ? "blocked"
+        : "active";
       setLocalStatusUpdates((prev) => ({ ...prev, [selectedRow._id]: newStatus }));
       dispatch(updateEmployerStatus({ id: selectedRow._id, status: newStatus }))
         .unwrap()
         .then(() => {
           dispatch(
-            fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, search: searchTerm })
+            fetchEmployers({ page: 1, limit: EMPLOYERS_FETCH_LIMIT, fetchAll: true })
           );
         });
     }
@@ -407,6 +455,14 @@ function EmployeeTable() {
             </div>
           );
         }
+        if (st === "blocked") {
+          return (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 border border-red-300 text-red-700 rounded-full text-xs font-semibold">
+              <Ban size={14} className="text-red-500" />
+              <span>Blocked</span>
+            </div>
+          );
+        }
         return (
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-300 text-emerald-700 rounded-full text-xs font-semibold">
             <CheckCircle size={14} className="text-emerald-500" />
@@ -529,16 +585,14 @@ function EmployeeTable() {
     },
   ];
 
-  // Smart data resolver: if server is paginating (employers.length < total), use currentTabEmployers directly for current page;
-  // otherwise, slice client-side.
+  // All API pages are fetched above, so pagination is always applied locally.
   const displayEmployers = useMemo(() => {
-    const isServerPaginated = total > 0 && employers && employers.length < total;
-    if (isServerPaginated || pageSize >= 1000) {
+    if (pageSize >= EMPLOYERS_FETCH_LIMIT) {
       return currentTabEmployers;
     }
     const start = (page - 1) * pageSize;
     return currentTabEmployers.slice(start, start + pageSize);
-  }, [currentTabEmployers, employers, total, page, pageSize]);
+  }, [currentTabEmployers, page, pageSize]);
 
   const table = useReactTable({
     data: displayEmployers || [],
@@ -649,6 +703,18 @@ function EmployeeTable() {
 
           {/* PAGE SIZE SELECTOR */}
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            {activeTab === "approved" && (
+              <select
+                value={accountStatusFilter}
+                onChange={(e) => setAccountStatusFilter(e.target.value)}
+                className="h-[40px] px-3 bg-[#F7F8F9] border border-[#D3D3D3] rounded-xl text-xs font-semibold text-gray-700 outline-none cursor-pointer hover:border-purple-300 transition-colors"
+                aria-label="Filter companies by status"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            )}
             <select
               value={pageSize}
               onChange={(e) => {
@@ -751,8 +817,8 @@ function EmployeeTable() {
 
         {/* PAGINATION */}
         {(() => {
-          const totalCount = (total > 0 && total > currentTabEmployers.length) ? total : currentTabEmployers.length;
-          const totalPageCount = (pages > 0 && total > currentTabEmployers.length) ? pages : (Math.ceil(totalCount / pageSize) || 1);
+          const totalCount = currentTabEmployers.length;
+          const totalPageCount = Math.ceil(totalCount / pageSize) || 1;
 
           return (
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mt-6 font-semibold text-purple-600">
@@ -829,17 +895,17 @@ function EmployeeTable() {
                 {approvalModal.actionType === "approve" ? (
                   <>
                     Are you sure you want to <strong className="text-emerald-700">ACCEPT</strong> company{" "}
-                    <strong>"{approvalModal.company?.companyName}"</strong>? Upon acceptance, this company will be published directly to <strong>Employee Management</strong>.
+                    <strong>&quot;{approvalModal.company?.companyName}&quot;</strong>? Upon acceptance, this company will be published directly to <strong>Employee Management</strong>.
                   </>
                 ) : approvalModal.actionType === "reapprove" ? (
                   <>
                     Are you sure you want to <strong className="text-purple-700">RE-APPROVE</strong> company{" "}
-                    <strong>"{approvalModal.company?.companyName}"</strong>? It will be moved back to the <strong>Pending Approvals</strong> section.
+                    <strong>&quot;{approvalModal.company?.companyName}&quot;</strong>? It will be moved back to the <strong>Pending Approvals</strong> section.
                   </>
                 ) : (
                   <>
                     Are you sure you want to <strong className="text-red-600">REJECT</strong> company{" "}
-                    <strong>"{approvalModal.company?.companyName}"</strong>? It will be removed from Employee Management and moved to Rejected Requests.
+                    <strong>&quot;{approvalModal.company?.companyName}&quot;</strong>? It will be removed from Employee Management and moved to Rejected Requests.
                   </>
                 )}
               </p>
@@ -899,14 +965,14 @@ function EmployeeTable() {
           }}
           onConfirm={handleBlock}
           loading={updateLoading}
-          title={selectedRow?.status === "active" ? "Block Employer" : "Unblock Employer"}
+          title={isActiveEmployerStatus(selectedRow?.status) ? "Block Employer" : "Unblock Employer"}
           message={
-            selectedRow?.status === "active"
+            isActiveEmployerStatus(selectedRow?.status)
               ? `Are you sure you want to block "${selectedRow?.companyName || selectedRow?.name}"?`
               : `Are you sure you want to unblock "${selectedRow?.companyName || selectedRow?.name}"?`
           }
-          buttonText={selectedRow?.status === "active" ? "Block" : "Unblock"}
-          variant={selectedRow?.status === "active" ? "danger" : undefined}
+          buttonText={isActiveEmployerStatus(selectedRow?.status) ? "Block" : "Unblock"}
+          variant={isActiveEmployerStatus(selectedRow?.status) ? "danger" : undefined}
         />
 
         <DeleteModal

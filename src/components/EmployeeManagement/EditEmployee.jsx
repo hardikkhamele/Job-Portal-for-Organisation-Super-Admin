@@ -258,8 +258,6 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
   ArrowLeft,
-  Eye,
-  EyeOff,
   Upload,
   Image as ImageIcon,
   Building2,
@@ -300,7 +298,6 @@ const EditEmployee = () => {
   const { loading, success } = useSelector((state) => state.updateEmployee);
   const { employer, loading: fetchLoading } = useSelector((state) => state.employeeDetails);
 
-  const [showPassword, setShowPassword] = useState(false);
   const [logo, setLogo] = useState(null);
   const [banner, setBanner] = useState(null);
   const [skills, setSkills] = useState([]);
@@ -319,13 +316,6 @@ const EditEmployee = () => {
     mobileNumber: Yup.string()
       .matches(/^(?!00)[0-9]{10}$/, "Mobile number must be exactly 10 digits and cannot start with '00'")
       .required("Mobile number is required"),
-    password: Yup.string()
-      .nullable()
-      .notRequired()
-      .test("is-strong", "Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character", (value) => {
-        if (!value) return true; // optional
-        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
-      }),
     hiringFor: Yup.string()
       .max(100, "Hiring For must be at most 100 characters")
       .matches(
@@ -384,7 +374,6 @@ const EditEmployee = () => {
   const initialValues = {
     name: employer?.name || "",
     email: employer?.email || "",
-    password: "",
     mobileNumber: employer?.mobileNumber ? employer.mobileNumber.replace(/^\+91/, "").replace(/^91/, "") : "", // Fixed field name
     tagline: employer?.companyDetail?.companyTagline || "",
     website: employer?.companyDetail?.companyWebsite || "",
@@ -416,7 +405,6 @@ const EditEmployee = () => {
 
     formData.append("name", values.name);
     formData.append("email", values.email);
-    if (values.password) formData.append("password", values.password);
     formData.append("mobileNumber", "+91" + values.mobileNumber); // Using mobileNumber key
 
     if (stateData.name) formData.append("state", stateData.name);
@@ -596,17 +584,6 @@ const EditEmployee = () => {
                       />
                     </div>
                     <ErrorMessage name="mobileNumber" component="p" className="text-red-500 text-xs mt-1" />
-                  </div>
-                  <div className="relative">
-                    <label className="text-sm font-semibold text-gray-700">New Password</label>
-                    <Field name="password" type={showPassword ? "text" : "password"} className={touched.password && errors.password ? inputErrorClass : inputClass} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-10 text-gray-400">
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                    <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1" />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Must be at least 8 characters, containing 1 uppercase, 1 lowercase, 1 number, and 1 special character (e.g. @$!%*?&).
-                    </p>
                   </div>
                 </div>
 
