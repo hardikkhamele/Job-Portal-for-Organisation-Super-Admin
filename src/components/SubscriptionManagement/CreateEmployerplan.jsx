@@ -5,7 +5,6 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { fetchPlanTypeDropdown } from "../../redux/slice/subscriptions/employerPlans/plantypeDropdown";
 import { fetchDurationDropdown } from "../../redux/slice/subscriptions/employerPlans/durationDropdown";
 import { createEmployerPlan } from "../../redux/slice/subscriptions/employerPlans/getEmployerPlans";
 import { addNotification } from "../../utils/notificationHelper";
@@ -15,31 +14,20 @@ const CreateEmployerplan = () => {
   const dispatch = useDispatch();
 
   // Get data from Redux Store
-  const { options: planTypeOptions = [] } = useSelector(
-    (state) => state.planTypeDropdown || {},
-  );
   const { options: durationOptions = [] } = useSelector(
     (state) => state.durationDropdown || {},
   );
 
   useEffect(() => {
-    dispatch(fetchPlanTypeDropdown());
     dispatch(fetchDurationDropdown());
   }, [dispatch]);
 
-  // Filter Plan Type to ONLY Package Plan
-  const filteredPlanTypeOptions = useMemo(() => {
-    if (!planTypeOptions || planTypeOptions.length === 0) {
-      return [{ label: "Package Plan", value: "Package Plan" }];
-    }
-    const filtered = planTypeOptions.filter((opt) => {
-      const txt = (opt.label || opt.name || opt.value || "").toLowerCase();
-      return txt.includes("package");
-    });
-    return filtered.length > 0
-      ? filtered
-      : [{ label: "Package Plan", value: "Package Plan" }];
-  }, [planTypeOptions]);
+  // Keep these values in sync with the employer-plan backend enum.
+  const planTypeOptions = [
+    { label: "Bundle Plans", value: "Bundle Plans" },
+    { label: "Job Posting", value: "Job Posting" },
+    { label: "Database", value: "Database" },
+  ];
 
   // Filter Duration to ONLY 1, 3, 6 Months (exclude 1 Year / 12 Months)
   const filteredDurationOptions = useMemo(() => {
@@ -194,8 +182,8 @@ const CreateEmployerplan = () => {
                   value={formik.values.title}
                 >
                   <option value="">Select Plan Type</option>
-                  {filteredPlanTypeOptions?.map((opt, index) => (
-                    <option key={index} value={opt.value}>
+                  {planTypeOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}

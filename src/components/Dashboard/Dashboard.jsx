@@ -422,14 +422,33 @@ function Dashboard() {
 
           <Card
             title="Shortlisted Candidates"
-            value={apiLoading ? "Loading..." : (dashboardData?.shortlistedCandidates ?? dashboardData?.shortlisted ? Number(dashboardData.shortlistedCandidates ?? dashboardData.shortlisted).toLocaleString() : "12,630")}
+            value={
+              apiLoading
+                ? "Loading..."
+                : dashboardData?.shortlistedCandidates != null ||
+                    dashboardData?.shortlisted != null
+                  ? Number(
+                      dashboardData?.shortlistedCandidates ??
+                        dashboardData?.shortlisted
+                    ).toLocaleString()
+                  : "—"
+            }
             growth={dashboardData?.shortlistedGrowth ?? "+2.8%"}
             icon={<User size={28} className="text-purple-500" />}
             bg="bg-gradient-to-br from-violet-500 to-violet-200"
           />
           <Card
             title="Successful Hires"
-            value={apiLoading ? "Loading..." : (dashboardData?.successfulHires ?? dashboardData?.hired ? Number(dashboardData.successfulHires ?? dashboardData.hired).toLocaleString() : "6,780")}
+            value={
+              apiLoading
+                ? "Loading..."
+                : dashboardData?.successfulHires != null ||
+                    dashboardData?.hired != null
+                  ? Number(
+                      dashboardData?.successfulHires ?? dashboardData?.hired
+                    ).toLocaleString()
+                  : "—"
+            }
             growth={dashboardData?.hiresGrowth ?? "+1.8%"}
             icon={<CheckCircle size={28} className="text-green-600" />}
             bg="bg-gradient-to-br from-sky-300 to-sky-200"
