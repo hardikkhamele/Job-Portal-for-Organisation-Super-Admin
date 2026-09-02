@@ -14,17 +14,19 @@ import {
   AlertCircle,
   Plus,
   Pencil,
-  Trash2
+  Trash2,
+  Ban
 } from "lucide-react";
 import Footer from "../Footer";
+import BlockModal from "../common/BlockModal";
 
 // Realistic Mock Data for Sales Employees
 const mockSalesEmployees = [
-  { id: 1, name: "Aarav Sharma", total: 45, today: 3, completed: 40, pending: 5, performance: 88 },
-  { id: 2, name: "Ananya Iyer", total: 38, today: 2, completed: 35, pending: 3, performance: 92 },
-  { id: 3, name: "Rohan Verma", total: 50, today: 5, completed: 42, pending: 8, performance: 84 },
-  { id: 4, name: "Priya Patel", total: 29, today: 1, completed: 27, pending: 2, performance: 93 },
-  { id: 5, name: "Vikram Singh", total: 33, today: 0, completed: 30, pending: 3, performance: 90 }
+  { id: 1, name: "Aarav Sharma", total: 45, today: 3, completed: 40, pending: 5, performance: 88, isBlocked: false },
+  { id: 2, name: "Ananya Iyer", total: 38, today: 2, completed: 35, pending: 3, performance: 92, isBlocked: false },
+  { id: 3, name: "Rohan Verma", total: 50, today: 5, completed: 42, pending: 8, performance: 84, isBlocked: false },
+  { id: 4, name: "Priya Patel", total: 29, today: 1, completed: 27, pending: 2, performance: 93, isBlocked: false },
+  { id: 5, name: "Vikram Singh", total: 33, today: 0, completed: 30, pending: 3, performance: 90, isBlocked: false }
 ];
 
 // Realistic Mock Data for Onboarded Companies
@@ -166,6 +168,8 @@ function SalesTeamOnboarding() {
   const [selectedCompany, setSelectedCompany] = useState(null); // Detail Modal
   const [employeesCurrentPage, setEmployeesCurrentPage] = useState(1);
   const employeesPerPage = 5;
+  const [openBlockModal, setOpenBlockModal] = useState(false);
+  const [selectedRowForBlock, setSelectedRowForBlock] = useState(null);
 
   const paginatedEmployees = useMemo(() => {
     const startIndex = (employeesCurrentPage - 1) * employeesPerPage;
@@ -298,6 +302,17 @@ function SalesTeamOnboarding() {
         prev.map(c => c.onboardedBy === empToDelete.name ? { ...c, onboardedBy: "" } : c)
       );
     }
+  };
+
+  const handleBlock = () => {
+    if (selectedRowForBlock) {
+      const newBlockedStatus = !selectedRowForBlock.isBlocked;
+      setSalesEmployees(prev =>
+        prev.map(emp => emp.id === selectedRowForBlock.id ? { ...emp, isBlocked: newBlockedStatus } : emp)
+      );
+    }
+    setOpenBlockModal(false);
+    setSelectedRowForBlock(null);
   };
 
 
@@ -443,6 +458,15 @@ function SalesTeamOnboarding() {
                         >
                           <Pencil size={18} />
                         </button>
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSelectedRowForBlock(emp);
+                            setOpenBlockModal(true);
+                          }}
+                        >
+                          <Ban size={18} className="text-red-500 hover:text-red-700" title={emp.isBlocked ? "Unblock Member" : "Block Member"} />
+                        </div>
                         <button
                           onClick={() => handleDeleteMember(emp.id)}
                           className="text-red-500 hover:text-red-700 transition cursor-pointer p-1"
@@ -1020,6 +1044,21 @@ function SalesTeamOnboarding() {
           </div>
         </div>
       )}
+
+      {/* --- BLOCK/UNBLOCK MODAL --- */}
+      <BlockModal
+        isOpen={openBlockModal}
+        onClose={() => {
+          setOpenBlockModal(false);
+          setSelectedRowForBlock(null);
+        }}
+        onConfirm={handleBlock}
+        loading={false}
+        title={selectedRowForBlock?.isBlocked ? "Unblock Sales Member" : "Block Sales Member"}
+        message={selectedRowForBlock?.isBlocked ? `Are you sure you want to unblock "${selectedRowForBlock?.name}"?` : `Are you sure you want to block "${selectedRowForBlock?.name}"? They will no longer be able to access the system.`}
+        buttonText={selectedRowForBlock?.isBlocked ? "Unblock" : "Block"}
+        variant={selectedRowForBlock?.isBlocked ? "default" : "danger"}
+      />
     </div>
   );
 }
