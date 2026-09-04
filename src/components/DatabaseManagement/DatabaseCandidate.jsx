@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, ChevronLeft, ChevronRight, Send, X, ChevronDown } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Send, X, ChevronDown, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { fetchCandidates } from "../../redux/slice/databaseManagement/getAllCandidate";
@@ -1280,12 +1280,12 @@ const DatabaseCandidate = () => {
           <hr className="border-gray-300 mt-3 mb-5" />
 
           {/* Search & Filters */}
-          <div className="flex flex-col gap-4 mb-4">
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-3">
+          <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-6">
               <input
                 type="text"
                 placeholder="Search by name, email, etc."
-                className="border border-gray-300 bg-gray-100 px-3 py-2 rounded w-full lg:w-64 outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 xl:col-span-2"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -1293,12 +1293,12 @@ const DatabaseCandidate = () => {
                 }}
               />
 
-              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+              <div className="contents">
                 {/* Category Dropdown */}
                 <select
                   value={selectedCategory}
                   onChange={handleCategoryChange}
-                  className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[160px]"
+                  className="w-full min-w-0 cursor-pointer rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 >
                   <option value="">Select category</option>
                   {combinedCategories?.map((cat, idx) => {
@@ -1317,7 +1317,7 @@ const DatabaseCandidate = () => {
                     setSelectedDesignation(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[160px]"
+                  className="w-full min-w-0 cursor-pointer rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100 xl:col-span-2"
                 >
                   <option value="">Select Designation</option>
                   {combinedDesignations?.map((desig, idx) => {
@@ -1336,7 +1336,7 @@ const DatabaseCandidate = () => {
                     setSelectedCountry(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[130px]"
+                  className="w-full min-w-0 cursor-pointer rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 >
                   <option value="">Select Country</option>
                   <option value="India">India</option>
@@ -1349,7 +1349,7 @@ const DatabaseCandidate = () => {
                     setSelectedState(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[140px]"
+                  className="w-full min-w-0 cursor-pointer rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 >
                   <option value="">Select State</option>
                   {availableStates.map((st) => (
@@ -1366,7 +1366,7 @@ const DatabaseCandidate = () => {
                     setSelectedCity(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[140px]"
+                  className="w-full min-w-0 cursor-pointer rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 >
                   <option value="">Select City</option>
                   {availableCities.map((city) => (
@@ -1383,7 +1383,7 @@ const DatabaseCandidate = () => {
                     setSelectedWorkMode(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[150px]"
+                  className="w-full min-w-0 cursor-pointer rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 >
                   <option value="">Select Work Mode</option>
                   <option value="On-site">On-site</option>
@@ -1394,7 +1394,7 @@ const DatabaseCandidate = () => {
                 <select
                   value={selectedExperience}
                   onChange={handleExperienceChange}
-                  className="border border-gray-300 bg-white px-3 py-2 rounded outline-none cursor-pointer focus:ring-2 focus:ring-purple-200 w-full sm:w-auto min-w-[150px]"
+                  className="w-full min-w-0 cursor-pointer rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 >
                   <option value="">Select Experience</option>
                   <option value="0">Freshers (0+ yrs)</option>
@@ -1419,7 +1419,7 @@ const DatabaseCandidate = () => {
                   endDate) && (
                   <button
                     onClick={handleClearFilters}
-                    className="flex items-center gap-1 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded transition cursor-pointer"
+                    className="flex items-center justify-center gap-1 whitespace-nowrap rounded bg-gray-200 px-3 py-2 text-xs text-gray-700 transition hover:bg-gray-300"
                   >
                     <X size={14} /> Clear Filters
                   </button>
@@ -1428,14 +1428,14 @@ const DatabaseCandidate = () => {
             </div>
 
             {/* Date Range Preset Row */}
-            <div className="flex flex-wrap items-center gap-3 text-sm bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+            <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-gray-200 pt-2 text-sm xl:col-span-6">
               <span className="font-semibold text-gray-600 uppercase text-xs tracking-wider">
                 Date Filter:
               </span>
               <select
                 value={datePreset}
                 onChange={(e) => handlePresetChange(e.target.value)}
-                className="border border-gray-300 bg-white px-3 py-1.5 rounded text-sm outline-none focus:ring-2 focus:ring-purple-400 font-medium text-purple-700"
+                className="rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-purple-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
               >
                 <option value="">Select Date Range</option>
                 <option value="today">Today</option>
@@ -1537,15 +1537,29 @@ const DatabaseCandidate = () => {
                       <td className="p-3">{getCandidatePhone(item)}</td>
                       <td className="p-3">{getCandidateEmail(item)}</td>
                       <td className="text-center">
-                        <Eye
-                          className="text-purple-600 cursor-pointer mx-auto hover:scale-110 transition-transform"
-                          size={20}
-                          onClick={() =>
-                            navigate(
-                              `/candidates/candidate-details/${item._id}`,
-                            )
-                          }
-                        />
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            title="View candidate"
+                            aria-label="View candidate"
+                            className="rounded-md p-1.5 text-purple-600 transition hover:bg-purple-50 hover:text-purple-800"
+                            onClick={() =>
+                              navigate(
+                                `/candidates/candidate-details/${item._id}`,
+                              )
+                            }
+                          >
+                            <Eye size={18} />
+                          </button>
+                          <button
+                            type="button"
+                            title="Delete candidate"
+                            aria-label="Delete candidate"
+                            className="rounded-md p-1.5 text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
