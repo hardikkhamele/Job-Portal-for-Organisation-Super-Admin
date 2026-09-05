@@ -258,6 +258,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import {
   ArrowLeft,
+  Eye,
+  EyeOff,
   Upload,
   Image as ImageIcon,
   Building2,
@@ -305,6 +307,7 @@ const EditEmployee = () => {
   const [countryid, setCountryid] = useState(101);
   const [stateData, setStateData] = useState({ id: 0, name: "" });
   const [cityData, setCityData] = useState({ id: 0, name: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const years = Array.from({ length: 2026 - 1950 + 1 }, (_, i) => 2026 - i);
 
@@ -316,6 +319,9 @@ const EditEmployee = () => {
     mobileNumber: Yup.string()
       .matches(/^(?!00)[0-9]{10}$/, "Mobile number must be exactly 10 digits and cannot start with '00'")
       .required("Mobile number is required"),
+    password: Yup.string()
+      .notRequired()
+      .test("password-length", "Password must be between 8 and 20 characters", (value) => !value || (value.length >= 8 && value.length <= 20)),
     hiringFor: Yup.string()
       .max(100, "Hiring For must be at most 100 characters")
       .matches(
@@ -375,6 +381,7 @@ const EditEmployee = () => {
     name: employer?.name || "",
     email: employer?.email || "",
     mobileNumber: employer?.mobileNumber ? employer.mobileNumber.replace(/^\+91/, "").replace(/^91/, "") : "", // Fixed field name
+    password: "",
     tagline: employer?.companyDetail?.companyTagline || "",
     website: employer?.companyDetail?.companyWebsite || "",
     area: employer?.companyDetail?.location?.area || "",
@@ -406,6 +413,7 @@ const EditEmployee = () => {
     formData.append("name", values.name);
     formData.append("email", values.email);
     formData.append("mobileNumber", "+91" + values.mobileNumber); // Using mobileNumber key
+    if (values.password) formData.append("password", values.password);
 
     if (stateData.name) formData.append("state", stateData.name);
     if (cityData.name) formData.append("city", cityData.name);
@@ -584,6 +592,28 @@ const EditEmployee = () => {
                       />
                     </div>
                     <ErrorMessage name="mobileNumber" component="p" className="text-red-500 text-xs mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">Password</label>
+                    <div className={`relative mt-2 rounded-md border bg-gray-50 focus-within:ring-1 ${touched.password && errors.password ? "border-red-400 focus-within:ring-red-400" : "border-gray-300 focus-within:ring-purple-400"}`}>
+                      <Field
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter new password"
+                        autoComplete="new-password"
+                        className="w-full bg-transparent px-4 py-2 pr-10 text-sm text-gray-800 focus:outline-none [&::-ms-clear]:hidden [&::-ms-reveal]:hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((current) => !current)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-600"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1" />
+                    <p className="text-xs text-gray-400 mt-1">Leave blank to keep the current password</p>
                   </div>
                 </div>
 
