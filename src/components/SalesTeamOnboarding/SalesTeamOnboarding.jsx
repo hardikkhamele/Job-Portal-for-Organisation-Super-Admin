@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Users,
@@ -146,6 +147,7 @@ const mockOnboardedCompanies = [
 ];
 
 function SalesTeamOnboarding() {
+  const navigate = useNavigate();
   // Filters & State
   const [salesEmployees, setSalesEmployees] = useState(mockSalesEmployees);
   const [onboardedCompanies, setOnboardedCompanies] = useState(mockOnboardedCompanies);
@@ -445,7 +447,12 @@ function SalesTeamOnboarding() {
                     <td className="py-3.5 px-4 text-center">
                       <div className="flex items-center justify-center gap-3.5">
                         <button
-                          onClick={() => setSelectedEmployeeForCompanies(emp)}
+                          onClick={() => navigate(`/sales-team-onboarding/${emp.id}`, {
+                            state: {
+                              employee: emp,
+                              companies: onboardedCompanies.filter((company) => company.onboardedBy === emp.name)
+                            }
+                          })}
                           className="text-purple-600 hover:text-purple-800 transition cursor-pointer p-1"
                           title="View Onboarded Companies"
                         >

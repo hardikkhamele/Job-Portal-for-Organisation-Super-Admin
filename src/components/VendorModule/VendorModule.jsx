@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Building2, Check, ChevronDown, Search, Send, Users, X } from "lucide-react";
 
 // UI-only mock data. Replace with API data when this screen is wired into the app.
@@ -15,12 +16,12 @@ const companies = [
 const salesMembers = ["Aarav Sharma", "Ananya Iyer", "Rohan Verma", "Priya Patel", "Vikram Singh"];
 
 export default function VendorModule() {
+  const navigate = useNavigate();
   const [companyList, setCompanyList] = useState(companies);
   const [selectedIds, setSelectedIds] = useState([]);
   const [search, setSearch] = useState("");
   const [transferOpen, setTransferOpen] = useState(false);
   const [member, setMember] = useState("");
-  const [detail, setDetail] = useState(null);
 
   const visibleCompanies = useMemo(() => companyList.filter((company) =>
     `${company.name} ${company.contact} ${company.industry} ${company.city}`.toLowerCase().includes(search.toLowerCase())
@@ -71,7 +72,7 @@ export default function VendorModule() {
             <table className="min-w-[930px] w-full text-sm">
               <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"><tr><th className="w-14 px-5 py-4"><input aria-label="Select all companies" type="checkbox" checked={visibleCompanies.length > 0 && selectedIds.length === visibleCompanies.length} onChange={toggleAll} className="h-4 w-4 accent-violet-600" /></th><th className="px-3 py-4">Company</th><th className="px-3 py-4">Contact Details</th><th className="px-3 py-4">Industry</th><th className="px-3 py-4">Size</th><th className="px-3 py-4">Assigned To</th><th className="px-5 py-4 text-right">Action</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
-                {visibleCompanies.map((company) => <tr key={company.id} className="transition hover:bg-violet-50/30"><td className="px-5 py-4"><input aria-label={`Select ${company.name}`} type="checkbox" checked={selectedIds.includes(company.id)} onChange={() => toggleCompany(company.id)} className="h-4 w-4 accent-violet-600" /></td><td className="px-3 py-4"><p className="font-semibold text-slate-800">{company.name}</p><p className="mt-1 text-xs text-slate-400">Joined {company.date}</p></td><td className="px-3 py-4"><p className="font-medium text-slate-700">{company.contact}</p><p className="mt-1 text-xs text-slate-400">{company.email}</p></td><td className="px-3 py-4"><p className="text-slate-700">{company.industry}</p><p className="mt-1 text-xs text-slate-400">{company.city}</p></td><td className="px-3 py-4 text-slate-600">{company.employees}</td><td className="px-3 py-4"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${company.assignedTo === "Unassigned" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{company.assignedTo}</span></td><td className="px-5 py-4 text-right"><button onClick={() => setDetail(company)} className="font-semibold text-violet-600 hover:text-violet-800">View details</button></td></tr>)}
+                {visibleCompanies.map((company) => <tr key={company.id} className="transition hover:bg-violet-50/30"><td className="px-5 py-4"><input aria-label={`Select ${company.name}`} type="checkbox" checked={selectedIds.includes(company.id)} onChange={() => toggleCompany(company.id)} className="h-4 w-4 accent-violet-600" /></td><td className="px-3 py-4"><p className="font-semibold text-slate-800">{company.name}</p><p className="mt-1 text-xs text-slate-400">Joined {company.date}</p></td><td className="px-3 py-4"><p className="font-medium text-slate-700">{company.contact}</p><p className="mt-1 text-xs text-slate-400">{company.email}</p></td><td className="px-3 py-4"><p className="text-slate-700">{company.industry}</p><p className="mt-1 text-xs text-slate-400">{company.city}</p></td><td className="px-3 py-4 text-slate-600">{company.employees}</td><td className="px-3 py-4"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${company.assignedTo === "Unassigned" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{company.assignedTo}</span></td><td className="px-5 py-4 text-right"><button onClick={() => navigate(`/sales-team-onboarding/vendors/company/${company.id}`, { state: { company } })} className="font-semibold text-violet-600 hover:text-violet-800">View details</button></td></tr>)}
                 {!visibleCompanies.length && <tr><td colSpan="7" className="px-5 py-12 text-center text-slate-500">No vendors match your search.</td></tr>}
               </tbody>
             </table>
@@ -80,7 +81,6 @@ export default function VendorModule() {
       </div>
 
       {transferOpen && <Modal title="Transfer selected vendors" onClose={() => setTransferOpen(false)}><p className="text-sm text-slate-500">Assign <b className="text-slate-800">{selectedIds.length} selected {selectedIds.length === 1 ? "company" : "companies"}</b> to a sales team member.</p><label className="mt-5 block text-sm font-semibold text-slate-700">Sales team member</label><div className="relative mt-2"><select value={member} onChange={(event) => setMember(event.target.value)} className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"><option value="">Select a sales member</option>{salesMembers.map((name) => <option key={name}>{name}</option>)}</select><ChevronDown className="pointer-events-none absolute right-3 top-3 text-slate-400" size={18} /></div><div className="mt-6 flex justify-end gap-3"><button onClick={() => setTransferOpen(false)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button><button onClick={assignCompanies} disabled={!member} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-slate-300">Assign vendors</button></div></Modal>}
-      {detail && <Modal title="Company details" onClose={() => setDetail(null)}><div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2"><Detail label="Company name" value={detail.name} /><Detail label="Contact person" value={detail.contact} /><Detail label="Email address" value={detail.email} /><Detail label="Industry" value={detail.industry} /><Detail label="Location" value={detail.city} /><Detail label="Company size" value={detail.employees} /><Detail label="Sales owner" value={detail.assignedTo} /></div><div className="mt-6 flex justify-end"><button onClick={() => setDetail(null)} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700">Close</button></div></Modal>}
     </section>
   );
 }

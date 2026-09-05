@@ -70,7 +70,10 @@ import EditCreditModel from "../components/CreditManagement/EditCreditModel";
 import MyProfile from "../components/auth/MyProfile";
 import SendNotification from "../components/NotificationManagement/SendNotification";
 import SalesTeamOnboarding from "../components/SalesTeamOnboarding/SalesTeamOnboarding";
+import SalesEmployeeCompanies from "../components/SalesTeamOnboarding/SalesEmployeeCompanies";
+import SalesCompanyDetails from "../components/SalesTeamOnboarding/SalesCompanyDetails";
 import VendorModule from "../components/VendorModule/VendorModule";
+import VendorCompanyDetails from "../components/VendorModule/VendorCompanyDetails";
 
 function DashboardLayout() {
   return (
@@ -163,7 +166,10 @@ function DashboardLayout() {
               element={<EmployeeCandidate />}
             />
             <Route path="sales-team-onboarding" element={<SalesTeamOnboarding />} />
+            <Route path="sales-team-onboarding/:employeeId" element={<SalesEmployeeCompanies />} />
+            <Route path="sales-team-onboarding/:employeeId/company/:companyId" element={<SalesCompanyDetails />} />
             <Route path="sales-team-onboarding/vendors" element={<VendorModule />} />
+            <Route path="sales-team-onboarding/vendors/company/:companyId" element={<VendorCompanyDetails />} />
             <Route path="credit-management" element={<CreditModel />} />
             <Route
               path="credit-management/edit"
