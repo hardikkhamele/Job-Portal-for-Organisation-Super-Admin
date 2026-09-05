@@ -264,6 +264,125 @@ const getCandidatePhone = (item) => {
   return "N/A";
 };
 
+const getCandidateCity = (item) => {
+  if (!item || typeof item !== "object") return "N/A";
+
+  const isValidCity = (val) => {
+    if (!val || typeof val !== "string") return false;
+    const trimmed = val.trim();
+    if (!trimmed) return false;
+    const lower = trimmed.toLowerCase();
+    if (
+      lower === "n/a" ||
+      lower === "na" ||
+      lower === "null" ||
+      lower === "undefined" ||
+      lower === "-" ||
+      lower === "—" ||
+      lower === "none"
+    ) {
+      return false;
+    }
+    if (/^[0-9a-fA-F]{24}$/.test(trimmed)) return false;
+    return true;
+  };
+
+  // 1. Direct candidate fields across all known response models
+  const candidateList = [
+    item.personalInfo?.location?.city,
+    item.personalInfo?.city,
+    item.personalInfo?.cityName,
+    item.personalInfo?.location?.cityName,
+    typeof item.personalInfo?.location === "string" ? item.personalInfo.location.split(",")[0] : null,
+    item.location?.city,
+    item.location?.cityName,
+    typeof item.location === "string" ? item.location.split(",")[0] : null,
+    item.city,
+    item.cityName,
+    item.City,
+    item.CITY,
+    item.CityName,
+    item.candidateCity,
+    item.currentCity,
+    item.preferredCity,
+    item["CITY"],
+    item["City"],
+    item["city"],
+    item["City Name"],
+    item["CITY NAME"],
+    item["CityName"],
+    item["Current City"],
+    item["CURRENT CITY"],
+    item["Location"],
+    item["LOCATION"],
+    typeof item["Location"] === "string" ? item["Location"].split(",")[0] : null,
+    item.address?.city,
+    item.address?.cityName,
+    typeof item.address === "string" ? item.address.split(",")[0] : null,
+    item.candidate?.personalInfo?.location?.city,
+    item.candidate?.personalInfo?.city,
+    item.candidate?.location?.city,
+    item.candidate?.city,
+    typeof item.candidate?.location === "string" ? item.candidate.location.split(",")[0] : null,
+    item.candidateId?.personalInfo?.location?.city,
+    item.candidateId?.personalInfo?.city,
+    item.candidateId?.location?.city,
+    item.candidateId?.city,
+    typeof item.candidateId?.location === "string" ? item.candidateId.location.split(",")[0] : null,
+    item.basicDetails?.location?.city,
+    item.basicDetails?.city,
+    typeof item.basicDetails?.location === "string" ? item.basicDetails.location.split(",")[0] : null,
+    item.user?.location?.city,
+    item.user?.city,
+    typeof item.user?.location === "string" ? item.user.location.split(",")[0] : null,
+    item.profile?.location?.city,
+    item.profile?.city,
+    typeof item.profile?.location === "string" ? item.profile.location.split(",")[0] : null,
+    item.details?.location?.city,
+    item.details?.city,
+    typeof item.details?.location === "string" ? item.details.location.split(",")[0] : null,
+  ];
+
+  for (const c of candidateList) {
+    if (isValidCity(c)) {
+      return c.trim();
+    }
+  }
+
+  // 2. Dynamic scan of all keys in item
+  const ignoredKeys = [
+    "categoryname", "category_name", "category", "designationname", "designation_name",
+    "designation", "subcategoryname", "companyname", "hrname", "filename", "tablename",
+    "updatedat", "createdat", "_id", "id", "dbitemid", "uniquekey", "status", "workmode",
+    "email", "phone", "name", "education", "experience", "resume", "cv", "cityset", "citylist"
+  ];
+
+  const keys = Object.keys(item);
+  for (const k of keys) {
+    const cleanKey = k.trim().toLowerCase();
+    if (ignoredKeys.includes(cleanKey)) continue;
+
+    if (cleanKey.includes("city") || cleanKey === "location" || cleanKey.includes("town") || cleanKey.includes("district")) {
+      const val = item[k];
+      if (typeof val === "string") {
+        const candidateStr = cleanKey === "location" || cleanKey.includes("location")
+          ? val.split(",")[0].trim()
+          : val.trim();
+        if (isValidCity(candidateStr)) {
+          return candidateStr;
+        }
+      } else if (typeof val === "object" && val !== null) {
+        const subCity = val.city || val.cityName || val.name;
+        if (isValidCity(subCity)) {
+          return subCity.trim();
+        }
+      }
+    }
+  }
+
+  return "N/A";
+};
+
 const getCandidateCategory = (item, categoryList = []) => {
   if (!item || typeof item !== "object") return "";
 
@@ -505,31 +624,31 @@ const DatabaseCandidate = () => {
 
     (candidates || []).forEach((item) => {
       // City
-      const city =
-        item.city ||
-        item.location?.city ||
-        item.personalInfo?.city ||
-        item.personalInfo?.location?.city ||
-        item.address?.city ||
-        (typeof item.location === "string" ? item.location.split(",")[0] : null);
-
-      if (city && typeof city === "string" && city.trim()) {
-        citySet.add(city.trim());
+      const city = getCandidateCity(item);
+      if (city && city !== "N/A") {
+        citySet.add(city);
       }
 
       // State
-      const state =
-        item.state ||
-        item.location?.state ||
-        item.personalInfo?.state ||
-        item.personalInfo?.location?.state ||
-        item.address?.state ||
-        (typeof item.location === "string" && item.location.includes(",")
+      const stateCandidates = [
+        item.personalInfo?.location?.state,
+        item.personalInfo?.state,
+        typeof item.personalInfo?.location === "string" && item.personalInfo.location.includes(",")
+          ? item.personalInfo.location.split(",")[1]
+          : null,
+        item.location?.state,
+        typeof item.location === "string" && item.location.includes(",")
           ? item.location.split(",")[1]
-          : null);
+          : null,
+        item.state,
+        item.address?.state,
+      ];
 
-      if (state && typeof state === "string" && state.trim()) {
-        stateSet.add(state.trim());
+      for (const st of stateCandidates) {
+        if (st && typeof st === "string" && st.trim() && st.trim().toLowerCase() !== "n/a") {
+          stateSet.add(st.trim());
+          break;
+        }
       }
     });
 
@@ -1506,13 +1625,14 @@ const DatabaseCandidate = () => {
                   <th className="p-3 text-center">Designation</th>
                   <th className="p-3 text-center">Phone</th>
                   <th className="p-3 text-center">Email</th>
+                  <th className="p-3 text-center">City</th>
                   <th className="p-3 text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="8" className="text-center p-5 text-gray-500">
+                    <td colSpan="9" className="text-center p-5 text-gray-500">
                       Loading candidates...
                     </td>
                   </tr>
@@ -1536,6 +1656,7 @@ const DatabaseCandidate = () => {
                       <td className="p-3">{getCandidateDesignation(item, designations) || "N/A"}</td>
                       <td className="p-3">{getCandidatePhone(item)}</td>
                       <td className="p-3">{getCandidateEmail(item)}</td>
+                      <td className="p-3">{getCandidateCity(item)}</td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button
@@ -1566,7 +1687,7 @@ const DatabaseCandidate = () => {
                 )}
                 {!loading && paginatedCandidates.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="text-center p-5">
+                    <td colSpan="9" className="text-center p-5">
                       No Candidates Found
                     </td>
                   </tr>

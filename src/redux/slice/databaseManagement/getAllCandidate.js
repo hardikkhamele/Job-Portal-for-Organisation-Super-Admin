@@ -435,50 +435,143 @@ const getAllCandidateSlice = createSlice({
           return typeof val === "string" ? val.trim() : String(val);
         };
 
+        const isValidStringValue = (val) => {
+          if (!val || typeof val !== "string") return false;
+          const trimmed = val.trim();
+          if (!trimmed) return false;
+          const lower = trimmed.toLowerCase();
+          if (
+            lower === "n/a" ||
+            lower === "na" ||
+            lower === "null" ||
+            lower === "undefined" ||
+            lower === "-" ||
+            lower === "—" ||
+            lower === "none"
+          ) {
+            return false;
+          }
+          if (/^[0-9a-fA-F]{24}$/.test(trimmed)) return false;
+          return true;
+        };
+
         const extractCity = (row, dbItem) => {
-          if (!row) return dbItem?.city || "N/A";
-          const val =
-            row["CITY"] ||
-            row["City"] ||
-            row["city"] ||
-            row.city ||
-            row.location?.city ||
-            row.address?.city ||
-            (typeof row.location === "string" ? row.location.split(",")[0] : null) ||
-            dbItem?.city ||
-            "N/A";
-          return typeof val === "string" ? val.trim() : String(val);
+          const candidates = [
+            row?.personalInfo?.location?.city,
+            row?.personalInfo?.city,
+            row?.personalInfo?.cityName,
+            row?.personalInfo?.location?.cityName,
+            typeof row?.personalInfo?.location === "string" ? row.personalInfo.location.split(",")[0] : null,
+            row?.location?.city,
+            row?.location?.cityName,
+            typeof row?.location === "string" ? row.location.split(",")[0] : null,
+            row?.city,
+            row?.cityName,
+            row?.City,
+            row?.CITY,
+            row?.["CITY"],
+            row?.["City"],
+            row?.["city"],
+            row?.["City Name"],
+            row?.["CITY NAME"],
+            row?.["CityName"],
+            row?.["Current City"],
+            row?.["CURRENT CITY"],
+            row?.["Location"],
+            row?.["LOCATION"],
+            row?.address?.city,
+            row?.address?.cityName,
+            typeof row?.address === "string" ? row.address.split(",")[0] : null,
+            row?.candidateId?.personalInfo?.location?.city,
+            row?.candidateId?.city,
+            row?.basicDetails?.location?.city,
+            row?.basicDetails?.city,
+            typeof row?.basicDetails?.location === "string" ? row.basicDetails.location.split(",")[0] : null,
+            dbItem?.personalInfo?.location?.city,
+            dbItem?.personalInfo?.city,
+            typeof dbItem?.personalInfo?.location === "string" ? dbItem.personalInfo.location.split(",")[0] : null,
+            dbItem?.location?.city,
+            typeof dbItem?.location === "string" ? dbItem.location.split(",")[0] : null,
+            dbItem?.city,
+            dbItem?.cityName,
+            dbItem?.["CITY"],
+            dbItem?.["City"],
+            dbItem?.["Location"],
+          ];
+
+          for (const val of candidates) {
+            if (isValidStringValue(val)) return val.trim();
+          }
+
+          // Dynamic scan of keys for row
+          if (row && typeof row === "object") {
+            for (const k of Object.keys(row)) {
+              const cleanKey = k.trim().toLowerCase();
+              if (cleanKey.includes("city") || cleanKey === "location") {
+                const val = row[k];
+                if (typeof val === "string") {
+                  const part = cleanKey === "location" ? val.split(",")[0] : val;
+                  if (isValidStringValue(part)) return part.trim();
+                } else if (typeof val === "object" && val !== null) {
+                  const subVal = val.city || val.cityName || val.name;
+                  if (isValidStringValue(subVal)) return subVal.trim();
+                }
+              }
+            }
+          }
+
+          return "N/A";
         };
 
         const extractState = (row, dbItem) => {
-          if (!row) return dbItem?.state || "N/A";
-          const val =
-            row["STATE"] ||
-            row["State"] ||
-            row["state"] ||
-            row.state ||
-            row.location?.state ||
-            row.address?.state ||
-            (typeof row.location === "string" && row.location.includes(",")
+          const candidates = [
+            row?.personalInfo?.location?.state,
+            row?.personalInfo?.state,
+            typeof row?.personalInfo?.location === "string" && row.personalInfo.location.includes(",")
+              ? row.personalInfo.location.split(",")[1]
+              : null,
+            row?.location?.state,
+            typeof row?.location === "string" && row.location.includes(",")
               ? row.location.split(",")[1]
-              : null) ||
-            dbItem?.state ||
-            "N/A";
-          return typeof val === "string" ? val.trim() : String(val);
+              : null,
+            row?.state,
+            row?.State,
+            row?.STATE,
+            row?.["STATE"],
+            row?.["State"],
+            row?.["state"],
+            row?.address?.state,
+            dbItem?.personalInfo?.location?.state,
+            dbItem?.personalInfo?.state,
+            dbItem?.location?.state,
+            dbItem?.state,
+          ];
+
+          for (const val of candidates) {
+            if (isValidStringValue(val)) return val.trim();
+          }
+
+          return "N/A";
         };
 
         const extractCountry = (row, dbItem) => {
-          if (!row) return dbItem?.country || "India";
-          const val =
-            row["COUNTRY"] ||
-            row["Country"] ||
-            row["country"] ||
-            row.country ||
-            row.location?.country ||
-            row.address?.country ||
-            dbItem?.country ||
-            "India";
-          return typeof val === "string" ? val.trim() : String(val);
+          if (!row && !dbItem) return "India";
+          const candidates = [
+            row?.personalInfo?.location?.country,
+            row?.location?.country,
+            row?.country,
+            row?.Country,
+            row?.["COUNTRY"],
+            row?.["Country"],
+            row?.address?.country,
+            dbItem?.country,
+          ];
+
+          for (const val of candidates) {
+            if (isValidStringValue(val)) return val.trim();
+          }
+
+          return "India";
         };
 
         const combinedCandidates = [];
@@ -494,6 +587,10 @@ const getAllCandidateSlice = createSlice({
           const normEmail = extractEmail(c);
           const normPhone = extractPhone(c);
           const normWorkMode = extractWorkMode(c);
+          const normCity = extractCity(c, null);
+          const normState = extractState(c, null);
+          const normCountry = extractCountry(c, null);
+          const normExp = extractExperience(c, null);
 
           combinedCandidates.push({
             ...c,
@@ -501,6 +598,10 @@ const getAllCandidateSlice = createSlice({
             email: c.email || normEmail || "N/A",
             phone: c.phone || normPhone || "N/A",
             workMode: c.workMode || normWorkMode || "N/A",
+            city: normCity !== "N/A" ? normCity : (isValidStringValue(c.city) ? c.city.trim() : "N/A"),
+            state: normState !== "N/A" ? normState : (isValidStringValue(c.state) ? c.state.trim() : "N/A"),
+            country: normCountry !== "India" ? normCountry : (c.country || "India"),
+            experience: normExp !== "N/A" ? normExp : (c.experience || "N/A"),
           });
         });
 
