@@ -32,15 +32,16 @@ function EditHR() {
   }, [dispatch, id]);
 
   useEffect(() => {
-    const hr = location.state?.hr || hrData;
+    const hr = hrData || location.state?.hr;
     if (hr) {
       setFormData({
         hrName: hr.hrName || "",
         designation: hr.designation || "",
         email: hr.email || "",
-        password: "",
+        password: hr.password || hr.showPassword || "",
         image: null,
       });
+      setShowPassword(Boolean(hr.password || hr.showPassword));
     }
   }, [location.state, hrData]);
 

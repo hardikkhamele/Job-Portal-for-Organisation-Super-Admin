@@ -283,7 +283,7 @@ function HRManagement() {
                   (pagination.pageIndex + 1) * pagination.pageSize,
                   total || 0,
                 )}{" "}
-                of {total || 0} HRs
+                of {total || 0} Entries
               </p>
 
               <div className="flex items-center gap-2">

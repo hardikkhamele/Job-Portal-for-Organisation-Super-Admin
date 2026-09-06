@@ -323,7 +323,9 @@ function HRViewDetails() {
             <div className="text-right text-sm text-gray-600">
               <p className="font-medium">{hrInfo?.email || "N/A"}</p>
               <p className="text-xs text-purple-500 bg-purple-50 px-2 py-1 rounded-full inline-block mt-1">
-                {hrInfo?.isverified ? "Verified" : "Pending Verification"}
+                {hrInfo?.isverified ?? hrInfo?.isActive
+                  ? "Verified"
+                  : "Pending Verification"}
               </p>
             </div>
           </div>

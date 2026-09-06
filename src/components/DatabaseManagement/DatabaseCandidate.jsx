@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, ChevronLeft, ChevronRight, Send, X, ChevronDown, Trash2 } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Send, X, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { fetchCandidates } from "../../redux/slice/databaseManagement/getAllCandidate";
@@ -532,6 +532,8 @@ const DatabaseCandidate = () => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferTarget, setTransferTarget] = useState("");
   const [selectedPersonId, setSelectedPersonId] = useState("");
+  const [hrSearchTerm, setHrSearchTerm] = useState("");
+  const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [isHrDropdownOpen, setIsHrDropdownOpen] = useState(false);
   const [isEmpDropdownOpen, setIsEmpDropdownOpen] = useState(false);
   const [hrOptions, setHrOptions] = useState([]);
@@ -584,6 +586,15 @@ const DatabaseCandidate = () => {
     return Array.from(map.values());
   }, [combinedHrList, hrList]);
 
+  const filteredHrList = useMemo(() => {
+    const searchValue = hrSearchTerm.trim().toLowerCase();
+    if (!searchValue) return formattedHrList;
+
+    return formattedHrList.filter((hr) =>
+      `${hr.name} ${hr.email}`.toLowerCase().includes(searchValue),
+    );
+  }, [formattedHrList, hrSearchTerm]);
+
   // Formatted & deduplicated list of ALL Employees
   const formattedEmployeeList = useMemo(() => {
     const list = combinedEmployeeList.length > 0 ? combinedEmployeeList : employers || [];
@@ -616,6 +627,15 @@ const DatabaseCandidate = () => {
     });
     return Array.from(map.values());
   }, [combinedEmployeeList, employers]);
+
+  const filteredEmployeeList = useMemo(() => {
+    const searchValue = employeeSearchTerm.trim().toLowerCase();
+    if (!searchValue) return formattedEmployeeList;
+
+    return formattedEmployeeList.filter((employee) =>
+      `${employee.name} ${employee.email}`.toLowerCase().includes(searchValue),
+    );
+  }, [formattedEmployeeList, employeeSearchTerm]);
 
   // Extract dynamic unique cities and states from candidates data
   const { availableCities, availableStates } = useMemo(() => {
@@ -1349,6 +1369,8 @@ const DatabaseCandidate = () => {
         setSelectedCandidates([]);
         setTransferTarget("");
         setSelectedPersonId("");
+        setHrSearchTerm("");
+        setEmployeeSearchTerm("");
         setIsTransferModalOpen(false);
       } else {
         toast.error(response.data.message || "Failed to transfer candidates");
@@ -1776,6 +1798,8 @@ const DatabaseCandidate = () => {
                   onChange={(e) => {
                     setTransferTarget(e.target.value);
                     setSelectedPersonId("");
+                    setHrSearchTerm("");
+                    setEmployeeSearchTerm("");
                   }}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer"
                 >
@@ -1805,36 +1829,30 @@ const DatabaseCandidate = () => {
                         }
                       }}
                     >
-                      <div
-                        className={`w-full border ${isHrDropdownOpen ? 'border-purple-300 ring-2 ring-purple-300' : 'border-gray-300'} rounded-lg px-3 py-2 text-sm outline-none bg-white cursor-pointer flex justify-between items-center`}
-                        onClick={() => setIsHrDropdownOpen(!isHrDropdownOpen)}
-                      >
-                        <span className="truncate">
-                          {selectedPersonId
-                            ? formattedHrList.find((h) => h.id === selectedPersonId)?.name || "-- Select HR Name --"
-                            : "-- Select HR Name --"}
-                        </span>
-                        <ChevronDown size={16} className={`text-gray-500 transition-transform ${isHrDropdownOpen ? 'rotate-180' : ''}`} />
-                      </div>
-                      
+                      <input
+                        type="search"
+                        value={hrSearchTerm}
+                        onFocus={() => setIsHrDropdownOpen(true)}
+                        onChange={(e) => {
+                          setHrSearchTerm(e.target.value);
+                          setSelectedPersonId("");
+                          setIsHrDropdownOpen(true);
+                        }}
+                        placeholder="Search HR by name or email"
+                        className={`w-full border ${isHrDropdownOpen ? "border-purple-300 ring-2 ring-purple-300" : "border-gray-300"} rounded-lg px-3 py-2 text-sm outline-none bg-white`}
+                      />
+
                       {isHrDropdownOpen && (
                         <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[60] max-h-60 overflow-y-auto">
-                          <div 
-                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-purple-50 ${!selectedPersonId ? "bg-purple-50 text-purple-700" : "text-gray-700"}`}
-                            onClick={() => {
-                              setSelectedPersonId("");
-                              setIsHrDropdownOpen(false);
-                            }}
-                          >
-                            -- Select HR Name --
-                          </div>
-                          {formattedHrList && formattedHrList.length > 0 ? (
-                            formattedHrList.map((hr, idx) => (
+                          {filteredHrList.length > 0 ? (
+                            filteredHrList.map((hr, idx) => (
                               <div
                                 key={hr.id || idx}
-                                className={`px-3 py-2 text-sm cursor-pointer hover:bg-purple-50 ${selectedPersonId === hr.id ? "bg-purple-50 text-purple-700" : "text-gray-700"}`}
+                                className="px-3 py-2 text-sm cursor-pointer hover:bg-purple-50 text-gray-700"
+                                onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
                                   setSelectedPersonId(hr.id);
+                                  setHrSearchTerm(hr.name);
                                   setIsHrDropdownOpen(false);
                                 }}
                               >
@@ -1842,7 +1860,7 @@ const DatabaseCandidate = () => {
                               </div>
                             ))
                           ) : (
-                            <div className="px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
+                            <div className="px-3 py-2 text-sm text-gray-400">
                               No HRs found in HR Management
                             </div>
                           )}
@@ -1853,7 +1871,7 @@ const DatabaseCandidate = () => {
                 </div>
               )}
 
-              {/* Specific Employee Sub-Dropdown */}
+              {/* Specific Employee Search */}
               {transferTarget === "employee_management" && (
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
@@ -1873,36 +1891,30 @@ const DatabaseCandidate = () => {
                         }
                       }}
                     >
-                      <div
-                        className={`w-full border ${isEmpDropdownOpen ? 'border-purple-300 ring-2 ring-purple-300' : 'border-gray-300'} rounded-lg px-3 py-2 text-sm outline-none bg-white cursor-pointer flex justify-between items-center`}
-                        onClick={() => setIsEmpDropdownOpen(!isEmpDropdownOpen)}
-                      >
-                        <span className="truncate">
-                          {selectedPersonId
-                            ? formattedEmployeeList.find((emp) => emp.id === selectedPersonId)?.name || "-- Select Employee Name --"
-                            : "-- Select Employee Name --"}
-                        </span>
-                        <ChevronDown size={16} className={`text-gray-500 transition-transform ${isEmpDropdownOpen ? 'rotate-180' : ''}`} />
-                      </div>
-                      
+                      <input
+                        type="search"
+                        value={employeeSearchTerm}
+                        onFocus={() => setIsEmpDropdownOpen(true)}
+                        onChange={(e) => {
+                          setEmployeeSearchTerm(e.target.value);
+                          setSelectedPersonId("");
+                          setIsEmpDropdownOpen(true);
+                        }}
+                        placeholder="Search employee by name or email"
+                        className={`w-full border ${isEmpDropdownOpen ? "border-purple-300 ring-2 ring-purple-300" : "border-gray-300"} rounded-lg px-3 py-2 text-sm outline-none bg-white`}
+                      />
+
                       {isEmpDropdownOpen && (
                         <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[60] max-h-60 overflow-y-auto">
-                          <div 
-                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-purple-50 ${!selectedPersonId ? "bg-purple-50 text-purple-700" : "text-gray-700"}`}
-                            onClick={() => {
-                              setSelectedPersonId("");
-                              setIsEmpDropdownOpen(false);
-                            }}
-                          >
-                            -- Select Employee Name --
-                          </div>
-                          {formattedEmployeeList && formattedEmployeeList.length > 0 ? (
-                            formattedEmployeeList.map((emp, idx) => (
+                          {filteredEmployeeList.length > 0 ? (
+                            filteredEmployeeList.map((emp, idx) => (
                               <div
                                 key={emp.id || idx}
-                                className={`px-3 py-2 text-sm cursor-pointer hover:bg-purple-50 ${selectedPersonId === emp.id ? "bg-purple-50 text-purple-700" : "text-gray-700"}`}
+                                className="px-3 py-2 text-sm cursor-pointer hover:bg-purple-50 text-gray-700"
+                                onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
                                   setSelectedPersonId(emp.id);
+                                  setEmployeeSearchTerm(emp.name);
                                   setIsEmpDropdownOpen(false);
                                 }}
                               >
@@ -1910,7 +1922,7 @@ const DatabaseCandidate = () => {
                               </div>
                             ))
                           ) : (
-                            <div className="px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
+                            <div className="px-3 py-2 text-sm text-gray-400">
                               No Employees found in Employee Management
                             </div>
                           )}
