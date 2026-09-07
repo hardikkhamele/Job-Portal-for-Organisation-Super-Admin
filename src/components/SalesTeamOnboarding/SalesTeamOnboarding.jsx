@@ -337,8 +337,9 @@ function SalesTeamOnboarding() {
               <p className="text-xs text-gray-500 mt-1">Manage sales representatives and track corporate onboarding metrics</p>
             </div>
             <button
+              type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2 cursor-pointer self-start md:self-auto h-11"
+              className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2 cursor-pointer self-start md:self-auto h-11 shadow-sm"
             >
               <Plus size={18} />
               <span>Add Sales Member</span>

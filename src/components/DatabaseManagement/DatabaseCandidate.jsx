@@ -526,6 +526,8 @@ const DatabaseCandidate = () => {
   const [datePreset, setDatePreset] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [transferCountPreset, setTransferCountPreset] = useState("");
+  const [fetchedTransferCandidates, setFetchedTransferCandidates] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [selectAllLoading, setSelectAllLoading] = useState(false);
@@ -894,6 +896,92 @@ const DatabaseCandidate = () => {
     }
   };
 
+  const handleTransferPresetChange = async (value) => {
+    setTransferCountPreset(value);
+    if (!value) {
+      setFetchedTransferCandidates([]);
+      return;
+    }
+
+    const count = parseInt(value, 10);
+    if (isNaN(count) || count <= 0) return;
+
+    let availableCandidates = candidates || [];
+    if (availableCandidates.length < count) {
+      setSelectAllLoading(true);
+      try {
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const token = localStorage.getItem("token");
+        const params = { limit: count, page: 1 };
+        if (search?.trim()) params.search = search.trim();
+        if (selectedCategory) params.category = selectedCategory;
+        if (selectedDesignation) params.designation = selectedDesignation;
+        if (selectedCity || selectedState || selectedCountry) {
+          params.location = selectedCity || selectedState || selectedCountry;
+        }
+        if (selectedCity) params.city = selectedCity;
+        if (selectedState) params.state = selectedState;
+        if (selectedCountry) params.country = selectedCountry;
+        if (selectedWorkMode) params.workMode = selectedWorkMode;
+        if (selectedExperience) params.experience = selectedExperience;
+        if (startDate) {
+          const formatDate = (d) => {
+            const [y, m, day] = d.split("-");
+            return `${day}/${m}/${y}`;
+          };
+          params.startDate = formatDate(startDate);
+          params.fromDate = formatDate(startDate);
+        }
+        if (endDate) {
+          const formatDate = (d) => {
+            const [y, m, day] = d.split("-");
+            return `${day}/${m}/${y}`;
+          };
+          params.endDate = formatDate(endDate);
+          params.toDate = formatDate(endDate);
+        }
+
+        const response = await axios.get(
+          `${BASE_URL}/api/admin/candidate-database/getCandidates`,
+          { params, headers: { Authorization: `Bearer ${token}` } }
+        );
+        const payload = response.data;
+        let fetchedList = [];
+        if (Array.isArray(payload)) {
+          fetchedList = payload;
+        } else if (Array.isArray(payload?.candidates)) {
+          fetchedList = payload.candidates;
+        } else if (Array.isArray(payload?.data)) {
+          fetchedList = payload.data;
+        } else if (Array.isArray(payload?.data?.candidates)) {
+          fetchedList = payload.data.candidates;
+        }
+
+        if (fetchedList.length > 0) {
+          availableCandidates = fetchedList;
+          setFetchedTransferCandidates(fetchedList);
+        }
+      } catch (err) {
+        console.error("Error fetching candidates for preset transfer:", err);
+      } finally {
+        setSelectAllLoading(false);
+      }
+    }
+
+    const idsToSelect = availableCandidates
+      .slice(0, count)
+      .filter((item) => item.uniqueKey || item._id)
+      .map((item) => item.uniqueKey || item._id);
+
+    if (idsToSelect.length > 0) {
+      setSelectedCandidates(idsToSelect);
+      setIsTransferModalOpen(true);
+      toast.info(`${idsToSelect.length} candidate(s) selected for transfer.`);
+    } else {
+      toast.warning("No candidates available to transfer.");
+    }
+  };
+
   const handleClearFilters = () => {
     setSearch("");
     setSelectedCategory("");
@@ -906,6 +994,8 @@ const DatabaseCandidate = () => {
     setDatePreset("");
     setStartDate("");
     setEndDate("");
+    setTransferCountPreset("");
+    setFetchedTransferCandidates([]);
     setCurrentPage(1);
     setSelectedCandidates([]);
     dispatch(fetchDesignations());
@@ -970,6 +1060,8 @@ const DatabaseCandidate = () => {
   // Clear selections whenever filter criteria change so stale IDs don't interfere
   useEffect(() => {
     setSelectedCandidates([]);
+    setTransferCountPreset("");
+    setFetchedTransferCandidates([]);
   }, [
     search,
     selectedCategory,
@@ -1287,9 +1379,14 @@ const DatabaseCandidate = () => {
       return;
     }
 
+    const allKnownCandidates = [
+      ...(candidates || []),
+      ...fetchedTransferCandidates,
+    ];
+
     // Resolve candidates to valid MongoDB ObjectIds
     const rawCandidateIds = selectedCandidates.map((selKey) => {
-      const foundCandidate = (candidates || []).find(
+      const foundCandidate = allKnownCandidates.find(
         (c) => (c.uniqueKey || c._id) === selKey || c._id === selKey
       );
       if (foundCandidate?._id && isValidObjectId(String(foundCandidate._id))) {
@@ -1367,6 +1464,8 @@ const DatabaseCandidate = () => {
         );
 
         setSelectedCandidates([]);
+        setTransferCountPreset("");
+        setFetchedTransferCandidates([]);
         setTransferTarget("");
         setSelectedPersonId("");
         setHrSearchTerm("");
@@ -1611,6 +1710,26 @@ const DatabaseCandidate = () => {
                   }}
                   className="border border-gray-300 bg-white px-2 py-1 rounded text-xs outline-none focus:ring-2 focus:ring-purple-400"
                 />
+              </div>
+
+              {/* Candidate Data Transfer Preset Dropdown */}
+              <div className="flex items-center gap-2 border-l border-gray-300 pl-3 ml-1">
+                <span className="font-semibold text-gray-600 uppercase text-xs tracking-wider">
+                  Data Transfer:
+                </span>
+                <select
+                  value={transferCountPreset}
+                  onChange={(e) => handleTransferPresetChange(e.target.value)}
+                  className="rounded border border-purple-300 bg-purple-50 px-2.5 py-1.5 text-xs font-semibold text-purple-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 cursor-pointer hover:bg-purple-100 transition"
+                >
+                  <option value="">Select Data Transfer</option>
+                  <option value="10">10 candidate transfer</option>
+                  <option value="20">20 candidate transfer</option>
+                  <option value="30">30 candidate transfer</option>
+                  <option value="40">40 candidate transfer</option>
+                  <option value="50">50 candidate transfer</option>
+                  <option value="100">100 candidate transfer</option>
+                </select>
               </div>
             </div>
           </div>
