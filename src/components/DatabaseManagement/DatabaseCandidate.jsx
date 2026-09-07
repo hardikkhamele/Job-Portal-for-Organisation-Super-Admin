@@ -975,10 +975,9 @@ const DatabaseCandidate = () => {
 
     if (idsToSelect.length > 0) {
       setSelectedCandidates(idsToSelect);
-      setIsTransferModalOpen(true);
-      toast.info(`${idsToSelect.length} candidate(s) selected for transfer.`);
+      toast.info(`${idsToSelect.length} candidate(s) selected.`);
     } else {
-      toast.warning("No candidates available to transfer.");
+      toast.warning("No candidates available to select.");
     }
   };
 
