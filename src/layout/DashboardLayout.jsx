@@ -71,7 +71,6 @@ import EditCreditModel from "../components/CreditManagement/EditCreditModel";
 import MyProfile from "../components/auth/MyProfile";
 import SendNotification from "../components/NotificationManagement/SendNotification";
 import SalesTeamOnboarding from "../components/SalesTeamOnboarding/SalesTeamOnboarding";
-import CreateSalesMember from "../components/SalesTeamOnboarding/CreateSalesMember";
 import StaffingOnboarding from "../components/SalesTeamOnboarding/StaffingOnboarding";
 import StaffingManagement from "../components/StaffingManagement/StaffingManagement";
 import SalesEmployeeCompanies from "../components/SalesTeamOnboarding/SalesEmployeeCompanies";
@@ -170,8 +169,6 @@ function DashboardLayout() {
               element={<EmployeeCandidate />}
             />
             <Route path="sales-team-onboarding" element={<SalesTeamOnboarding />} />
-            <Route path="sales-team-onboarding/create-sales-member" element={<CreateSalesMember />} />
-            <Route path="sales-team-onboarding/add-sales-member" element={<CreateSalesMember />} />
             <Route path="sales-team-onboarding/staffing" element={<StaffingOnboarding />} />
             <Route path="staffing-management" element={<StaffingManagement />} />
             <Route path="staffing-management/create-staffing" element={<StaffingOnboarding />} />

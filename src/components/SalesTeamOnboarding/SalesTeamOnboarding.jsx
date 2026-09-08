@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Users,
@@ -148,56 +148,20 @@ const mockOnboardedCompanies = [
 
 function SalesTeamOnboarding() {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Load sales employees with localStorage persistence for added members
-  const [salesEmployees, setSalesEmployees] = useState(() => {
-    const saved = localStorage.getItem("custom_sales_employees");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to parse stored sales employees", e);
-      }
-    }
-    return mockSalesEmployees;
-  });
-
+  // Filters & State
+  const [salesEmployees, setSalesEmployees] = useState(mockSalesEmployees);
   const [onboardedCompanies, setOnboardedCompanies] = useState(mockOnboardedCompanies);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedEmployeeForCompanies, setSelectedEmployeeForCompanies] = useState(null); // Member companies modal
-
-  // Listen for new sales member created from CreateSalesMember page
-  useEffect(() => {
-    if (location.state?.newMember) {
-      const newMemberData = location.state.newMember;
-      setSalesEmployees((prev) => {
-        if (prev.some((emp) => emp.email && emp.email.toLowerCase() === newMemberData.email.toLowerCase())) {
-          return prev;
-        }
-        if (prev.some((emp) => emp.name.toLowerCase() === newMemberData.name.toLowerCase())) {
-          return prev;
-        }
-        const nextId = prev.length > 0 ? Math.max(...prev.map((emp) => emp.id)) + 1 : 1;
-        const memberToAdd = {
-          id: nextId,
-          name: newMemberData.name,
-          designation: newMemberData.designation || "Sales Executive",
-          email: newMemberData.email,
-          mobileNumber: newMemberData.mobileNumber,
-          total: 0,
-          today: 0,
-          completed: 0,
-          pending: 0,
-          performance: 100,
-          isBlocked: false
-        };
-        const updated = [memberToAdd, ...prev];
-        localStorage.setItem("custom_sales_employees", JSON.stringify(updated));
-        return updated;
-      });
-    }
-  }, [location.state]);
-
+  const [newMember, setNewMember] = useState({
+    name: "",
+    total: "",
+    today: "",
+    completed: "",
+    pending: ""
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [newMemberCompanies, setNewMemberCompanies] = useState([]); // Companies currently assigned in new member form
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [editingMemberCompanies, setEditingMemberCompanies] = useState([]); // Companies currently assigned in edit form
@@ -215,6 +179,56 @@ function SalesTeamOnboarding() {
   }, [salesEmployees, employeesCurrentPage]);
 
   const totalEmployeePages = Math.max(1, Math.ceil(salesEmployees.length / employeesPerPage));
+
+  const handleAddMemberSubmit = (e) => {
+    e.preventDefault();
+    const errors = {};
+    if (!newMember.name.trim()) {
+      errors.name = "Name is required";
+    } else if (newMember.name.trim().length < 2) {
+      errors.name = "Name must be at least 2 characters";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    const nextId = salesEmployees.length > 0 ? Math.max(...salesEmployees.map(emp => emp.id)) + 1 : 1;
+    const newName = newMember.name.trim();
+
+    // Recalculate metrics based on assigned companies in modal
+    const totalCount = newMemberCompanies.length;
+    const completedCount = newMemberCompanies.filter(c => c.status === "Completed").length;
+    const pendingCount = newMemberCompanies.filter(c => c.status === "Pending").length;
+    const todayCount = newMemberCompanies.filter(c => c.date === "2026-08-19").length;
+
+    // Save company assignments back to onboardedCompanies state
+    setOnboardedCompanies(prevCompanies =>
+      prevCompanies.map(c => {
+        const isAssignedInModal = newMemberCompanies.some(mc => mc.id === c.id);
+        if (isAssignedInModal) {
+          return { ...c, onboardedBy: newName };
+        }
+        return c;
+      })
+    );
+
+    const memberToAdd = {
+      id: nextId,
+      name: newName,
+      total: totalCount,
+      today: todayCount,
+      completed: completedCount,
+      pending: pendingCount
+    };
+
+    setSalesEmployees([...salesEmployees, memberToAdd]);
+    setIsAddModalOpen(false);
+    setNewMember({ name: "", total: "", today: "", completed: "", pending: "" });
+    setNewMemberCompanies([]);
+    setFormErrors({});
+  };
 
   const handleEditClick = (emp) => {
     setEditingMember({ ...emp });
@@ -324,7 +338,7 @@ function SalesTeamOnboarding() {
             </div>
             <button
               type="button"
-              onClick={() => navigate("/sales-team-onboarding/create-sales-member")}
+              onClick={() => setIsAddModalOpen(true)}
               className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2 cursor-pointer self-start md:self-auto h-11 shadow-sm"
             >
               <Plus size={18} />
@@ -616,6 +630,171 @@ function SalesTeamOnboarding() {
         </div>
       )}
 
+      {/* --- ADD SALES MEMBER MODAL --- */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-5 flex justify-between items-center">
+              <h3 className="text-lg font-bold">Add Sales Member</h3>
+              <button
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setNewMember({ name: "", total: "", today: "", completed: "", pending: "" });
+                  setNewMemberCompanies([]);
+                  setFormErrors({});
+                }}
+                className="text-white/80 hover:text-white transition p-1 bg-white/10 hover:bg-white/20 rounded-full cursor-pointer border-none outline-none"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleAddMemberSubmit} className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700">Member Name *</label>
+                <input
+                  type="text"
+                  placeholder="Enter full name"
+                  value={newMember.name}
+                  onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                  className={`w-full mt-1.5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    formErrors.name ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
+                  }`}
+                  required
+                />
+                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">Total Companies</label>
+                  <input
+                    type="number"
+                    value={newMemberCompanies.length}
+                    readOnly
+                    className="w-full mt-1.5 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed outline-none font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">Today's Onboard</label>
+                  <input
+                    type="number"
+                    value={newMemberCompanies.filter(c => c.date === "2026-08-19").length}
+                    readOnly
+                    className="w-full mt-1.5 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed outline-none font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">Completed</label>
+                  <input
+                    type="number"
+                    value={newMemberCompanies.filter(c => c.status === "Completed").length}
+                    readOnly
+                    className="w-full mt-1.5 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed outline-none font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">Pending</label>
+                  <input
+                    type="number"
+                    value={newMemberCompanies.filter(c => c.status === "Pending").length}
+                    readOnly
+                    className="w-full mt-1.5 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed outline-none font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Assign Companies Section */}
+              <div className="border-t border-gray-200 pt-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Assign Companies</label>
+                
+                {/* List of currently assigned companies in the modal */}
+                <div className="space-y-1.5 max-h-32 overflow-y-auto mb-3 border border-gray-100 p-2 rounded-lg bg-gray-50/50">
+                  {newMemberCompanies.length > 0 ? (
+                    newMemberCompanies.map((c) => (
+                      <div key={c.id} className="flex justify-between items-center bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs">
+                        <span className="font-semibold text-gray-800">{c.companyName}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewMemberCompanies(prev => prev.filter(mc => mc.id !== c.id));
+                          }}
+                          className="text-red-500 hover:text-red-700 font-bold transition cursor-pointer text-[11px]"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400 italic py-1 text-center">No companies assigned yet.</p>
+                  )}
+                </div>
+
+                {/* Dropdown to assign a new company */}
+                <div className="flex gap-2">
+                  <select
+                    id="newMemberCompanyAssignSelect"
+                    className="flex-1 border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Select company to assign...</option>
+                    {onboardedCompanies
+                      .filter(c => !newMemberCompanies.some(mc => mc.id === c.id))
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.companyName} {c.onboardedBy ? `(onboarded by ${c.onboardedBy})` : "(unassigned)"}
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const selectEl = document.getElementById("newMemberCompanyAssignSelect");
+                      const companyId = parseInt(selectEl.value, 10);
+                      if (isNaN(companyId)) return;
+                      const companyToAssign = onboardedCompanies.find(c => c.id === companyId);
+                      if (companyToAssign) {
+                        setNewMemberCompanies(prev => [...prev, companyToAssign]);
+                        selectEl.value = ""; // Reset select dropdown
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold transition cursor-pointer"
+                  >
+                    Assign
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    setNewMember({ name: "", total: "", today: "", completed: "", pending: "" });
+                    setNewMemberCompanies([]);
+                    setFormErrors({});
+                  }}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition cursor-pointer"
+                >
+                  Add Member
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* --- SALES MEMBER'S COMPANIES MODAL --- */}
       {selectedEmployeeForCompanies && (
