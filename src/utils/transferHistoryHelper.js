@@ -80,6 +80,7 @@ export const addTransferRecord = (record) => {
       destModule: record.destModule || "Management",
       transferredBy: record.transferredBy || "Super Admin",
       status: record.status || "Success",
+      candidates: Array.isArray(record.candidates) ? record.candidates : [],
     };
 
     history.unshift(newRecord);

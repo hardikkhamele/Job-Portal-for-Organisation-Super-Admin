@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, ChevronLeft, ChevronRight, Send, X, Trash2, History, CheckCircle2, UserCheck, Calendar, Clock, Search } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Send, X, Trash2, History, CheckCircle2, UserCheck, Calendar, Clock, Search, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { fetchCandidates } from "../../redux/slice/databaseManagement/getAllCandidate";
@@ -536,6 +536,8 @@ const DatabaseCandidate = () => {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [transferHistoryList, setTransferHistoryList] = useState([]);
   const [historySearchTerm, setHistorySearchTerm] = useState("");
+  const [selectedBatchForView, setSelectedBatchForView] = useState(null);
+  const [batchSearchTerm, setBatchSearchTerm] = useState("");
   const adminProfile = useSelector((state) => state.adminProfile?.profile);
 
   useEffect(() => {
@@ -561,6 +563,21 @@ const DatabaseCandidate = () => {
         item.range?.toLowerCase().includes(term)
     );
   }, [transferHistoryList, historySearchTerm]);
+
+  const filteredBatchCandidates = useMemo(() => {
+    if (!selectedBatchForView || !Array.isArray(selectedBatchForView.candidates)) return [];
+    if (!batchSearchTerm.trim()) return selectedBatchForView.candidates;
+    const term = batchSearchTerm.toLowerCase().trim();
+    return selectedBatchForView.candidates.filter(
+      (cand) =>
+        cand.name?.toLowerCase().includes(term) ||
+        cand.email?.toLowerCase().includes(term) ||
+        cand.phone?.toLowerCase().includes(term) ||
+        cand.designation?.toLowerCase().includes(term) ||
+        cand.category?.toLowerCase().includes(term) ||
+        cand.city?.toLowerCase().includes(term)
+    );
+  }, [selectedBatchForView, batchSearchTerm]);
 
   const [transferTarget, setTransferTarget] = useState("");
   const [selectedPersonId, setSelectedPersonId] = useState("");
@@ -1499,6 +1516,22 @@ const DatabaseCandidate = () => {
           localStorage.getItem("adminName") ||
           "Super Admin";
 
+        const transferredCandidatesDetails = selectedCandidates.map((selKey, idx) => {
+          const found = allKnownCandidates.find(
+            (c) => (c.uniqueKey || c._id) === selKey || c._id === selKey
+          );
+          return {
+            id: found?._id || selKey,
+            srNo: idx + 1,
+            name: found ? getCandidateName(found) : `Candidate #${selKey.slice(-6)}`,
+            email: found ? getCandidateEmail(found) : "N/A",
+            phone: found ? getCandidatePhone(found) : "N/A",
+            designation: found ? (getCandidateDesignation(found, designations) || "N/A") : "N/A",
+            category: found ? (getCandidateCategory(found, categories) || "N/A") : "N/A",
+            city: found ? (getCandidateCity(found) || "N/A") : "N/A",
+          };
+        });
+
         addTransferRecord({
           count: selectedCandidates.length,
           range: `Sr. No. 1 to ${selectedCandidates.length} (Batch of ${selectedCandidates.length})`,
@@ -1506,6 +1539,7 @@ const DatabaseCandidate = () => {
           destModule: destModuleName,
           transferredBy: adminName,
           status: "Success",
+          candidates: transferredCandidatesDetails,
         });
 
         setSelectedCandidates([]);
@@ -2192,98 +2226,229 @@ const DatabaseCandidate = () => {
               </div>
             </div>
 
-            {/* Search Bar inside Modal */}
-            <div className="px-6 py-3 border-b border-gray-100 flex items-center justify-between gap-4">
-              <div className="relative flex-1 max-w-sm">
-                <Search size={15} className="absolute left-3 top-2.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by recipient, module, or date..."
-                  value={historySearchTerm}
-                  onChange={(e) => setHistorySearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-gray-300 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
-                />
-              </div>
-              <span className="text-xs text-gray-500 font-medium">
-                Showing {filteredHistory.length} record(s)
-              </span>
-            </div>
-
-            {/* History Table */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {filteredHistory.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-14 h-14 bg-purple-50 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <History size={28} />
+            {/* History Content: Batches List OR Drill-Down Candidates List */}
+            {selectedBatchForView ? (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Sub-header with Back Button and Batch Info */}
+                <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3 bg-purple-50/60 border-b border-purple-100">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBatchForView(null)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-purple-100 border border-purple-200 text-purple-700 font-semibold rounded-lg text-xs transition cursor-pointer shadow-2xs"
+                    >
+                      <ArrowLeft size={14} />
+                      <span>Back to Batches</span>
+                    </button>
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                        <span>Transferred Candidates</span>
+                        <span className="bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                          {selectedBatchForView.candidates?.length || selectedBatchForView.count} Candidates
+                        </span>
+                      </h4>
+                      <p className="text-[11px] text-gray-500">
+                        Transferred to <strong className="text-purple-700">{selectedBatchForView.transferredTo}</strong> ({selectedBatchForView.destModule}) on {selectedBatchForView.dateTime}
+                      </p>
+                    </div>
                   </div>
-                  <h4 className="text-sm font-bold text-gray-700">No Transfer Records Found</h4>
-                  <p className="text-xs text-gray-400 mt-1">
-                    When you transfer candidates to HR or Employee management, the logs will appear here.
-                  </p>
+
+                  {/* Search inside this batch */}
+                  {selectedBatchForView.candidates?.length > 0 && (
+                    <div className="relative w-full sm:w-64">
+                      <Search size={14} className="absolute left-3 top-2.5 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search candidate in this batch..."
+                        value={batchSearchTerm}
+                        onChange={(e) => setBatchSearchTerm(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-300 bg-white outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
+                      />
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
-                        <th className="py-3 px-4">#</th>
-                        <th className="py-3 px-4">Date & Time</th>
-                        <th className="py-3 px-4">Data / Count</th>
-                        <th className="py-3 px-4">Transferred To</th>
-                        <th className="py-3 px-4">Department</th>
-                        <th className="py-3 px-4">Transferred By</th>
-                        <th className="py-3 px-4 text-center">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {filteredHistory.map((item, idx) => (
-                        <tr key={item.id || idx} className="hover:bg-purple-50/40 transition">
-                          <td className="py-3 px-4 font-bold text-gray-500">{idx + 1}</td>
-                          <td className="py-3 px-4 font-medium text-gray-800 whitespace-nowrap">
-                            {item.dateTime}
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-100 text-purple-800 font-bold">
-                              {item.count} Candidate(s)
-                            </span>
-                            {item.range && (
-                              <p className="text-[11px] text-gray-500 mt-0.5">{item.range}</p>
-                            )}
-                          </td>
-                          <td className="py-3 px-4 font-semibold text-gray-900">
-                            {item.transferredTo}
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
-                              item.destModule?.includes("HR")
-                                ? "bg-blue-50 text-blue-700 border border-blue-200"
-                                : "bg-amber-50 text-amber-700 border border-amber-200"
-                            }`}>
-                              {item.destModule}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-gray-600 font-medium">
-                            {item.transferredBy || "Super Admin"}
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[11px]">
-                              <CheckCircle2 size={12} />
-                              {item.status || "Success"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+                {/* Candidates Table or Notice */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  {selectedBatchForView.candidates && selectedBatchForView.candidates.length > 0 ? (
+                    <div className="border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                            <th className="py-2.5 px-3 text-center w-12">#</th>
+                            <th className="py-2.5 px-3">Candidate Name</th>
+                            <th className="py-2.5 px-3">Designation</th>
+                            <th className="py-2.5 px-3">Category</th>
+                            <th className="py-2.5 px-3">Phone</th>
+                            <th className="py-2.5 px-3">Email</th>
+                            <th className="py-2.5 px-3">City</th>
+                            <th className="py-2.5 px-3 text-center w-16">Profile</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {filteredBatchCandidates.map((cand, cIdx) => (
+                            <tr key={cand.id || cIdx} className="hover:bg-gray-50 transition">
+                              <td className="py-2.5 px-3 text-center font-bold text-gray-500">{cIdx + 1}</td>
+                              <td className="py-2.5 px-3 font-semibold text-gray-900">{cand.name || "N/A"}</td>
+                              <td className="py-2.5 px-3 text-gray-600">{cand.designation || "N/A"}</td>
+                              <td className="py-2.5 px-3 text-gray-600">{cand.category || "N/A"}</td>
+                              <td className="py-2.5 px-3 text-gray-600">{cand.phone || "N/A"}</td>
+                              <td className="py-2.5 px-3 text-gray-600">{cand.email || "N/A"}</td>
+                              <td className="py-2.5 px-3 text-gray-600">{cand.city || "N/A"}</td>
+                              <td className="py-2.5 px-3 text-center">
+                                {cand.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setIsHistoryModalOpen(false);
+                                      setSelectedBatchForView(null);
+                                      navigate(`/candidates/candidate-details/${cand.id}`);
+                                    }}
+                                    className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded transition cursor-pointer"
+                                    title="View Full Profile"
+                                  >
+                                    <Eye size={15} />
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                          {filteredBatchCandidates.length === 0 && (
+                            <tr>
+                              <td colSpan="8" className="text-center py-6 text-gray-400">
+                                No candidates match your search "{batchSearchTerm}".
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 bg-amber-50/60 border border-amber-200 rounded-xl p-6">
+                      <p className="text-sm font-semibold text-amber-900">
+                        Detailed candidate profiles for this past batch are stored in {selectedBatchForView.destModule}.
+                      </p>
+                      <p className="text-xs text-amber-700 mt-1">
+                        Go to <strong>{selectedBatchForView.destModule}</strong> ➔ <strong>{selectedBatchForView.transferredTo}</strong> ➔ <strong>Transferred Candidates</strong> tab to view complete candidate cards.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <>
+                {/* Search Bar inside Modal */}
+                <div className="px-6 py-3 border-b border-gray-100 flex items-center justify-between gap-4">
+                  <div className="relative flex-1 max-w-sm">
+                    <Search size={15} className="absolute left-3 top-2.5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by recipient, module, or date..."
+                      value={historySearchTerm}
+                      onChange={(e) => setHistorySearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-gray-300 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
+                    />
+                  </div>
+                  <span className="text-xs text-gray-500 font-medium">
+                    Showing {filteredHistory.length} record(s)
+                  </span>
+                </div>
+
+                {/* History Table */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  {filteredHistory.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-14 h-14 bg-purple-50 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <History size={28} />
+                      </div>
+                      <h4 className="text-sm font-bold text-gray-700">No Transfer Records Found</h4>
+                      <p className="text-xs text-gray-400 mt-1">
+                        When you transfer candidates to HR or Employee management, the logs will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                            <th className="py-3 px-4">#</th>
+                            <th className="py-3 px-4">Date & Time</th>
+                            <th className="py-3 px-4">Data / Count</th>
+                            <th className="py-3 px-4">Transferred To</th>
+                            <th className="py-3 px-4">Department</th>
+                            <th className="py-3 px-4">Transferred By</th>
+                            <th className="py-3 px-4 text-center">Status</th>
+                            <th className="py-3 px-4 text-center">Candidates</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {filteredHistory.map((item, idx) => (
+                            <tr key={item.id || idx} className="hover:bg-purple-50/40 transition">
+                              <td className="py-3 px-4 font-bold text-gray-500">{idx + 1}</td>
+                              <td className="py-3 px-4 font-medium text-gray-800 whitespace-nowrap">
+                                {item.dateTime}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-100 text-purple-800 font-bold">
+                                  {item.count} Candidate(s)
+                                </span>
+                                {item.range && (
+                                  <p className="text-[11px] text-gray-500 mt-0.5">{item.range}</p>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 font-semibold text-gray-900">
+                                {item.transferredTo}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                                  item.destModule?.includes("HR")
+                                    ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                    : "bg-amber-50 text-amber-700 border border-amber-200"
+                                }`}>
+                                  {item.destModule}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-gray-600 font-medium">
+                                {item.transferredBy || "Super Admin"}
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[11px]">
+                                  <CheckCircle2 size={12} />
+                                  {item.status || "Success"}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedBatchForView(item);
+                                    setBatchSearchTerm("");
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold border border-purple-200 transition cursor-pointer text-[11px]"
+                                  title="View exact candidates in this batch"
+                                >
+                                  <Eye size={12} />
+                                  <span>View Candidates ({item.candidates?.length || item.count})</span>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Modal Footer */}
             <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex justify-end">
               <button
                 type="button"
-                onClick={() => setIsHistoryModalOpen(false)}
+                onClick={() => {
+                  setIsHistoryModalOpen(false);
+                  setSelectedBatchForView(null);
+                }}
                 className="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg text-xs transition cursor-pointer"
               >
                 Close
