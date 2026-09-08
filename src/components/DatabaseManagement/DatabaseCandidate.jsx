@@ -975,7 +975,6 @@ const DatabaseCandidate = () => {
 
     if (idsToSelect.length > 0) {
       setSelectedCandidates(idsToSelect);
-      setIsTransferModalOpen(true);
       toast.info(`${idsToSelect.length} candidate(s) selected for transfer.`);
     } else {
       toast.warning("No candidates available to transfer.");
@@ -1730,6 +1729,17 @@ const DatabaseCandidate = () => {
                   <option value="50">50 candidate transfer</option>
                   <option value="100">100 candidate transfer</option>
                 </select>
+
+                {selectedCandidates.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsTransferModalOpen(true)}
+                    className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold px-3 py-1.5 rounded text-xs shadow-sm transition cursor-pointer whitespace-nowrap"
+                  >
+                    <Send size={13} />
+                    <span>Transfer</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
