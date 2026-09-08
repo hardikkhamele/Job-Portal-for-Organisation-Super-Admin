@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   useReactTable,
@@ -23,6 +23,7 @@ import {
   ThumbsDown,
   Check,
   X,
+  Plus,
 } from "lucide-react";
 
 import DeleteModal from "../common/DeleteModal";
@@ -148,9 +149,50 @@ function EmployeeTable() {
     }
   }, [activeTab]);
 
+  const location = useLocation();
+
+  // Local storage persistence for custom created employers
+  const [createdEmployers, setCreatedEmployers] = useState(() => {
+    const saved = localStorage.getItem("custom_created_employers");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse custom created employers", e);
+      }
+    }
+    return [];
+  });
+
+  // Listen for new employer created from AddEmployee page
+  useEffect(() => {
+    if (location.state?.newEmployer) {
+      const newEmp = location.state.newEmployer;
+      setCreatedEmployers((prev) => {
+        if (prev.some((e) => e.email && e.email.toLowerCase() === newEmp.email.toLowerCase())) return prev;
+        const entry = {
+          _id: "local_emp_" + Date.now(),
+          companyName: newEmp.companyName || newEmp.employerName,
+          email: newEmp.email,
+          mobileNumber: newEmp.mobileNumber,
+          category: newEmp.designation || "Corporate",
+          postedJobs: 0,
+          location: "India",
+          status: "approved",
+          approvalStatus: "approved",
+          createdAt: new Date().toISOString()
+        };
+        const updated = [entry, ...prev];
+        localStorage.setItem("custom_created_employers", JSON.stringify(updated));
+        return updated;
+      });
+      setActiveTab("approved");
+    }
+  }, [location.state]);
+
   // Combine fetched employers with local overrides applied
   const allProcessedEmployers = useMemo(() => {
-    const list = [...(employers || [])];
+    const list = [...createdEmployers, ...(employers || [])];
 
     return list.map((emp) => {
       const overrideStatus = localStatusUpdates[emp._id];
@@ -159,7 +201,7 @@ function EmployeeTable() {
         status: resolveEmployerStatus(emp, overrideStatus),
       };
     });
-  }, [employers, localStatusUpdates]);
+  }, [createdEmployers, employers, localStatusUpdates]);
 
   // Calculate Metrics & Counts
   const approvedList = useMemo(() => {
@@ -650,9 +692,10 @@ function EmployeeTable() {
 
           <button
             onClick={() => navigate("/employee/add-employee")}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2 whitespace-nowrap"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2 whitespace-nowrap cursor-pointer"
           >
-            <span>+ Add Employee</span>
+            <Plus size={18} />
+            <span>Add Employer</span>
           </button>
         </div>
 
