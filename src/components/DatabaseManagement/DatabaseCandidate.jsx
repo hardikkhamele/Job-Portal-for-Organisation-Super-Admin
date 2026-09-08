@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, ChevronLeft, ChevronRight, Send, X, Trash2 } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Send, X, Trash2, History, CheckCircle2, UserCheck, Calendar, Clock, Search } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { fetchCandidates } from "../../redux/slice/databaseManagement/getAllCandidate";
@@ -13,6 +13,7 @@ import {
 import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
 import { fetchEmployers } from "../../redux/slice/employer/getAllEmployer";
 import { addNotification } from "../../utils/notificationHelper";
+import { addTransferRecord, getTransferHistory } from "../../utils/transferHistoryHelper";
 const getCandidateName = (item) => {
   if (!item || typeof item !== "object") return "N/A";
 
@@ -532,6 +533,35 @@ const DatabaseCandidate = () => {
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [selectAllLoading, setSelectAllLoading] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [transferHistoryList, setTransferHistoryList] = useState([]);
+  const [historySearchTerm, setHistorySearchTerm] = useState("");
+  const adminProfile = useSelector((state) => state.adminProfile?.profile);
+
+  useEffect(() => {
+    const loadHistory = () => {
+      setTransferHistoryList(getTransferHistory());
+    };
+    loadHistory();
+    window.addEventListener("transferHistoryUpdated", loadHistory);
+    return () => {
+      window.removeEventListener("transferHistoryUpdated", loadHistory);
+    };
+  }, []);
+
+  const filteredHistory = useMemo(() => {
+    if (!historySearchTerm.trim()) return transferHistoryList;
+    const term = historySearchTerm.toLowerCase().trim();
+    return transferHistoryList.filter(
+      (item) =>
+        item.transferredTo?.toLowerCase().includes(term) ||
+        item.destModule?.toLowerCase().includes(term) ||
+        item.dateTime?.toLowerCase().includes(term) ||
+        item.transferredBy?.toLowerCase().includes(term) ||
+        item.range?.toLowerCase().includes(term)
+    );
+  }, [transferHistoryList, historySearchTerm]);
+
   const [transferTarget, setTransferTarget] = useState("");
   const [selectedPersonId, setSelectedPersonId] = useState("");
   const [hrSearchTerm, setHrSearchTerm] = useState("");
@@ -1462,6 +1492,22 @@ const DatabaseCandidate = () => {
           "success"
         );
 
+        const adminName =
+          adminProfile?.name ||
+          adminProfile?.fullName ||
+          adminProfile?.user?.name ||
+          localStorage.getItem("adminName") ||
+          "Super Admin";
+
+        addTransferRecord({
+          count: selectedCandidates.length,
+          range: `Sr. No. 1 to ${selectedCandidates.length} (Batch of ${selectedCandidates.length})`,
+          transferredTo: targetPersonName,
+          destModule: destModuleName,
+          transferredBy: adminName,
+          status: "Success",
+        });
+
         setSelectedCandidates([]);
         setTransferCountPreset("");
         setFetchedTransferCandidates([]);
@@ -1506,15 +1552,32 @@ const DatabaseCandidate = () => {
               )}
             </div>
 
-            {selectedCandidates.length > 0 && (
+            <div className="flex items-center gap-2.5">
               <button
-                onClick={() => setIsTransferModalOpen(true)}
-                className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold px-5 py-2 rounded-lg shadow-sm transition text-sm cursor-pointer whitespace-nowrap"
+                type="button"
+                onClick={() => setIsHistoryModalOpen(true)}
+                className="flex items-center justify-center gap-2 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 font-semibold px-4 py-2 rounded-lg shadow-sm transition text-sm cursor-pointer whitespace-nowrap"
+                title="View past candidate transfers and logs"
               >
-                <Send size={16} />
-                <span>Transfer</span>
+                <History size={16} className="text-purple-600" />
+                <span>Transfer History</span>
+                {transferHistoryList.length > 0 && (
+                  <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">
+                    {transferHistoryList.length}
+                  </span>
+                )}
               </button>
-            )}
+
+              {selectedCandidates.length > 0 && (
+                <button
+                  onClick={() => setIsTransferModalOpen(true)}
+                  className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold px-5 py-2 rounded-lg shadow-sm transition text-sm cursor-pointer whitespace-nowrap"
+                >
+                  <Send size={16} />
+                  <span>Transfer</span>
+                </button>
+              )}
+            </div>
           </div>
           <hr className="border-gray-300 mt-3 mb-5" />
 
@@ -2064,6 +2127,166 @@ const DatabaseCandidate = () => {
                 className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold shadow-sm transition"
               >
                 Confirm Transfer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Transfer History Modal */}
+      {isHistoryModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 via-white to-purple-50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-purple-100 text-purple-700 rounded-xl shadow-xs">
+                  <History size={22} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Candidate Transfer History & Logs</h3>
+                  <p className="text-xs text-gray-500">Track all transferred candidate batches, ranges, destinations, and timestamps</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Stats Summary Bar */}
+            <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white p-3 rounded-xl border border-gray-200 flex items-center gap-3 shadow-xs">
+                <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                  <UserCheck size={18} />
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">Total Candidates Transferred</p>
+                  <p className="text-lg font-bold text-gray-800">
+                    {transferHistoryList.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-gray-200 flex items-center gap-3 shadow-xs">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">Total Transfer Batches</p>
+                  <p className="text-lg font-bold text-gray-800">{transferHistoryList.length}</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-gray-200 flex items-center gap-3 shadow-xs">
+                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">Latest Transfer</p>
+                  <p className="text-xs font-bold text-gray-800 truncate">
+                    {transferHistoryList[0]?.dateTime || "No transfers yet"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Search Bar inside Modal */}
+            <div className="px-6 py-3 border-b border-gray-100 flex items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-sm">
+                <Search size={15} className="absolute left-3 top-2.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by recipient, module, or date..."
+                  value={historySearchTerm}
+                  onChange={(e) => setHistorySearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-gray-300 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
+                />
+              </div>
+              <span className="text-xs text-gray-500 font-medium">
+                Showing {filteredHistory.length} record(s)
+              </span>
+            </div>
+
+            {/* History Table */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {filteredHistory.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-14 h-14 bg-purple-50 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <History size={28} />
+                  </div>
+                  <h4 className="text-sm font-bold text-gray-700">No Transfer Records Found</h4>
+                  <p className="text-xs text-gray-400 mt-1">
+                    When you transfer candidates to HR or Employee management, the logs will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                        <th className="py-3 px-4">#</th>
+                        <th className="py-3 px-4">Date & Time</th>
+                        <th className="py-3 px-4">Data / Count</th>
+                        <th className="py-3 px-4">Transferred To</th>
+                        <th className="py-3 px-4">Department</th>
+                        <th className="py-3 px-4">Transferred By</th>
+                        <th className="py-3 px-4 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {filteredHistory.map((item, idx) => (
+                        <tr key={item.id || idx} className="hover:bg-purple-50/40 transition">
+                          <td className="py-3 px-4 font-bold text-gray-500">{idx + 1}</td>
+                          <td className="py-3 px-4 font-medium text-gray-800 whitespace-nowrap">
+                            {item.dateTime}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-100 text-purple-800 font-bold">
+                              {item.count} Candidate(s)
+                            </span>
+                            {item.range && (
+                              <p className="text-[11px] text-gray-500 mt-0.5">{item.range}</p>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 font-semibold text-gray-900">
+                            {item.transferredTo}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                              item.destModule?.includes("HR")
+                                ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                            }`}>
+                              {item.destModule}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-gray-600 font-medium">
+                            {item.transferredBy || "Super Admin"}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[11px]">
+                              <CheckCircle2 size={12} />
+                              {item.status || "Success"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg text-xs transition cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>
