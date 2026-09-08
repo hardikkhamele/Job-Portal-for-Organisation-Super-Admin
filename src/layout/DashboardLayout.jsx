@@ -53,6 +53,7 @@ import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView
 import AddEmployee from "../components/EmployeeManagement/AddEmployee";
 // import CandidateJobView from "../components/JobSeekerManagement/CandidateJobView";
 import DatabaseCandidate from "../components/DatabaseManagement/DatabaseCandidate";
+import TransferHistory from "../components/DatabaseManagement/TransferHistory";
 import AcceptReject from "../components/DatabaseManagement/AcceptReject";
 import ViewExcelData from "../components/DatabaseManagement/ViewExcelData";
 import CandidateDetails from "../components/DatabaseManagement/CandidateDetails";
@@ -212,6 +213,7 @@ function DashboardLayout() {
             <Route path="chat-conversation" element={<ChatConversation />} />
             <Route path="/edit-social-links" element={<EditSocialLinks />} />
             <Route path="candidates" element={<DatabaseCandidate />} />
+            <Route path="candidates/transfer-history" element={<TransferHistory />} />
             <Route path="/accept-reject" element={<AcceptReject />} />
             <Route path="/accept-reject/view/:id" element={<ViewExcelData />} />
 
