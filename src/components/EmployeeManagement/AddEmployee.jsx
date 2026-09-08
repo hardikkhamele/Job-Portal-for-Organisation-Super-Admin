@@ -1,255 +1,753 @@
 import React, { useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Upload,
+  X,
+  Image as ImageIcon,
+  Building2,
+  Briefcase,
+  BadgeCheck,
+  Linkedin,
+  Twitter,
+  Facebook,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowLeft, Eye, EyeOff, CheckCircle2 } from "lucide-react";
-import Footer from "../Footer";
 import { createEmployer } from "../../redux/slice/employer/addEmployeeSlice";
+import {
+  CountrySelect,
+  StateSelect,
+  CitySelect,
+} from "react-country-state-city";
+import "react-country-state-city/dist/react-country-state-city.css";
+import { toast } from "react-toastify";
 
-function AddEmployee() {
+const validateImageFile = (file) => {
+  if (!file) return false;
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+  const maxSizeBytes = 2 * 1024 * 1024; // 2MB
+
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Invalid file format. Only JPG, JPEG, and PNG are allowed.");
+    return false;
+  }
+  if (file.size > maxSizeBytes) {
+    toast.error("File size exceeds 2MB limit. Please upload a smaller image.");
+    return false;
+  }
+  return true;
+};
+
+
+const AddEmployee = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.addEmployee || {});
-
-  const [formData, setFormData] = useState({
-    employerName: "",
-    designation: "",
-    email: "",
-    password: "",
-    mobileNumber: ""
-  });
+  const { loading } = useSelector((state) => state.addEmployee);
 
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [logo, setLogo] = useState(null);
+  const [banner, setBanner] = useState(null);
+  const [skills, setSkills] = useState([]);
+  const [skillInput, setSkillInput] = useState("");
+  const [countryid, setCountryid] = useState(101);
+  const [stateData, setStateData] = useState({ id: 0, name: "" });
+  const [cityData, setCityData] = useState({ id: 0, name: "" });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+  const [locationTouched, setLocationTouched] = useState({
+    state: false,
+    city: false,
+  });
+
+  const years = Array.from({ length: 2026 - 1952 + 1 }, (_, i) => 2026 - i);
+
+  const validationSchema = Yup.object({
+    name: Yup.string()
+      .matches(/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, "Name must contain only alphabetic characters and proper spacing")
+      .required("Company Name is required"),
+    email: Yup.string().email("Invalid email").required("Email is required"),
+    password: Yup.string()
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character"
+      )
+      .required("Password is required"),
+    mobile: Yup.string()
+      .matches(/^(?!00)[0-9]{10}$/, "Mobile number must be exactly 10 digits and cannot start with '00'")
+      .required("Mobile is required"),
+    hiringFor: Yup.string()
+      .max(100, "Hiring For must be at most 100 characters")
+      .matches(
+        /^[A-Za-z0-9\s,\-\/\.\(\)]*$/,
+        "Hiring For can only contain alphanumeric characters, spaces, and common symbols like , - / . ()"
+      ),
+    legalName: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(/^[A-Za-z]+(?:\s[A-Za-z]+)*$/, "Legal Name must contain only alphabetic characters and proper spacing"),
+    regNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(/^\d{6}$/, "Registration Number must be exactly 6 digits"),
+    gstNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i,
+        "GST Number must be a valid 15-digit code (e.g. 22AAAAA0000A1Z5)"
+      ),
+    cinNumber: Yup.string()
+      .nullable()
+      .notRequired()
+      .matches(
+        /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/i,
+        "CIN Number must be a valid 21-character code (e.g. L01234MH2026PTC012345)"
+      ),
+  });
+  const initialValues = {
+    name: "",
+    email: "",
+    password: "",
+    mobile: "",
+    tagline: "",
+    website: "",
+    linkedin: "",
+    twitter: "",
+    facebook: "",
+    foundedIn: "",
+    companyType: "",
+    companySize: "",
+    about: "",
+    hiringFor: "",
+    jobLocationType: "",
+    avgHiring: "",
+    legalName: "",
+    regNumber: "",
+    gstNumber: "",
+    cinNumber: "",
+    area: "",
+  };
+
+  const handleAddSkill = (e) => {
+    if (e.key === "Enter" && skillInput.trim()) {
+      e.preventDefault();
+      if (!skills.includes(skillInput.trim()))
+        setSkills([...skills, skillInput.trim()]);
+      setSkillInput("");
     }
   };
 
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.employerName.trim()) {
-      newErrors.employerName = "Employer Name is required";
-    }
-    if (!formData.designation.trim()) {
-      newErrors.designation = "Designation is required";
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-    if (!formData.password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.trim().length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-    if (!formData.mobileNumber.trim()) {
-      newErrors.mobileNumber = "Mobile Number is required";
-    } else if (!/^[0-9+\s-]{8,15}$/.test(formData.mobileNumber.trim())) {
-      newErrors.mobileNumber = "Please enter a valid mobile number";
+  const handleSubmit = async (values) => {
+    let missingFields = [];
+
+    if (!values.name) missingFields.push("Company Name");
+    if (!values.email) missingFields.push("Email");
+    if (!values.password) missingFields.push("Password");
+    if (!values.mobile) missingFields.push("Mobile Number");
+    if (!stateData.name) missingFields.push("State");
+    if (!cityData.name) missingFields.push("City");
+
+    setLocationTouched({ state: true, city: true });
+
+    if (missingFields.length > 0) {
+      missingFields.forEach((field) => {
+        toast.error(`${field} is required`);
+      });
+      return;
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    const formData = new FormData();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+    formData.append("name", values.name);
+    formData.append("email", values.email);
+    formData.append("password", values.password);
+    formData.append("mobileNumber", "+91" + values.mobile);
+    formData.append("state", stateData.name);
+    formData.append("city", cityData.name);
 
-    setIsSubmitting(true);
+    formData.append("companyDetail[companyTagline]", values.tagline);
+    formData.append("companyDetail[companyWebsite]", values.website);
+    formData.append("companyDetail[location][area]", values.area);
+    if (logo) formData.append("companyLogo", logo);
+    if (banner) formData.append("companyBanner", banner);
 
-    const formDataPayload = new FormData();
-    formDataPayload.append("name", formData.employerName);
-    formDataPayload.append("companyName", formData.employerName);
-    formDataPayload.append("email", formData.email);
-    formDataPayload.append("password", formData.password);
-    const cleanedMobile = formData.mobileNumber.replace(/\D/g, "");
-    formDataPayload.append(
-      "mobileNumber",
-      formData.mobileNumber.startsWith("+") ? formData.mobileNumber : "+91" + cleanedMobile
+    formData.append("businessDetail[fundedIn]", values.foundedIn);
+    formData.append("businessDetail[typeOfCompany]", values.companyType);
+    formData.append("businessDetail[companySize]", values.companySize);
+    formData.append("businessDetail[aboutCompany]", values.about);
+
+    formData.append("hiringPreference[hiringFor]", values.hiringFor);
+    formData.append(
+      "hiringPreference[jobLocation][type]",
+      values.jobLocationType,
     );
-    formDataPayload.append("designation", formData.designation);
-    formDataPayload.append("businessDetail[aboutCompany]", formData.designation);
-    formDataPayload.append("verificationAndDocumentation[companyLegalName]", formData.employerName);
+    formData.append("hiringPreference[topHiringSkill]", skills.join(", "));
+    formData.append(
+      "hiringPreference[averageHiringPerMonth]",
+      values.avgHiring,
+    );
+
+    formData.append(
+      "verificationAndDocumentation[companyLegalName]",
+      values.legalName,
+    );
+    formData.append(
+      "verificationAndDocumentation[companyRegisterNumber]",
+      values.regNumber,
+    );
+    formData.append(
+      "verificationAndDocumentation[GSTNumber]",
+      values.gstNumber,
+    );
+    formData.append(
+      "verificationAndDocumentation[CINNumber]",
+      values.cinNumber,
+    );
+
+    formData.append("socialMediaLinks[linkedin]", values.linkedin);
+    formData.append("socialMediaLinks[twitter]", values.twitter);
 
     try {
-      await dispatch(createEmployer(formDataPayload)).unwrap();
-    } catch (err) {
-      console.warn("createEmployer dispatch status:", err);
-    }
+      await dispatch(createEmployer(formData)).unwrap();
 
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    setTimeout(() => {
-      navigate("/employee", {
-        state: {
-          newEmployer: {
-            companyName: formData.employerName,
-            employerName: formData.employerName,
-            email: formData.email,
-            mobileNumber: formData.mobileNumber,
-            designation: formData.designation
-          }
-        }
-      });
-    }, 1000);
+      toast.success("Employer added successfully!");
+      navigate("/employee");
+    } catch (error) {
+      console.error("Failed to add employer:", error);
+      // toast.error(error || "Something went wrong");
+    }
   };
 
+  const inputClass =
+    "w-full mt-2 bg-gray-50 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400 transition-all";
+  const inputErrorClass =
+    "w-full mt-2 bg-gray-50 border border-red-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-400 transition-all";
+  const sectionHeading =
+    "flex items-center gap-2 text-lg font-bold text-purple-800 mb-5 border-b border-purple-100 pb-2";
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between p-6 md:p-8">
-      <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
-        
-        {/* Header with Circle Back Arrow and Title */}
-        <div className="flex items-center gap-4">
+    <div className="w-full min-h-screen p-3 bg-gray-50">
+      <div className="w-full bg-white rounded-xl p-6 shadow-md">
+        <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-700 bg-white hover:bg-gray-100 transition cursor-pointer shadow-sm"
-            title="Go Back"
+            className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center bg-white hover:bg-gray-100 transition"
           >
             <ArrowLeft size={18} />
           </button>
-          <h2 className="text-2xl font-bold text-gray-900">Create Employer</h2>
+          <h1 className="text-2xl font-bold text-gray-800 mb-3">
+            Add New Employee
+          </h1>
         </div>
 
-        {/* Success Alert Banner */}
-        {showSuccess && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 text-emerald-800 animate-in fade-in duration-200">
-            <CheckCircle2 size={22} className="text-emerald-600 flex-shrink-0" />
-            <div>
-              <h5 className="font-bold text-sm">Employer Created Successfully!</h5>
-              <p className="text-xs text-emerald-700 mt-0.5">Redirecting to Employer Management...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Main Form Container Card */}
-        <div className="w-full bg-white rounded-2xl border border-gray-200/80 p-8 md:p-10 shadow-sm">
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              
-              {/* Employer Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Employer Name</label>
-                <input
-                  type="text"
-                  name="employerName"
-                  value={formData.employerName}
-                  onChange={handleChange}
-                  placeholder="Enter Employer Name"
-                  className={`w-full bg-[#EEF3FB] border ${
-                    errors.employerName ? "border-red-400 focus:ring-red-200" : "border-gray-200/70 focus:ring-purple-300 focus:bg-white"
-                  } rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition`}
-                />
-                {errors.employerName && <p className="text-red-500 text-xs mt-1">{errors.employerName}</p>}
-              </div>
-
-              {/* Designation */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Designation</label>
-                <input
-                  type="text"
-                  name="designation"
-                  value={formData.designation}
-                  onChange={handleChange}
-                  placeholder="Enter Designation"
-                  className={`w-full bg-[#EEF3FB] border ${
-                    errors.designation ? "border-red-400 focus:ring-red-200" : "border-gray-200/70 focus:ring-purple-300 focus:bg-white"
-                  } rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition`}
-                />
-                {errors.designation && <p className="text-red-500 text-xs mt-1">{errors.designation}</p>}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="employer@example.com"
-                  className={`w-full bg-[#EEF3FB] border ${
-                    errors.email ? "border-red-400 focus:ring-red-200" : "border-gray-200/70 focus:ring-purple-300 focus:bg-white"
-                  } rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition`}
-                />
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                <div className="relative flex items-center">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="••••••••"
-                    className={`w-full bg-[#EEF3FB] border ${
-                      errors.password ? "border-red-400 focus:ring-red-200" : "border-gray-200/70 focus:ring-purple-300 focus:bg-white"
-                    } rounded-xl px-4 py-3 pr-11 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer p-1"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {/* setFieldValue add here for only number validation  */}
+          {({ errors, touched, setFieldValue }) => (
+            <Form className="space-y-12">
+              {/* Section 1: Company Details */}
+              <div className="bg-white border border-gray-200 p-4 rounded-2xl">
+                <h2 className={sectionHeading}>
+                  <Building2 size={20} /> Company Details
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-purple-200 rounded-xl p-6 bg-purple-50/20 relative hover:border-purple-400 transition cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (validateImageFile(file)) {
+                            setLogo(file);
+                          } else {
+                            e.target.value = "";
+                          }
+                        }
+                      }}
+                    />
+                    {logo ? (
+                      <div className="relative group w-full h-full flex items-center justify-center p-2">
+                        <img
+                          src={URL.createObjectURL(logo)}
+                          alt="logo"
+                          className="h-16 w-16 object-contain"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
+                          <p className="text-white text-xs font-semibold">Change Logo</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center p-4">
+                        <Upload
+                          className="mx-auto text-purple-500 mb-2"
+                          size={24}
+                        />
+                        <p className="text-sm font-semibold text-gray-700">Company Logo</p>
+                        <p className="text-[11px] text-gray-400 mt-1">PNG, JPG, JPEG (Max 2MB)</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-purple-200 rounded-xl p-6 bg-purple-50/20 relative hover:border-purple-400 transition cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (validateImageFile(file)) {
+                            setBanner(file);
+                          } else {
+                            e.target.value = "";
+                          }
+                        }
+                      }}
+                    />
+                    {banner ? (
+                      <div className="relative group w-full h-full flex items-center justify-center p-2">
+                        <img
+                          src={URL.createObjectURL(banner)}
+                          alt="banner"
+                          className="h-16 w-full object-cover rounded"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-xl">
+                          <p className="text-white text-xs font-semibold">Change Banner</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center p-4">
+                        <ImageIcon
+                          className="mx-auto text-purple-500 mb-2"
+                          size={24}
+                        />
+                        <p className="text-sm font-semibold text-gray-700">Company Banner</p>
+                        <p className="text-[11px] text-gray-400 mt-1">PNG, JPG, JPEG (Max 2MB)</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+
+                {/* Image Upload Guidelines */}
+                <div className="mb-8 bg-purple-50/40 border border-purple-100 rounded-xl p-4 flex flex-col gap-2">
+                  <p className="text-sm font-semibold text-purple-900">Image Upload Guidelines:</p>
+                  <ul className="text-xs text-gray-600 space-y-1 list-disc pl-5">
+                    <li>Supported Formats: <span className="font-medium text-gray-800">PNG, JPG, JPEG</span></li>
+                    <li>Maximum File Size: <span className="font-medium text-gray-800">2MB</span> per image</li>
+                    <li>Recommended Dimensions: <span className="font-medium text-gray-800">Square (1:1 Ratio)</span> for Logo, <span className="font-medium text-gray-800">Landscape (16:9 Ratio)</span> for Banner</li>
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* ✅ Company Name - error border + message */}
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">
+                      Company Name *
+                    </label>
+                    <Field
+                      name="name"
+                      className={
+                        touched.name && errors.name
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="name"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+
+                  {/* ✅ Email - error border + message */}
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">
+                      Email *
+                    </label>
+                    <Field
+                      name="email"
+                      type="email"
+                      className={
+                        touched.email && errors.email
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="email"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+
+                  {/* ✅ Password - error border + message */}
+                  <div className="relative">
+                    <label className="text-sm font-semibold text-gray-700">
+                      Password *
+                    </label>
+                    <Field
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      className={
+                        touched.password && errors.password
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-10 text-gray-400"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                    <ErrorMessage
+                      name="password"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Must be at least 8 characters, containing 1 uppercase, 1 lowercase, 1 number, and 1 special character (e.g. @$!%*?&).
+                    </p>
+                  </div>
+
+                  {/* ✅ Mobile - error border + message */}
+                  {/* <div>
+                    <label className="text-sm font-semibold text-gray-700">Mobile *</label>
+                    <Field name="mobile" className={touched.mobile && errors.mobile ? inputErrorClass : inputClass} />
+                    <ErrorMessage name="mobile" component="p" className="text-red-500 text-xs mt-1" />
+                  </div> */}
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">
+                      Mobile *
+                    </label>
+                    <div className={`flex items-center mt-2 bg-gray-50 border rounded-md transition-all focus-within:ring-1 ${
+                      touched.mobile && errors.mobile
+                        ? "border-red-400 focus-within:ring-red-400"
+                        : "border-gray-300 focus-within:ring-purple-400"
+                    }`}>
+                      <span className={`pl-4 text-sm font-semibold select-none border-r pr-3 py-2 bg-gray-100 rounded-l-md ${
+                        touched.mobile && errors.mobile
+                          ? "text-red-500 border-red-400"
+                          : "text-gray-500 border-gray-300"
+                      }`}>
+                        +91
+                      </span>
+                      <Field
+                        name="mobile"
+                        type="text"
+                        inputMode="numeric"
+                        className="w-full bg-transparent px-4 py-2 text-sm focus:outline-none text-gray-800"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const onlyNums = val.replace(/\D/g, "");
+                          if (onlyNums.length <= 10) {
+                            setFieldValue("mobile", onlyNums);
+                          }
+                        }}
+                      />
+                    </div>
+                    <ErrorMessage
+                      name="mobile"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">
+                      Tagline
+                    </label>
+                    <Field name="tagline" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">
+                      Website
+                    </label>
+                    <Field name="website" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">
+                      Area/Street
+                    </label>
+                    <Field name="area" className={inputClass} />
+                  </div>
+                </div>
+
+                {/* Social Links */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 border-t pt-6">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Linkedin size={16} className="text-blue-600" /> LinkedIn
+                    </label>
+                    <Field name="linkedin" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Twitter size={16} className="text-sky-400" /> Twitter
+                    </label>
+                    <Field name="twitter" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Facebook size={16} className="text-blue-800" /> Facebook
+                    </label>
+                    <Field name="facebook" className={inputClass} />
+                  </div>
+                </div>
+
+                {/* ✅ Location - State & City inline error message */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 p-4 bg-purple-50/30 rounded-lg">
+                  <CountrySelect
+                    onChange={(e) => setCountryid(e ? e.id : 101)}
+                    placeHolder="Select Country"
+                  />
+
+                  <div>
+                    <StateSelect
+                      countryid={countryid || 101}
+                      onChange={(e) => {
+                        if (e) {
+                          setStateData({ id: e.id, name: e.name });
+                          setLocationTouched((prev) => ({
+                            ...prev,
+                            state: true,
+                          }));
+                        }
+                      }}
+                      placeHolder="Select State *"
+                    />
+                    {locationTouched.state && !stateData.name && (
+                      <p className="text-red-500 text-xs mt-1">
+                        State is required
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <CitySelect
+                      countryid={countryid || 101}
+                      stateid={stateData.id}
+                      onChange={(e) => {
+                        if (e) {
+                          setCityData({ id: e.id, name: e.name });
+                          setLocationTouched((prev) => ({ ...prev, city: true }));
+                        }
+                      }}
+                      placeHolder="Select City *"
+                    />
+                    {locationTouched.city && !cityData.name && (
+                      <p className="text-red-500 text-xs mt-1">
+                        City is required
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Mobile Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
-                <input
-                  type="tel"
-                  name="mobileNumber"
-                  value={formData.mobileNumber}
-                  onChange={handleChange}
-                  placeholder="Enter Mobile Number"
-                  className={`w-full bg-[#EEF3FB] border ${
-                    errors.mobileNumber ? "border-red-400 focus:ring-red-200" : "border-gray-200/70 focus:ring-purple-300 focus:bg-white"
-                  } rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition`}
+              {/* Section 2: Business Details */}
+              <div className="border border-gray-200 rounded-2xl p-4">
+                <h2 className={sectionHeading}>
+                  <Briefcase size={20} /> Business Details
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Field as="select" name="foundedIn" className={inputClass}>
+                    <option value="">Founded Year</option>
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </Field>
+                  <Field as="select" name="companyType" className={inputClass}>
+                    <option value="">Company Type</option>
+                    <option value="Startup">Startup</option>
+                    <option value="Private Limited">Private Limited</option>
+                  </Field>
+                  <Field as="select" name="companySize" className={inputClass}>
+                    <option value="">Company Size</option>
+                    <option value="1-10">1-10</option>
+                    <option value="50-100">50-100</option>
+                  </Field>
+                </div>
+                <Field
+                  as="textarea"
+                  name="about"
+                  rows="4"
+                  className={`${inputClass} mt-4`}
+                  placeholder="About Company..."
                 />
-                {errors.mobileNumber && <p className="text-red-500 text-xs mt-1">{errors.mobileNumber}</p>}
               </div>
 
-            </div>
+              {/* Section 3: Hiring */}
+              <div className="border border-gray-200 rounded-2xl p-4">
+                <h2 className={sectionHeading}>
+                  <BadgeCheck size={20} /> Hiring Preference
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div>
+                    <Field
+                      name="hiringFor"
+                      placeholder="Hiring For..."
+                      className={
+                        touched.hiringFor && errors.hiringFor
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="hiringFor"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <Field
+                    as="select"
+                    name="jobLocationType"
+                    className={inputClass}
+                  >
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Online">Online</option>
+                    <option value="Onsite">Onsite</option>
+                  </Field>
+                  <Field
+                    name="avgHiring"
+                    type="number"
+                    placeholder="Avg Hiring/Month"
+                    className={inputClass}
+                  />
+                </div>
+                <div className="mt-4">
+                  <input
+                    type="text"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyDown={handleAddSkill}
+                    placeholder="Skills (Press Enter)"
+                    className={inputClass}
+                  />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {skills.map((s, i) => (
+                      <span
+                        key={i}
+                        className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs flex items-center gap-1"
+                      >
+                        {s}
+                        <X
+                          size={12}
+                          onClick={() =>
+                            setSkills(skills.filter((x) => x !== s))
+                          }
+                        />
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center items-center gap-4 mt-12">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="px-10 py-2.5 bg-[#F3E8FF] hover:bg-[#E9D5FF] text-[#7E22CE] font-semibold rounded-xl text-sm transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || loading}
-                className="px-10 py-2.5 bg-[#7E22CE] hover:bg-[#6B21A8] text-white font-semibold rounded-xl text-sm transition cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                {isSubmitting || loading ? "Creating..." : "Create"}
-              </button>
-            </div>
-          </form>
-        </div>
+              {/* Section 4: Legal */}
+              <div className="border border-gray-200 rounded-2xl px-4 py-8">
+                <h3 className="font-bold text-purple-800 mb-5 italic">
+                  Legal Documentation
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Field
+                      name="legalName"
+                      placeholder="Legal Name"
+                      className={
+                        touched.legalName && errors.legalName
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="legalName"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Field
+                      name="regNumber"
+                      placeholder="Reg Number"
+                      className={
+                        touched.regNumber && errors.regNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="regNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Field
+                      name="gstNumber"
+                      placeholder="GST Number"
+                      className={
+                        touched.gstNumber && errors.gstNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="gstNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Field
+                      name="cinNumber"
+                      placeholder="CIN Number"
+                      className={
+                        touched.cinNumber && errors.cinNumber
+                          ? inputErrorClass
+                          : inputClass
+                      }
+                    />
+                    <ErrorMessage
+                      name="cinNumber"
+                      component="p"
+                      className="text-red-500 text-xs mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
 
+              <div className="flex justify-center gap-6 pt-4">
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className="px-12 py-2.5 rounded-lg bg-gray-100 font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-12 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 cursor-pointer to-purple-900 text-white font-bold shadow-lg"
+                >
+                  {loading ? "Saving..." : "Save Details"}
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
-
-      <Footer />
     </div>
   );
-}
+};
 
 export default AddEmployee;
