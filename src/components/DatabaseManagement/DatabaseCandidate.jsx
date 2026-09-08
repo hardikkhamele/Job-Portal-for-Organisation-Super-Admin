@@ -1581,7 +1581,29 @@ const DatabaseCandidate = () => {
               )}
             </div>
           </div>
-          <hr className="border-gray-300 mt-3 mb-5" />
+
+          {/* Sub Pages / Tabs navigation within Candidate Database */}
+          <div className="flex items-center gap-1 border-b border-gray-200 mt-4 mb-5">
+            <button
+              type="button"
+              className="px-4 py-2.5 text-sm font-bold border-b-2 border-purple-600 text-purple-700 flex items-center gap-2 cursor-pointer"
+            >
+              <span>Candidates List</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/candidates/transfer-history")}
+              className="px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-purple-700 border-b-2 border-transparent hover:border-purple-300 flex items-center gap-2 cursor-pointer transition"
+            >
+              <History size={16} />
+              <span>Transfer History</span>
+              {transferHistoryList.length > 0 && (
+                <span className="bg-purple-50 text-purple-700 text-xs px-2 py-0.5 rounded-full font-semibold border border-purple-200">
+                  {transferHistoryList.length}
+                </span>
+              )}
+            </button>
+          </div>
 
           {/* Search & Filters */}
           <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">

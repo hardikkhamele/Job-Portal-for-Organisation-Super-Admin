@@ -145,8 +145,31 @@ const TransferHistory = () => {
             </div>
           </div>
 
+          {/* Sub Pages / Tabs navigation within Candidate Database */}
+          <div className="flex items-center gap-1 border-b border-gray-200 mt-5">
+            <button
+              type="button"
+              onClick={() => navigate("/candidates")}
+              className="px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-purple-700 border-b-2 border-transparent hover:border-purple-300 flex items-center gap-2 cursor-pointer transition"
+            >
+              <span>Candidates List</span>
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2.5 text-sm font-bold border-b-2 border-purple-600 text-purple-700 flex items-center gap-2 cursor-pointer"
+            >
+              <History size={16} />
+              <span>Transfer History</span>
+              {historyList.length > 0 && (
+                <span className="bg-purple-50 text-purple-700 text-xs px-2 py-0.5 rounded-full font-semibold border border-purple-200">
+                  {historyList.length}
+                </span>
+              )}
+            </button>
+          </div>
+
           {/* Metric Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
             <div className="bg-gradient-to-br from-purple-50 to-white p-4 rounded-xl border border-purple-100 flex items-center gap-3.5 shadow-2xs">
               <div className="p-3 bg-purple-600 text-white rounded-xl shadow-xs">
                 <UserCheck size={22} />

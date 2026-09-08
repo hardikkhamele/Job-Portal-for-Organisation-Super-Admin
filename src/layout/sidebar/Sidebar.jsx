@@ -407,7 +407,8 @@ const Sidebar = () => {
     }, 500);
   };
 
-  const isGroupActive = (paths) => paths.some(path => location.pathname === path);
+  const isGroupActive = (paths) =>
+    paths.some((path) => location.pathname === path || location.pathname.startsWith(path + "/"));
 
   return (
     <>
@@ -445,17 +446,16 @@ const Sidebar = () => {
               icon={<Database />} 
               text="Database Management" 
               isOpen={isDatabaseOpen} 
-              active={isGroupActive(["/candidates", "/candidates/transfer-history", "/accept-reject"])}
+              active={isGroupActive(["/candidates", "/accept-reject"])}
               onClick={() => {
                 const state = !isDatabaseOpen;
                 closeAllDropdowns();
                 setIsDatabaseOpen(state);
               }} 
             />
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isDatabaseOpen ? "max-h-56 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isDatabaseOpen ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
               <div className="ml-9 flex flex-col gap-1">
-                <SubNavItem text="Database Candidate" active={isActive("/candidates")} onClick={() => navigate("/candidates")} />
-                <SubNavItem text="Transfer History" active={isActive("/candidates/transfer-history")} onClick={() => navigate("/candidates/transfer-history")} />
+                <SubNavItem text="Database Candidate" active={location.pathname.startsWith("/candidates")} onClick={() => navigate("/candidates")} />
                 <SubNavItem text="Accept Reject" active={isActive("/accept-reject")} onClick={() => navigate("/accept-reject")} />
               </div>
             </div>
