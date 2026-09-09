@@ -384,6 +384,107 @@ const getCandidateCity = (item) => {
   return "N/A";
 };
 
+const getCandidateState = (item) => {
+  if (!item || typeof item !== "object") return "N/A";
+
+  const isValidState = (val) => {
+    if (!val || typeof val !== "string") return false;
+    const trimmed = val.trim();
+    if (!trimmed) return false;
+    const lower = trimmed.toLowerCase();
+    if (
+      lower === "n/a" ||
+      lower === "na" ||
+      lower === "null" ||
+      lower === "undefined" ||
+      lower === "-" ||
+      lower === "—" ||
+      lower === "none"
+    ) {
+      return false;
+    }
+    if (/^[0-9a-fA-F]{24}$/.test(trimmed)) return false;
+    return true;
+  };
+
+  const stateList = [
+    item.personalInfo?.location?.state,
+    item.personalInfo?.state,
+    item.personalInfo?.stateName,
+    typeof item.personalInfo?.location === "string" ? item.personalInfo.location.split(",")[1] : null,
+    item.location?.state,
+    item.location?.stateName,
+    typeof item.location === "string" ? item.location.split(",")[1] : null,
+    item.state,
+    item.stateName,
+    item.State,
+    item.STATE,
+    item.StateName,
+    item.address?.state,
+    item.address?.stateName,
+    item.candidate?.personalInfo?.location?.state,
+    item.candidate?.personalInfo?.state,
+    item.candidate?.location?.state,
+    item.candidate?.state,
+    typeof item.candidate?.location === "string" ? item.candidate.location.split(",")[1] : null,
+    item.candidateId?.personalInfo?.location?.state,
+    item.candidateId?.personalInfo?.state,
+    item.candidateId?.location?.state,
+    item.candidateId?.state,
+    typeof item.candidateId?.location === "string" ? item.candidateId.location.split(",")[1] : null,
+    item.basicDetails?.location?.state,
+    item.basicDetails?.state,
+    typeof item.basicDetails?.location === "string" ? item.basicDetails.location.split(",")[1] : null,
+    item.user?.location?.state,
+    item.user?.state,
+    typeof item.user?.location === "string" ? item.user.location.split(",")[1] : null,
+    item.profile?.location?.state,
+    item.profile?.state,
+    typeof item.profile?.location === "string" ? item.profile.location.split(",")[1] : null,
+    item.details?.location?.state,
+    item.details?.state,
+    typeof item.details?.location === "string" ? item.details.location.split(",")[1] : null,
+  ];
+
+  for (const st of stateList) {
+    if (isValidState(st)) {
+      return st.trim();
+    }
+  }
+
+  const ignoredKeys = [
+    "categoryname", "category_name", "category", "designationname", "designation_name",
+    "designation", "subcategoryname", "companyname", "hrname", "filename", "tablename",
+    "updatedat", "createdat", "_id", "id", "dbitemid", "uniquekey", "status", "workmode",
+    "email", "phone", "name", "education", "experience", "resume", "cv", "cityset", "citylist"
+  ];
+
+  const keys = Object.keys(item);
+  for (const k of keys) {
+    const cleanKey = k.trim().toLowerCase();
+    if (ignoredKeys.includes(cleanKey)) continue;
+
+    if (cleanKey.includes("state") || cleanKey === "location" || cleanKey.includes("province") || cleanKey.includes("region")) {
+      const val = item[k];
+      if (typeof val === "string") {
+        const candidateStr = cleanKey === "location" || cleanKey.includes("location")
+          ? val.split(",")[1]?.trim() || val.trim()
+          : val.trim();
+        if (isValidState(candidateStr)) {
+          return candidateStr;
+        }
+      } else if (typeof val === "object" && val !== null) {
+        const subState = val.state || val.stateName || val.name;
+        if (isValidState(subState)) {
+          return subState.trim();
+        }
+      }
+    }
+  }
+
+  return "N/A";
+};
+
 const getCandidateCategory = (item, categoryList = []) => {
   if (!item || typeof item !== "object") return "";
 
@@ -1853,6 +1954,7 @@ const DatabaseCandidate = () => {
                   <th className="p-3 text-center">Phone</th>
                   <th className="p-3 text-center">Email</th>
                   <th className="p-3 text-center">City</th>
+                  <th className="p-3 text-center">State</th>
                   <th className="p-3 text-center">Action</th>
                 </tr>
               </thead>
@@ -1884,6 +1986,7 @@ const DatabaseCandidate = () => {
                       <td className="p-3">{getCandidatePhone(item)}</td>
                       <td className="p-3">{getCandidateEmail(item)}</td>
                       <td className="p-3">{getCandidateCity(item)}</td>
+                      <td className="p-3">{getCandidateState(item)}</td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button
