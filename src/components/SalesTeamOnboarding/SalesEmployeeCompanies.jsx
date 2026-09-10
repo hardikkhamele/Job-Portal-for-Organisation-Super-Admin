@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowLeft, Building2, Calendar, Eye, Users } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import Footer from "../Footer";
 
 function SalesEmployeeCompanies() {
@@ -10,17 +10,7 @@ function SalesEmployeeCompanies() {
   const companies = state?.companies || [];
 
   if (!employee) {
-    return (
-      <div className="w-full min-h-screen bg-[#F4F6FA] p-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm p-8 text-center">
-          <h4 className="text-xl font-bold text-gray-900">Sales member not found</h4>
-          <p className="mt-2 text-sm text-gray-500">Please open this page from the Sales Team Onboarding list.</p>
-          <button onClick={() => navigate("/sales-team-onboarding")} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700">
-            <ArrowLeft size={16} /> Back to Sales Team
-          </button>
-        </div>
-      </div>
-    );
+    return <Navigate to="/sales-team-onboarding" replace />;
   }
 
   const completed = companies.filter((company) => company.status === "Completed").length;

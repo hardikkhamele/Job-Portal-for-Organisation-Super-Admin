@@ -13,9 +13,35 @@ import {
   Trash2,
   Filter,
   Check,
-  X
+  X,
+  ArrowLeft,
+  MapPin,
+  Mail,
+  Phone,
+  Calendar,
+  User,
+  Briefcase,
+  Layers
 } from "lucide-react";
 import Footer from "../Footer";
+
+const STAFFING_REQUIREMENTS_KEY = "admin_staffing_company_requirements";
+const readStore = (key, fallback = {}) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeStore = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Ignore storage errors in privacy-restricted environments.
+  }
+};
 
 // Mock Data for Staffing Agencies
 const mockStaffingAgencies = [
@@ -90,7 +116,93 @@ function StaffingManagement() {
   const [selectedType, setSelectedType] = useState("All");
   const [perPage, setPerPage] = useState(10);
   const [selectedAgency, setSelectedAgency] = useState(null);
+  const [showCompanyPage, setShowCompanyPage] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isRequirementOpen, setIsRequirementOpen] = useState(false);
+  const [requirements, setRequirements] = useState(() => readStore(STAFFING_REQUIREMENTS_KEY, {}));
+  const blankRequirement = {
+    postedOn: "",
+    state: "",
+    city: "",
+    category: "",
+    technology: "",
+    requiredCandidates: "",
+    experience: "",
+    budget: "",
+    workMode: "",
+    noticePeriod: "",
+    deadline: ""
+  };
+  const [formData, setFormData] = useState(blankRequirement);
+
+  const requirementHeaders = [
+    "Posted On",
+    "State",
+    "City",
+    "Category (IT / Non IT)",
+    "Technology",
+    "Required Candidates",
+    "Experience",
+    "Budget",
+    "Work Mode",
+    "Notice Period",
+    "Deadline"
+  ];
+
+  const selectedRequirements = selectedAgency ? requirements[selectedAgency.id] || {} : {};
+  const detailRows = requirementHeaders.map((label) => {
+    const keyMap = {
+      "Posted On": "postedOn",
+      "State": "state",
+      "City": "city",
+      "Category (IT / Non IT)": "category",
+      "Technology": "technology",
+      "Required Candidates": "requiredCandidates",
+      "Experience": "experience",
+      "Budget": "budget",
+      "Work Mode": "workMode",
+      "Notice Period": "noticePeriod",
+      "Deadline": "deadline"
+    };
+
+    return {
+      label,
+      value: selectedRequirements[keyMap[label]] || ""
+    };
+  });
+
+  const openRequirementForm = () => {
+    setFormData(blankRequirement);
+    setIsRequirementOpen(true);
+  };
+
+  const saveRequirement = (event) => {
+    event.preventDefault();
+
+    if (!selectedAgency) return;
+
+    const stored = {
+      postedOn: formData.postedOn,
+      state: formData.state,
+      city: formData.city,
+      category: formData.category,
+      technology: formData.technology,
+      requiredCandidates: formData.requiredCandidates,
+      experience: formData.experience,
+      budget: formData.budget,
+      workMode: formData.workMode,
+      noticePeriod: formData.noticePeriod,
+      deadline: formData.deadline
+    };
+
+    const persisted = readStore(STAFFING_REQUIREMENTS_KEY, {});
+    persisted[selectedAgency.id] = stored;
+    writeStore(STAFFING_REQUIREMENTS_KEY, persisted);
+
+    setRequirements(persisted);
+    setIsRequirementOpen(false);
+    setFormData(blankRequirement);
+  };
 
   useEffect(() => {
     if (location.state?.newStaffing) {
@@ -157,6 +269,102 @@ function StaffingManagement() {
       setAgencies((prev) => prev.filter((item) => item.id !== id));
     }
   };
+
+  if (showCompanyPage && selectedAgency) {
+    return (
+      <div className="p-6 bg-gray-100 min-h-screen overflow-y-auto pb-20 flex flex-col justify-between">
+        <div className="max-w-7xl mx-auto w-full space-y-6">
+          <div className="rounded-2xl bg-white shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between gap-4">
+              <button
+                onClick={() => {
+                  setShowCompanyPage(false);
+                  setSelectedAgency(null);
+                  setIsRequirementOpen(false);
+                }}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-purple-700 hover:text-purple-900"
+              >
+                <ArrowLeft size={18} /> Back to Staffing Management
+              </button>
+
+              <button
+                onClick={openRequirementForm}
+                className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
+              >
+                <Plus size={16} /> Add Requirement
+              </button>
+            </div>
+
+            <div className="mt-6 flex items-center gap-3">
+              <div className="rounded-lg bg-purple-50 p-3 text-purple-600"><Building2 size={26} /></div>
+              <div>
+                <h4 className="text-2xl font-bold text-black">{selectedAgency.companyName}</h4>
+                <p className="mt-1 text-sm text-gray-500">Company onboarding details</p>
+              </div>
+            </div>
+          </div>
+
+          <section className="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    {detailRows.map((row) => (
+                      <th key={row.label} className="border-b border-slate-200 px-3 py-3 text-center text-[11px] font-black uppercase text-slate-600 whitespace-nowrap">
+                        {row.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {detailRows.map((row) => (
+                      <td key={row.label} className="border-b border-slate-100 px-3 py-4 text-center text-sm font-semibold text-slate-800 whitespace-nowrap">
+                        {row.value || ""}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {isRequirementOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+              <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                  <h3 className="text-lg font-bold text-slate-900">Add Requirement</h3>
+                  <button onClick={() => setIsRequirementOpen(false)} className="rounded-lg p-1 text-slate-500 hover:bg-slate-100">
+                    <X size={18} />
+                  </button>
+                </div>
+                <form onSubmit={saveRequirement} className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Posted On</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.postedOn} onChange={(e) => setFormData({ ...formData, postedOn: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">State</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">City</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Category (IT / Non IT)</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Technology</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.technology} onChange={(e) => setFormData({ ...formData, technology: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Required Candidates</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.requiredCandidates} onChange={(e) => setFormData({ ...formData, requiredCandidates: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Experience</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Budget</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Work Mode</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.workMode} onChange={(e) => setFormData({ ...formData, workMode: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Notice Period</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.noticePeriod} onChange={(e) => setFormData({ ...formData, noticePeriod: e.target.value })} /></label>
+                  <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Deadline</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} /></label>
+
+                  <div className="md:col-span-2 flex justify-end gap-3 pt-4">
+                    <button type="button" onClick={() => setIsRequirementOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600">Cancel</button>
+                    <button type="submit" className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700">Save Requirement</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <Footer />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen overflow-y-auto pb-20 flex flex-col justify-between">
@@ -387,7 +595,8 @@ function StaffingManagement() {
                           <button
                             onClick={() => {
                               setSelectedAgency(agency);
-                              setIsDetailModalOpen(true);
+                              setShowCompanyPage(true);
+                              setIsDetailModalOpen(false);
                             }}
                             className="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg transition"
                             title="View Details"
@@ -429,54 +638,94 @@ function StaffingManagement() {
       {/* DETAIL MODAL */}
       {isDetailModalOpen && selectedAgency && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-5 flex justify-between items-center">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <Building2 size={20} /> Staffing Details
-              </h3>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl overflow-hidden">
+            <div className="flex items-center justify-between gap-4 p-5 border-b border-gray-200">
               <button
                 onClick={() => setIsDetailModalOpen(false)}
-                className="text-white/80 hover:text-white transition p-1 bg-white/10 hover:bg-white/20 rounded-full cursor-pointer"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-purple-700 hover:text-purple-900"
               >
-                <X size={18} />
+                <ArrowLeft size={18} /> Back to Staffing Management
               </button>
-            </div>
-            <div className="p-6 space-y-4 text-sm">
-              <div>
-                <label className="text-xs font-semibold text-gray-400 uppercase">Company Name</label>
-                <p className="text-base font-bold text-gray-900 mt-0.5">{selectedAgency.companyName}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase">Category</label>
-                  <p className="font-semibold text-purple-700 mt-0.5">{selectedAgency.type}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase">Status</label>
-                  <p className="font-semibold text-gray-800 mt-0.5">{selectedAgency.status}</p>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-400 uppercase">Email</label>
-                <p className="text-gray-800 mt-0.5">{selectedAgency.email}</p>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-400 uppercase">Mobile Number</label>
-                <p className="text-gray-800 mt-0.5">{selectedAgency.phone}</p>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-400 uppercase">Location</label>
-                <p className="text-gray-800 mt-0.5">{selectedAgency.location}</p>
-              </div>
-            </div>
-            <div className="p-4 bg-gray-50 flex justify-end">
+
               <button
-                onClick={() => setIsDetailModalOpen(false)}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 transition"
+                onClick={openRequirementForm}
+                className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
               >
-                Close
+                <Plus size={16} /> Add Requirement
               </button>
             </div>
+
+            <div className="p-6">
+              <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+                <div className="mt-2 flex items-center gap-3">
+                  <div className="rounded-lg bg-purple-50 p-3 text-purple-600"><Building2 size={26} /></div>
+                  <div>
+                    <h4 className="text-2xl font-bold text-black">{selectedAgency.companyName}</h4>
+                    <p className="mt-1 text-sm text-gray-500">Company onboarding details</p>
+                  </div>
+                </div>
+              </div>
+
+              <section className="rounded-xl bg-white p-6 shadow-sm border border-gray-200 mt-6">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border border-slate-200">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        {detailRows.map((row) => (
+                          <th key={row.label} className="border-b border-slate-200 px-3 py-3 text-center text-[11px] font-black uppercase text-slate-600 whitespace-nowrap">
+                            {row.label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {detailRows.map((row) => (
+                          <td key={row.label} className="border-b border-slate-100 px-3 py-4 text-center text-sm font-semibold text-slate-800 whitespace-nowrap">
+                            {row.value || ""}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+
+            {isRequirementOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+                <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                    <h3 className="text-lg font-bold text-slate-900">Add Requirement</h3>
+                    <button
+                      onClick={() => setIsRequirementOpen(false)}
+                      className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  <form onSubmit={saveRequirement} className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Posted On</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.postedOn} onChange={(e) => setFormData({ ...formData, postedOn: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">State</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">City</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Category (IT / Non IT)</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Technology</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.technology} onChange={(e) => setFormData({ ...formData, technology: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Required Candidates</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.requiredCandidates} onChange={(e) => setFormData({ ...formData, requiredCandidates: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Experience</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Budget</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Work Mode</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.workMode} onChange={(e) => setFormData({ ...formData, workMode: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Notice Period</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.noticePeriod} onChange={(e) => setFormData({ ...formData, noticePeriod: e.target.value })} /></label>
+                    <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Deadline</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} /></label>
+
+                    <div className="md:col-span-2 flex justify-end gap-3 pt-4">
+                      <button type="button" onClick={() => setIsRequirementOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600">Cancel</button>
+                      <button type="submit" className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700">Save Requirement</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
