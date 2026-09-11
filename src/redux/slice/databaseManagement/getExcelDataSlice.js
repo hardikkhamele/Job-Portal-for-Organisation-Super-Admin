@@ -8,9 +8,8 @@ export const fetchExcelData = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const cleanBase = (BASE_URL || "http://localhost:3000").replace(/\/$/, "");
       const response = await axios.get(
-        `${cleanBase}/api/admin/candidate-database/getexcelData/${id}`,
+        `${BASE_URL}/api/admin/candidate-database/getexcelData/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -39,9 +38,6 @@ const getExcelDataSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-    updateExcelDataState: (state, action) => {
-      state.data = action.payload;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -60,5 +56,5 @@ const getExcelDataSlice = createSlice({
   },
 });
 
-export const { clearExcelData, updateExcelDataState } = getExcelDataSlice.actions;
+export const { clearExcelData } = getExcelDataSlice.actions;
 export default getExcelDataSlice.reducer;
