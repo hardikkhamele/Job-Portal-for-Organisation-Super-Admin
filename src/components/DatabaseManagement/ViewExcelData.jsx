@@ -66,9 +66,35 @@ const ViewExcelData = () => {
   const [acceptingCandidateId, setAcceptingCandidateId] = useState(null);
   const itemsPerPage = 10;
 
-  const handleAcceptIndividualCandidate = async (row, key) => {
-    const candidateId = row._id;
-    const databaseId = id || databaseRecord?._id || itemFromState?._id;
+  const handleAcceptIndividualCandidate = async (row, key, globalIdx) => {
+    // 1. Resolve databaseId
+    const databaseId = id || databaseRecord?._id || itemFromState?._id || responseData?._id || responseData?.data?._id;
+
+    // 2. Resolve candidateId from row or matching mongo data
+    let candidateId = row._id || row.id || row.candidateId || row._ID;
+
+    // If candidateId was not directly on row (e.g. if loaded via file parser fallback),
+    // look up the candidate _id from databaseRecord or apiExtractedRows
+    if (!candidateId) {
+      const candidatesFromApi =
+        apiExtractedRows.length > 0
+          ? apiExtractedRows
+          : (Array.isArray(databaseRecord?.excelData) ? databaseRecord.excelData : []);
+
+      if (candidatesFromApi && candidatesFromApi.length > 0) {
+        if (typeof globalIdx === "number" && candidatesFromApi[globalIdx]?._id) {
+          candidateId = candidatesFromApi[globalIdx]._id;
+        } else {
+          const found = candidatesFromApi.find(
+            (c) =>
+              (c.Email && (c.Email === row.Email || c.Email === row.email)) ||
+              (c["Full Name"] && (c["Full Name"] === row["Full Name"] || c["Full Name"] === row["FULL NAME"])) ||
+              (c["Mobile Number"] && String(c["Mobile Number"]) === String(row["Mobile Number"] || row.phone))
+          );
+          if (found?._id) candidateId = found._id;
+        }
+      }
+    }
 
     if (!databaseId) {
       toast.error("Database ID not found");
@@ -76,15 +102,8 @@ const ViewExcelData = () => {
     }
 
     if (!candidateId) {
-      setAcceptedCandidateKeys((prev) => [...prev, key]);
-      const name =
-        row["FULL NAME"] ||
-        row["Full Name"] ||
-        row.name ||
-        row["Name"] ||
-        row["Candidate Name"] ||
-        "Candidate";
-      toast.success(`${name} accepted locally!`);
+      console.warn("Could not find candidate _id for row:", row);
+      toast.error("Candidate ID (_id) not found for this entry. Cannot call accept API.");
       return;
     }
 
@@ -95,7 +114,7 @@ const ViewExcelData = () => {
       );
 
       if (acceptIndividualCandidate.fulfilled.match(actionResult)) {
-        setAcceptedCandidateKeys((prev) => [...prev, candidateId, key]);
+        setAcceptedCandidateKeys((prev) => [...prev, candidateId, String(key)]);
         if (actionResult.payload?.data) {
           dispatch(updateExcelDataState(actionResult.payload.data));
         }
@@ -233,11 +252,26 @@ const ViewExcelData = () => {
 
   // Helper to extract candidate rows array dynamically from any response structure
   const apiExtractedRows = useMemo(() => {
+    if (!responseData) return [];
     if (Array.isArray(responseData)) return responseData;
     if (Array.isArray(responseData.excelData)) return responseData.excelData;
     if (Array.isArray(responseData.data)) return responseData.data;
     if (Array.isArray(responseData.candidates)) return responseData.candidates;
     if (Array.isArray(responseData.excel_data)) return responseData.excel_data;
+
+    // Check if nested inside responseData.data or database record
+    const nested =
+      responseData.data ||
+      responseData.candidateDatabase ||
+      responseData.database ||
+      responseData.record;
+    if (nested && typeof nested === "object") {
+      if (Array.isArray(nested)) return nested;
+      if (Array.isArray(nested.excelData)) return nested.excelData;
+      if (Array.isArray(nested.candidates)) return nested.candidates;
+      if (Array.isArray(nested.data)) return nested.data;
+    }
+
     if (Array.isArray(databaseRecord?.excelData)) return databaseRecord.excelData;
     if (Array.isArray(databaseRecord?.candidates)) return databaseRecord.candidates;
 
@@ -610,11 +644,16 @@ const ViewExcelData = () => {
                   <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
                     {paginatedRows.length > 0 ? (
                       paginatedRows.map((row, idx) => {
-                        const rowKey = row._id || (currentPage - 1) * itemsPerPage + idx;
-                        const candidateId = row._id;
+                        const globalIdx = (currentPage - 1) * itemsPerPage + idx;
+                        const candidateId =
+                          row._id ||
+                          row.id ||
+                          row.candidateId ||
+                          apiExtractedRows[globalIdx]?._id;
+                        const rowKey = candidateId || globalIdx;
                         const isAccepted =
                           (candidateId && acceptedCandidateKeys.includes(candidateId)) ||
-                          acceptedCandidateKeys.includes(rowKey) ||
+                          acceptedCandidateKeys.includes(String(rowKey)) ||
                           String(row.Status || row.status || "").toLowerCase() === "accepted" ||
                           Boolean(row.isAccepted);
 
@@ -646,7 +685,7 @@ const ViewExcelData = () => {
                                   </span>
                                 ) : (
                                   <button
-                                    onClick={() => handleAcceptIndividualCandidate(row, rowKey)}
+                                    onClick={() => handleAcceptIndividualCandidate(row, rowKey, globalIdx)}
                                     disabled={acceptingCandidateId === (candidateId || rowKey)}
                                     className="px-3 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 text-white rounded text-xs font-semibold shadow-sm transition flex items-center gap-1 cursor-pointer"
                                     title="Accept Candidate"
