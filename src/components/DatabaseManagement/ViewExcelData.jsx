@@ -11,6 +11,7 @@ import {
   Check,
   X,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,9 +21,11 @@ import { toast } from "react-toastify";
 import {
   fetchExcelData,
   clearExcelData,
+  updateExcelDataState,
 } from "../../redux/slice/databaseManagement/getExcelDataSlice";
 import {
   approveCandidate,
+  acceptIndividualCandidate,
   resetAcceptState,
 } from "../../redux/slice/databaseManagement/acceptCandidate";
 import {
@@ -60,16 +63,59 @@ const ViewExcelData = () => {
   const [parsedFileRows, setParsedFileRows] = useState([]);
   const [acceptedCandidateKeys, setAcceptedCandidateKeys] = useState([]);
   const [deletedCandidateKeys, setDeletedCandidateKeys] = useState([]);
+  const [acceptingCandidateId, setAcceptingCandidateId] = useState(null);
   const itemsPerPage = 10;
 
-  const handleAcceptIndividualCandidate = (row, key) => {
-    setAcceptedCandidateKeys((prev) => [...prev, key]);
-    const name = row["FULL NAME"] || row.name || row["Name"] || row["Candidate Name"] || "Candidate";
-    toast.success(`${name} accepted successfully!`);
+  const handleAcceptIndividualCandidate = async (row, key) => {
+    const candidateId = row._id;
+    const databaseId = id || databaseRecord?._id || itemFromState?._id;
+
+    if (!databaseId) {
+      toast.error("Database ID not found");
+      return;
+    }
+
+    if (!candidateId) {
+      setAcceptedCandidateKeys((prev) => [...prev, key]);
+      const name =
+        row["FULL NAME"] ||
+        row["Full Name"] ||
+        row.name ||
+        row["Name"] ||
+        row["Candidate Name"] ||
+        "Candidate";
+      toast.success(`${name} accepted locally!`);
+      return;
+    }
+
+    try {
+      setAcceptingCandidateId(candidateId);
+      const actionResult = await dispatch(
+        acceptIndividualCandidate({ databaseId, candidateId })
+      );
+
+      if (acceptIndividualCandidate.fulfilled.match(actionResult)) {
+        setAcceptedCandidateKeys((prev) => [...prev, candidateId, key]);
+        if (actionResult.payload?.data) {
+          dispatch(updateExcelDataState(actionResult.payload.data));
+        }
+        dispatch(fetchExcelData(databaseId));
+      }
+    } catch (err) {
+      console.error("Error accepting candidate:", err);
+    } finally {
+      setAcceptingCandidateId(null);
+    }
   };
 
   const handleDeleteIndividualCandidate = (row, key) => {
-    const name = row["FULL NAME"] || row.name || row["Name"] || row["Candidate Name"] || "this candidate";
+    const name =
+      row["FULL NAME"] ||
+      row["Full Name"] ||
+      row.name ||
+      row["Name"] ||
+      row["Candidate Name"] ||
+      "this candidate";
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
       setDeletedCandidateKeys((prev) => [...prev, key]);
       toast.success(`${name} deleted successfully!`);
@@ -565,7 +611,12 @@ const ViewExcelData = () => {
                     {paginatedRows.length > 0 ? (
                       paginatedRows.map((row, idx) => {
                         const rowKey = row._id || (currentPage - 1) * itemsPerPage + idx;
-                        const isAccepted = acceptedCandidateKeys.includes(rowKey) || row.status === "Accepted" || row.isAccepted;
+                        const candidateId = row._id;
+                        const isAccepted =
+                          (candidateId && acceptedCandidateKeys.includes(candidateId)) ||
+                          acceptedCandidateKeys.includes(rowKey) ||
+                          String(row.Status || row.status || "").toLowerCase() === "accepted" ||
+                          Boolean(row.isAccepted);
 
                         return (
                           <tr
@@ -596,11 +647,21 @@ const ViewExcelData = () => {
                                 ) : (
                                   <button
                                     onClick={() => handleAcceptIndividualCandidate(row, rowKey)}
-                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded text-xs font-semibold shadow-sm transition flex items-center gap-1 cursor-pointer"
+                                    disabled={acceptingCandidateId === (candidateId || rowKey)}
+                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-60 text-white rounded text-xs font-semibold shadow-sm transition flex items-center gap-1 cursor-pointer"
                                     title="Accept Candidate"
                                   >
-                                    <Check size={14} />
-                                    Accept
+                                    {acceptingCandidateId === (candidateId || rowKey) ? (
+                                      <>
+                                        <Loader2 size={13} className="animate-spin" />
+                                        Accepting...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Check size={14} />
+                                        Accept
+                                      </>
+                                    )}
                                   </button>
                                 )}
                                 <button

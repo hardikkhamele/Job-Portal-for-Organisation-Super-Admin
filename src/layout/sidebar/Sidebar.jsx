@@ -381,10 +381,21 @@ const Sidebar = () => {
 
   // Dropdown States
   const [isSubOpen, setIsSubOpen] = useState(false);
-  const [isDatabaseOpen, setIsDatabaseOpen] = useState(false);
+  const [isDatabaseOpen, setIsDatabaseOpen] = useState(() =>
+    location.pathname.startsWith("/candidates") || location.pathname.startsWith("/accept-reject")
+  );
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  useEffect(() => {
+    if (
+      location.pathname.startsWith("/candidates") ||
+      location.pathname.startsWith("/accept-reject")
+    ) {
+      setIsDatabaseOpen(true);
+    }
+  }, [location.pathname]);
 
   // Function to close all dropdowns when clicking outside
   const closeAllDropdowns = () => {
@@ -456,7 +467,7 @@ const Sidebar = () => {
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isDatabaseOpen ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
               <div className="ml-9 flex flex-col gap-1">
                 <SubNavItem text="Database Candidate" active={location.pathname.startsWith("/candidates")} onClick={() => navigate("/candidates")} />
-                <SubNavItem text="Accept Reject" active={isActive("/accept-reject")} onClick={() => navigate("/accept-reject")} />
+                <SubNavItem text="Accept Reject" active={location.pathname.startsWith("/accept-reject")} onClick={() => navigate("/accept-reject")} />
               </div>
             </div>
           </div>
