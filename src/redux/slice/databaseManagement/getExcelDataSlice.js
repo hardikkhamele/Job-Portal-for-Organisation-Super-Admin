@@ -9,32 +9,15 @@ export const fetchExcelData = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const cleanBase = (BASE_URL || "http://localhost:3000").replace(/\/$/, "");
-      const headers = { Authorization: `Bearer ${token}` };
-
-      // Candidate database detail endpoints to try
-      const endpoints = [
-        `${cleanBase}/api/admin/accept-reject/${id}`,
+      const response = await axios.get(
         `${cleanBase}/api/admin/candidate-database/getexcelData/${id}`,
-        `${cleanBase}/api/admin/candidate-database/${id}`,
-        `${cleanBase}/api/admin/candidate-database/getCandidateDatabase/${id}`,
-      ];
-
-      let lastError = null;
-      for (const endpoint of endpoints) {
-        try {
-          const response = await axios.get(endpoint, { headers });
-          if (response.data) {
-            return response.data;
-          }
-        } catch (err) {
-          lastError = err;
-          // If status is not 404, we still try others in case of route mismatch
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      }
-
-      return rejectWithValue(
-        lastError?.response?.data?.message || "Failed to fetch excel data"
       );
+      return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch excel data"

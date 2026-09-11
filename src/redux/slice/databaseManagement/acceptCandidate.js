@@ -54,9 +54,17 @@ export const acceptIndividualCandidate = createAsyncThunk(
   "candidate/acceptIndividual",
   async ({ databaseId, candidateId }, { rejectWithValue }) => {
     try {
+      if (!databaseId || !candidateId) {
+        const err = `Missing IDs: databaseId=${databaseId}, candidateId=${candidateId}`;
+        console.error(err);
+        toast.error(err);
+        return rejectWithValue(err);
+      }
+
       const token = localStorage.getItem("token");
       const cleanBase = (BASE_URL || "http://localhost:3000").replace(/\/$/, "");
       const url = `${cleanBase}/api/admin/accept-reject/${databaseId}/candidate/${candidateId}/accept`;
+      console.log("Accept Candidate PUT URL:", url);
 
       const response = await axios.put(
         url,
