@@ -71,7 +71,18 @@ const ViewExcelData = () => {
     const databaseId = id || databaseRecord?._id || itemFromState?._id || responseData?._id || responseData?.data?._id;
 
     // 2. Resolve candidateId from row or matching mongo data
-    let candidateId = row._id || row.id || row.candidateId || row._ID;
+    let candidateId =
+      row._id ||
+      row.id ||
+      row.candidateId ||
+      row.candidate_id ||
+      row._ID ||
+      row["_id"] ||
+      row["id"] ||
+      row["ID"] ||
+      row["Candidate ID"] ||
+      row["Candidate Id"] ||
+      (typeof row._id === "object" ? row._id?.$oid : null);
 
     // If candidateId was not directly on row (e.g. if loaded via file parser fallback),
     // look up the candidate _id from databaseRecord or apiExtractedRows
@@ -95,6 +106,14 @@ const ViewExcelData = () => {
         }
       }
     }
+
+    console.log("Accept Candidate Details:", {
+      databaseId,
+      candidateId,
+      row,
+      apiExtractedRowsCount: apiExtractedRows.length,
+      rawResponse,
+    });
 
     if (!databaseId) {
       toast.error("Database ID not found");
