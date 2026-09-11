@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import Footer from "../Footer";
+import { addStaffingMember } from "../StaffingManagement/staffingStore";
 
 function StaffingOnboarding() {
   const navigate = useNavigate();
@@ -62,15 +63,18 @@ function StaffingOnboarding() {
     setTimeout(() => {
       setIsSubmitting(false);
       setShowSuccess(true);
+      const memberPayload = {
+        name: formData.staffingName.trim(),
+        companyName: formData.staffingName.trim(),
+        email: formData.email.trim(),
+        mobileNumber: formData.mobileNumber.trim(),
+        designation: formData.designation.trim()
+      };
+      addStaffingMember(memberPayload);
       setTimeout(() => {
         navigate("/staffing-management", {
           state: {
-            newStaffing: {
-              companyName: formData.staffingName,
-              email: formData.email,
-              mobileNumber: formData.mobileNumber,
-              designation: formData.designation
-            }
+            newStaffing: memberPayload
           }
         });
       }, 1000);
