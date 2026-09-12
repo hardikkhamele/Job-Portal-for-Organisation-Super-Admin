@@ -219,6 +219,7 @@ function DashboardLayout() {
             <Route path="candidates" element={<DatabaseCandidate />} />
             <Route path="candidates/transfer-history" element={<TransferHistory />} />
             <Route path="/accept-reject" element={<AcceptReject />} />
+            <Route path="/accept-reject/view/:id" element={<ViewExcelData />} />
 
             <Route path="/blog-management" element={<BlogManagement />} />
             <Route path="/blog-management/add-blog" element={<AddBlog />} />
