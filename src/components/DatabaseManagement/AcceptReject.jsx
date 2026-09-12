@@ -290,6 +290,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import ViewExcelData from "./ViewExcelData";
 import { fetchAcceptRejectData } from "../../redux/slice/databaseManagement/getAcceptRejectSlice";
 import {
   approveCandidate,
@@ -322,6 +323,9 @@ const AcceptReject = () => {
   // Delete modal state
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewingItem, setViewingItem] = useState(null);
 
   const dispatch = useDispatch();
 
@@ -693,7 +697,10 @@ const AcceptReject = () => {
                             <Eye
                               size={20}
                               className="text-purple-500 cursor-pointer hover:scale-110 transition-transform"
-                              onClick={() => navigate(`/accept-reject/view/${item._id}`, { state: { item } })}
+                              onClick={() => {
+                                setViewingItem(item);
+                                setIsViewModalOpen(true);
+                              }}
                               title="View Excel Database Details"
                             />
                             <Trash2
@@ -873,6 +880,21 @@ const AcceptReject = () => {
           </div>
         </div>
       )}
+      {isViewModalOpen && viewingItem && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 overflow-y-auto p-3">
+          <div className="relative mx-auto w-full max-w-[1400px] min-h-screen">
+            <ViewExcelData
+              item={viewingItem}
+              id={viewingItem?._id}
+              onClose={() => {
+                setIsViewModalOpen(false);
+                setViewingItem(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Delete Modal */}
       <DeleteModal
         isOpen={openDeleteModal}

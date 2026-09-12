@@ -10,6 +10,12 @@ import {
   getStaffingEmployees
 } from "./staffingStore";
 
+const stateOptions = ["Andhra Pradesh", "Gujarat", "Karnataka", "Maharashtra", "Tamil Nadu", "Telangana", "Uttar Pradesh", "West Bengal", "Delhi"];
+const cityOptions = ["Ahmedabad", "Bengaluru", "Chennai", "Delhi", "Hyderabad", "Kolkata", "Mumbai", "Noida", "Pune"];
+const experienceOptions = ["0-1 Years", "1-2 Years", "2-3 Years", "3-4 Years", "4-5 Years", "5-6 Years", "6-7 Years", "7-8 Years", "8-9 Years", "9-10 Years", "10+ Years"];
+const workModeOptions = ["Remote", "Onsite", "Hybrid"];
+const noticePeriodOptions = ["Immediate", "15 Days", "30 Days", "45 Days", "60 Days", "90 Days"];
+
 function StaffingCompanyDetails() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -32,7 +38,7 @@ function StaffingCompanyDetails() {
   const [isRequirementOpen, setIsRequirementOpen] = useState(false);
   const [requirements, setRequirements] = useState(() => readLocalStorage(STAFFING_REQUIREMENTS_KEY, {}));
   const [formData, setFormData] = useState({
-    postedOn: "",
+    profile: "",
     state: "",
     city: "",
     category: "",
@@ -51,7 +57,7 @@ function StaffingCompanyDetails() {
     const existing = store[company.id] || {};
     setRequirements(store);
     setFormData({
-      postedOn: existing.postedOn || company.date || "",
+      profile: existing.profile || "",
       state: existing.state || "",
       city: existing.city || "",
       category: existing.category || company.sector || "IT",
@@ -72,7 +78,7 @@ function StaffingCompanyDetails() {
   const rowValues = requirements?.[company.id] || {};
 
   const detailRows = [
-    { label: "Posted On", value: rowValues.postedOn || company.date || "" },
+    { label: "Profile", value: rowValues.profile || "" },
     { label: "State", value: rowValues.state || "" },
     { label: "City", value: rowValues.city || "" },
     { label: "Category (IT / Non IT)", value: rowValues.category || company.sector || "IT" },
@@ -90,7 +96,7 @@ function StaffingCompanyDetails() {
 
     const updatedStore = readLocalStorage(STAFFING_REQUIREMENTS_KEY, {});
     const savedRequirement = {
-      postedOn: formData.postedOn,
+      profile: formData.profile,
       state: formData.state,
       city: formData.city,
       category: formData.category,
@@ -186,36 +192,24 @@ function StaffingCompanyDetails() {
               </div>
               <form onSubmit={saveRequirement} className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs font-bold uppercase text-slate-600">Posted On</span>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    value={formData.postedOn}
-                    onChange={(e) => setFormData({ ...formData, postedOn: e.target.value })}
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-bold uppercase text-slate-600">State</span>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-bold uppercase text-slate-600">City</span>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  />
-                </label>
-                <label className="space-y-1">
                   <span className="text-xs font-bold uppercase text-slate-600">Category (IT / Non IT)</span>
-                  <input
+                  <select
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  />
+                  ><option value="">Select Category</option><option value="IT">IT</option><option value="Non IT">Non IT</option></select>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-bold uppercase text-slate-600">Profile</span>
+                  <input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" value={formData.profile} onChange={(e) => setFormData({ ...formData, profile: e.target.value })} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-bold uppercase text-slate-600">State</span>
+                  <select className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })}><option value="">Select State</option>{stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}</select>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-bold uppercase text-slate-600">City</span>
+                  <select className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })}><option value="">Select City</option>{cityOptions.map((city) => <option key={city} value={city}>{city}</option>)}</select>
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs font-bold uppercase text-slate-600">Technology</span>
@@ -235,11 +229,11 @@ function StaffingCompanyDetails() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs font-bold uppercase text-slate-600">Experience</span>
-                  <input
+                  <select
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
                     value={formData.experience}
                     onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                  />
+                  ><option value="">Select Experience</option>{experienceOptions.map((experience) => <option key={experience} value={experience}>{experience}</option>)}</select>
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs font-bold uppercase text-slate-600">Budget</span>
@@ -251,25 +245,25 @@ function StaffingCompanyDetails() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs font-bold uppercase text-slate-600">Work Mode</span>
-                  <input
+                  <select
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
                     value={formData.workMode}
                     onChange={(e) => setFormData({ ...formData, workMode: e.target.value })}
-                  />
+                  ><option value="">Select Work Mode</option>{workModeOptions.map((workMode) => <option key={workMode} value={workMode}>{workMode}</option>)}</select>
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs font-bold uppercase text-slate-600">Notice Period</span>
-                  <input
+                  <select
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
                     value={formData.noticePeriod}
                     onChange={(e) => setFormData({ ...formData, noticePeriod: e.target.value })}
-                  />
+                  ><option value="">Select Notice Period</option>{noticePeriodOptions.map((noticePeriod) => <option key={noticePeriod} value={noticePeriod}>{noticePeriod}</option>)}</select>
                 </label>
-                <label className="space-y-1 md:col-span-2">
+                <label className="space-y-1">
                   <span className="text-xs font-bold uppercase text-slate-600">Deadline</span>
                   <input
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    value={formData.deadline}
+                    type="date" value={formData.deadline}
                     onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                   />
                 </label>

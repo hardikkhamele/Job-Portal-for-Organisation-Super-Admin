@@ -5,6 +5,11 @@ import Footer from "../Footer";
 
 const SALES_REQUIREMENTS_KEY = "admin_sales_company_requirements";
 const SALES_COMPANY_SNAPSHOT_KEY = "admin_sales_company_snapshots";
+const stateOptions = ["Andhra Pradesh", "Gujarat", "Karnataka", "Maharashtra", "Tamil Nadu", "Telangana", "Uttar Pradesh", "West Bengal", "Delhi"];
+const cityOptions = ["Ahmedabad", "Bengaluru", "Chennai", "Delhi", "Hyderabad", "Kolkata", "Mumbai", "Noida", "Pune"];
+const experienceOptions = ["0-1 Years", "1-2 Years", "2-3 Years", "3-4 Years", "4-5 Years", "5-6 Years", "6-7 Years", "7-8 Years", "8-9 Years", "9-10 Years", "10+ Years"];
+const workModeOptions = ["Remote", "Onsite", "Hybrid"];
+const noticePeriodOptions = ["Immediate", "15 Days", "30 Days", "45 Days", "60 Days", "90 Days"];
 
 const readStore = (key, fallback = {}) => {
   try {
@@ -40,7 +45,7 @@ function SalesCompanyDetails() {
   const [showDetails, setShowDetails] = useState(true);
   const [requirements, setRequirements] = useState(() => readStore(SALES_REQUIREMENTS_KEY, {}));
   const [formData, setFormData] = useState({
-    postedOn: "",
+    profile: "",
     state: "",
     city: "",
     category: "",
@@ -68,7 +73,7 @@ function SalesCompanyDetails() {
     const store = readStore(SALES_REQUIREMENTS_KEY, {});
     const existing = store[company.id] || {};
     setRequirements(store);
-    setFormData({ ...existing, postedOn: existing.postedOn || "", state: existing.state || "", city: existing.city || "", category: existing.category || "", technology: existing.technology || "", requiredCandidates: existing.requiredCandidates || "", experience: existing.experience || "", budget: existing.budget || "", workMode: existing.workMode || "", noticePeriod: existing.noticePeriod || "", deadline: existing.deadline || "" });
+    setFormData({ ...existing, profile: existing.profile || "", state: existing.state || "", city: existing.city || "", category: existing.category || "", technology: existing.technology || "", requiredCandidates: existing.requiredCandidates || "", experience: existing.experience || "", budget: existing.budget || "", workMode: existing.workMode || "", noticePeriod: existing.noticePeriod || "", deadline: existing.deadline || "" });
   }, [company]);
 
   if (!company) {
@@ -78,7 +83,7 @@ function SalesCompanyDetails() {
   const rowValues = requirements?.[company.id] || {};
 
   const detailRows = [
-    { label: "Posted On", value: rowValues.postedOn || company?.postedOn || company?.onboardedOn || "" },
+    { label: "Profile", value: rowValues.profile || company?.profile || "" },
     { label: "State", value: rowValues.state || company?.state || "" },
     { label: "City", value: rowValues.city || company?.city || "" },
     { label: "Category (IT / Non IT)", value: rowValues.category || company?.category || "" },
@@ -96,7 +101,7 @@ function SalesCompanyDetails() {
 
     const updatedStore = readStore(SALES_REQUIREMENTS_KEY, {});
     const savedRequirement = {
-      postedOn: formData.postedOn,
+      profile: formData.profile,
       state: formData.state,
       city: formData.city,
       category: formData.category,
@@ -175,17 +180,17 @@ function SalesCompanyDetails() {
                 </button>
               </div>
               <form onSubmit={saveRequirement} className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
-                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Posted On</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.postedOn} onChange={(e) => setFormData({ ...formData, postedOn: e.target.value })} /></label>
-                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">State</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} /></label>
-                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">City</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} /></label>
-                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Category (IT / Non IT)</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} /></label>
+                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Category (IT / Non IT)</span><select className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}><option value="">Select Category</option><option value="IT">IT</option><option value="Non IT">Non IT</option></select></label>
+                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Profile</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.profile} onChange={(e) => setFormData({ ...formData, profile: e.target.value })} /></label>
+                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">State</span><select className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })}><option value="">Select State</option>{stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}</select></label>
+                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">City</span><select className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })}><option value="">Select City</option>{cityOptions.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
                 <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Technology</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.technology} onChange={(e) => setFormData({ ...formData, technology: e.target.value })} /></label>
                 <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Required Candidates</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.requiredCandidates} onChange={(e) => setFormData({ ...formData, requiredCandidates: e.target.value })} /></label>
-                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Experience</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })} /></label>
+                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Experience</span><select className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })}><option value="">Select Experience</option>{experienceOptions.map((experience) => <option key={experience} value={experience}>{experience}</option>)}</select></label>
                 <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Budget</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: e.target.value })} /></label>
-                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Work Mode</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.workMode} onChange={(e) => setFormData({ ...formData, workMode: e.target.value })} /></label>
-                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Notice Period</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.noticePeriod} onChange={(e) => setFormData({ ...formData, noticePeriod: e.target.value })} /></label>
-                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Deadline</span><input className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} /></label>
+                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Work Mode</span><select className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.workMode} onChange={(e) => setFormData({ ...formData, workMode: e.target.value })}><option value="">Select Work Mode</option>{workModeOptions.map((workMode) => <option key={workMode} value={workMode}>{workMode}</option>)}</select></label>
+                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Notice Period</span><select className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.noticePeriod} onChange={(e) => setFormData({ ...formData, noticePeriod: e.target.value })}><option value="">Select Notice Period</option>{noticePeriodOptions.map((noticePeriod) => <option key={noticePeriod} value={noticePeriod}>{noticePeriod}</option>)}</select></label>
+                <label className="space-y-2"><span className="text-xs font-bold uppercase text-slate-600">Deadline</span><input type="date" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} /></label>
 
                 <div className="md:col-span-2 flex justify-end gap-3 pt-4">
                   <button type="button" onClick={() => setIsRequirementOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600">Cancel</button>
