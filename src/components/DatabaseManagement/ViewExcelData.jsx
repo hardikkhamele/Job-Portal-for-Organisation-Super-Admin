@@ -30,16 +30,14 @@ import {
   resetRejectState,
 } from "../../redux/slice/databaseManagement/rejectCandidate";
 
-const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = null }) => {
+const ViewExcelData = () => {
   const navigate = useNavigate();
-  const routeParams = useParams();
-  const routeId = routeParams?.id;
+  const { id } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
 
-  // Item passed via route state from AcceptReject.jsx or inline modal prop
-  const itemFromState = propItem || location.state?.item;
-  const viewId = propId || routeId || itemFromState?._id;
+  // Item passed via route state from AcceptReject.jsx
+  const itemFromState = location.state?.item;
 
   // Redux states
   const { data: rawResponse, loading: apiLoading, error: apiError } = useSelector(
@@ -79,13 +77,13 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
   };
 
   useEffect(() => {
-    if (viewId) {
-      dispatch(fetchExcelData(viewId));
+    if (id) {
+      dispatch(fetchExcelData(id));
     }
     return () => {
       dispatch(clearExcelData());
     };
-  }, [dispatch, viewId]);
+  }, [dispatch, id]);
 
   // Sync approved status on action success
   useEffect(() => {
@@ -350,19 +348,13 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
   };
 
   return (
-    <div className="w-full bg-[#F4F6FA] p-4">
-      <div className="w-full max-w-[1400px] mx-auto space-y-6">
+    <div className="w-full bg-[#F4F6FA] p-4 min-h-screen">
+      <div className="w-full mx-auto space-y-6">
         {/* Header Bar */}
         <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => {
-                if (onClose) {
-                  onClose();
-                } else {
-                  navigate(-1);
-                }
-              }}
+              onClick={() => navigate(-1)}
               className="p-2 rounded-full border border-gray-300 hover:bg-purple-50 hover:border-purple-600 hover:text-purple-600 transition-colors cursor-pointer"
               title="Go Back"
             >
