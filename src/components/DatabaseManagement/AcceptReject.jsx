@@ -272,7 +272,7 @@
 // export default AcceptReject;
 
 import React, { useState, useEffect, Fragment } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import * as XLSX from "xlsx";
 import axios from "axios";
@@ -313,7 +313,6 @@ import {
 } from "../../redux/slice/databaseManagement/deleteCandidateDatabase";
 const AcceptReject = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
@@ -354,10 +353,9 @@ const AcceptReject = () => {
     dispatch(fetchAllCategories());
   }, [dispatch]);
 
-  // Fetch data on mount and whenever navigating back to this route
   useEffect(() => {
-    dispatch(fetchAcceptRejectData(pagination.current || 1));
-  }, [dispatch, location.key]);
+    dispatch(fetchAcceptRejectData(1));
+  }, [dispatch]);
 
   // Success hone par list refresh karein (Approve, Reject & Delete ke liye)
   useEffect(() => {
@@ -684,26 +682,9 @@ const AcceptReject = () => {
                                 Rejected
                               </span>
                             ) : (
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => !approveLoading && handleApprove(item._id)}
-                                  disabled={approveLoading}
-                                  className="w-7 h-7 rounded-full border border-green-500 bg-green-50 hover:bg-green-600 hover:text-white text-green-600 flex items-center justify-center transition cursor-pointer shadow-xs disabled:opacity-50"
-                                  title="Approve Database"
-                                >
-                                  <Check size={15} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => !rejectLoading && handleReject(item._id)}
-                                  disabled={rejectLoading}
-                                  className="w-7 h-7 rounded-full border border-red-500 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 flex items-center justify-center transition cursor-pointer shadow-xs disabled:opacity-50"
-                                  title="Reject Database"
-                                >
-                                  <X size={15} />
-                                </button>
-                              </div>
+                              <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-300 shadow-sm">
+                                Pending
+                              </span>
                             )}
                           </div>
                         </td>
