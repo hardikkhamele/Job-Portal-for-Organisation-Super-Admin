@@ -51,11 +51,20 @@ const ViewExcelData = () => {
     (state) => state.rejectCandidate
   );
 
+  const getDatabaseStatus = (item) => {
+    if (!item || typeof item !== "object") return "Pending";
+    if (item.isApproved === true || item.status === "Approved" || item.status === "Accepted") {
+      return "Approved";
+    }
+    if (item.isRejected === true || item.status === "Rejected") {
+      return "Rejected";
+    }
+    return "Pending";
+  };
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [isApprovedLocal, setIsApprovedLocal] = useState(
-    Boolean(itemFromState?.isApproved)
-  );
+  const [localStatus, setLocalStatus] = useState(() => getDatabaseStatus(itemFromState));
   const [fileParsingLoading, setFileParsingLoading] = useState(false);
   const [fileParsingError, setFileParsingError] = useState(null);
   const [parsedFileRows, setParsedFileRows] = useState([]);
@@ -178,20 +187,43 @@ const ViewExcelData = () => {
     };
   }, [dispatch, id]);
 
-  // Sync approved status on action success
+  // Sync approved / rejected status on action success
   useEffect(() => {
     if (approveSuccess) {
-      setIsApprovedLocal(true);
+      setLocalStatus("Approved");
+      if (id) {
+        dispatch(fetchExcelData(id));
+      }
       dispatch(resetAcceptState());
     }
     if (rejectSuccess) {
-      setIsApprovedLocal(false);
+      setLocalStatus("Rejected");
+      if (id) {
+        dispatch(fetchExcelData(id));
+      }
       dispatch(resetRejectState());
     }
-  }, [approveSuccess, rejectSuccess, dispatch]);
+  }, [approveSuccess, rejectSuccess, dispatch, id]);
 
   // Extract metadata safely combining itemFromState and rawResponse
   const responseData = rawResponse?.data || rawResponse || {};
+
+  // Sync localStatus whenever rawResponse arrives
+  useEffect(() => {
+    if (rawResponse) {
+      const currentRec =
+        responseData?.candidateDatabase ||
+        responseData?.database ||
+        responseData?.record ||
+        (responseData._id ? responseData : null);
+      if (currentRec) {
+        const fetchedStatus = getDatabaseStatus(currentRec);
+        if (fetchedStatus !== "Pending") {
+          setLocalStatus(fetchedStatus);
+        }
+      }
+    }
+  }, [rawResponse]);
   const databaseRecord =
     responseData?.candidateDatabase ||
     responseData?.database ||
@@ -262,10 +294,12 @@ const ViewExcelData = () => {
       databaseRecord?.file ||
       null;
 
-    const isApproved =
-      isApprovedLocal ||
-      Boolean(itemFromState?.isApproved) ||
-      Boolean(databaseRecord?.isApproved);
+    const currentStatus =
+      localStatus !== "Pending"
+        ? localStatus
+        : getDatabaseStatus(databaseRecord) !== "Pending"
+        ? getDatabaseStatus(databaseRecord)
+        : getDatabaseStatus(itemFromState);
 
     return {
       hrName,
@@ -274,9 +308,11 @@ const ViewExcelData = () => {
       designation,
       uploadDate,
       fileUrl,
-      isApproved,
+      currentStatus,
+      isApproved: currentStatus === "Approved",
+      isRejected: currentStatus === "Rejected",
     };
-  }, [itemFromState, databaseRecord, isApprovedLocal]);
+  }, [itemFromState, databaseRecord, localStatus]);
 
   // Helper to extract candidate rows array dynamically from any response structure
   const apiExtractedRows = useMemo(() => {
@@ -505,8 +541,12 @@ const ViewExcelData = () => {
           <div className="flex items-center gap-3">
             {/* Accept / Reject Status or Action Buttons */}
             {hrInfo.isApproved ? (
-              <span className="text-green-600 font-semibold text-sm border border-purple-200 bg-purple-50 px-4 py-2 rounded-2xl tracking-wider inline-flex items-center gap-1.5 shadow-sm">
-                <Check size={18} /> Accepted Already
+              <span className="text-green-700 font-semibold text-sm border border-green-300 bg-green-50 px-4 py-2 rounded-2xl tracking-wider inline-flex items-center gap-1.5 shadow-sm">
+                <Check size={18} className="text-green-600" /> Accepted Already
+              </span>
+            ) : hrInfo.isRejected ? (
+              <span className="text-red-700 font-semibold text-sm border border-red-300 bg-red-50 px-4 py-2 rounded-2xl tracking-wider inline-flex items-center gap-1.5 shadow-sm">
+                <X size={18} className="text-red-600" /> Rejected Already
               </span>
             ) : (
               <div className="flex items-center gap-2">
@@ -620,6 +660,10 @@ const ViewExcelData = () => {
             {hrInfo.isApproved ? (
               <span className="px-3 py-1.5 rounded-full bg-green-100 text-green-700 border border-green-300 shadow-sm">
                 Accepted
+              </span>
+            ) : hrInfo.isRejected ? (
+              <span className="px-3 py-1.5 rounded-full bg-red-100 text-red-700 border border-red-300 shadow-sm">
+                Rejected
               </span>
             ) : (
               <span className="px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300 shadow-sm">
