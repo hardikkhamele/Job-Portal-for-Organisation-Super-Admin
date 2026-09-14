@@ -38,6 +38,7 @@ const ViewExcelData = () => {
 
   // Item passed via route state from AcceptReject.jsx
   const itemFromState = location.state?.item;
+  const viewId = id || itemFromState?._id;
 
   // Redux states
   const { data: rawResponse, loading: apiLoading, error: apiError } = useSelector(
