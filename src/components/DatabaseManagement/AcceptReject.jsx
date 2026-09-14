@@ -693,11 +693,7 @@ const AcceptReject = () => {
                             <Eye
                               size={20}
                               className="text-purple-500 cursor-pointer hover:scale-110 transition-transform"
-                              onClick={() => {
-                                navigate(`/accept-reject/view/${item._id}`, {
-                                  state: { item },
-                                });
-                              }}
+                              onClick={() => navigate(`/accept-reject/view/${item._id}`, { state: { item } })}
                               title="View Excel Database Details"
                             />
                             <Trash2
