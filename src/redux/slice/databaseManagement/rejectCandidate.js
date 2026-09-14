@@ -9,9 +9,8 @@ export const rejectCandidate = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
 
-      const cleanBase = (BASE_URL || "").replace(/\/$/, "");
       const response = await axios.put(
-        `${cleanBase}/api/admin/accept-reject/rejectCandidateDatabase/${id}`,
+        `${BASE_URL}/api/admin/candidate-database/rejectCandidateDatabase/${id}`,
         {}, 
         {
           headers: {
