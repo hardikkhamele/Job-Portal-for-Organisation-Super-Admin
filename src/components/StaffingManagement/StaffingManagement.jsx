@@ -5,100 +5,37 @@ import {
   ShieldCheck,
   Clock,
   AlertCircle,
-  Search,
   Plus,
   Eye,
   Trash2,
-  Check,
   X,
-  ArrowLeft,
   Users,
   TrendingUp,
   Award,
   Pencil,
-  Ban
 } from "lucide-react";
 import Footer from "../Footer";
-import BlockModal from "../common/BlockModal";
 import {
-  getStaffingEmployees,
-  saveStaffingEmployees,
-  getCompaniesForEmployee,
-  STAFFING_REQUIREMENTS_KEY,
-  readLocalStorage,
-  writeLocalStorage
+  getCompaniesForEmployee
 } from "./staffingStore";
+import { approveStaffing, deleteStaffing, getStaffingList, getStaffingStats } from "./staffingApi";
 
-// Mock Data for Staffing Agencies
-const mockStaffingAgencies = [
-  {
-    id: 1,
-    srNo: "01",
-    companyName: "Apex Staffing Solutions",
-    email: "contact@apexstaffing.com",
-    phone: "+91 98765 43210",
-    type: "IT",
-    postedJobs: 14,
-    location: "Gurugram, Haryana",
-    status: "Approved",
-    date: "2026-08-10"
-  },
-  {
-    id: 2,
-    srNo: "02",
-    companyName: "TalentGrid Workforce",
-    email: "hr@talentgrid.in",
-    phone: "+91 98123 45678",
-    type: "Non-IT",
-    postedJobs: 8,
-    location: "Bengaluru, Karnataka",
-    status: "Approved",
-    date: "2026-08-12"
-  },
-  {
-    id: 3,
-    srNo: "03",
-    companyName: "Nexus Talent Partners",
-    email: "info@nexustalent.com",
-    phone: "+91 97654 32109",
-    type: "IT",
-    postedJobs: 0,
-    location: "Pune, Maharashtra",
-    status: "Pending",
-    date: "2026-08-18"
-  },
-  {
-    id: 4,
-    srNo: "04",
-    companyName: "Vanguard Staffing Consultants",
-    email: "admin@vanguard.co.in",
-    phone: "+91 96543 21098",
-    type: "Non-IT",
-    postedJobs: 0,
-    location: "Noida, Uttar Pradesh",
-    status: "Pending",
-    date: "2026-08-19"
-  },
-  {
-    id: 5,
-    srNo: "05",
-    companyName: "Zenith Recruitment Group",
-    email: "support@zenithgroup.com",
-    phone: "+91 95432 10987",
-    type: "IT",
-    postedJobs: 0,
-    location: "Hyderabad, Telangana",
-    status: "Rejected",
-    date: "2026-08-15"
-  }
-];
+const getStatus = (staffing) => String(staffing.status || staffing.approvalStatus || "pending").toLowerCase();
+const getId = (staffing) => staffing._id || staffing.id;
+const getName = (staffing) => staffing.staffingName || staffing.name || staffing.companyName || "-";
+const statValue = (stats, keys, fallback) => keys.reduce((value, key) => value ?? stats?.[key], undefined) ?? fallback;
 
 function StaffingManagement() {
   const navigate = useNavigate();
   const location = useLocation();
 
   // --- EMPLOYEES / MEMBERS STATE ---
-  const [salesEmployees, setSalesEmployees] = useState(() => getStaffingEmployees());
+  const [salesEmployees, setSalesEmployees] = useState([]);
+  const [pendingStaffings, setPendingStaffings] = useState([]);
+  const [stats, setStats] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionId, setActionId] = useState(null);
+  const [apiError, setApiError] = useState("");
   const [employeesCurrentPage, setEmployeesCurrentPage] = useState(1);
   const employeesPerPage = 5;
 
@@ -106,45 +43,29 @@ function StaffingManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
 
-  // Block Modal State
-  const [openBlockModal, setOpenBlockModal] = useState(false);
-  const [selectedEmployeeForBlock, setSelectedEmployeeForBlock] = useState(null);
-
-  // --- AGENCIES STATE ---
-  const [agencies, setAgencies] = useState(mockStaffingAgencies);
   const [activeTab, setActiveTab] = useState("approved"); // 'approved' | 'pending' | 'rejected'
 
-  // Sync employees on load or when newStaffing arrives
   useEffect(() => {
-    if (location.state?.newStaffing) {
-      const newStaffingData = location.state.newStaffing;
-      const memberName = (newStaffingData.name || newStaffingData.companyName || "").trim();
-      if (memberName) {
-        setSalesEmployees((prev) => {
-          if (prev.some((emp) => emp.name.toLowerCase() === memberName.toLowerCase())) {
-            return prev;
-          }
-          const nextId = prev.length > 0 ? Math.max(...prev.map((e) => Number(e.id) || 0)) + 1 : 1;
-          const newEntry = {
-            id: nextId,
-            name: memberName,
-            designation: newStaffingData.designation || "Staffing Member",
-            email: newStaffingData.email || "",
-            phone: newStaffingData.mobileNumber || "",
-            total: 0,
-            today: 0,
-            completed: 0,
-            pending: 0,
-            performance: 100,
-            isBlocked: false
-          };
-          const updated = [newEntry, ...prev];
-          saveStaffingEmployees(updated);
-          return updated;
-        });
+    const loadStaffing = async () => {
+      setIsLoading(true);
+      setApiError("");
+      try {
+        const [staffings, pending, staffingStats] = await Promise.all([
+          getStaffingList(),
+          getStaffingList("pending"),
+          getStaffingStats()
+        ]);
+        setSalesEmployees(staffings);
+        setPendingStaffings(pending);
+        setStats(staffingStats);
+      } catch (error) {
+        setApiError(error.response?.data?.message || "Unable to load staffing data.");
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [location.state]);
+    };
+    loadStaffing();
+  }, [location.key]);
 
   // Paginated Employees
   const paginatedEmployees = useMemo(() => {
@@ -165,47 +86,50 @@ function StaffingManagement() {
     if (!editingEmployee || !editingEmployee.name.trim()) return;
 
     const updatedList = salesEmployees.map((emp) =>
-      emp.id === editingEmployee.id ? { ...editingEmployee, name: editingEmployee.name.trim() } : emp
+      getId(emp) === getId(editingEmployee) ? { ...editingEmployee, name: editingEmployee.name.trim() } : emp
     );
     setSalesEmployees(updatedList);
-    saveStaffingEmployees(updatedList);
     setIsEditModalOpen(false);
     setEditingEmployee(null);
   };
 
-  // Block Employee handlers
-  const handleBlockClick = (emp) => {
-    setSelectedEmployeeForBlock(emp);
-    setOpenBlockModal(true);
-  };
-
-  const handleConfirmBlock = () => {
-    if (!selectedEmployeeForBlock) return;
-    const updatedList = salesEmployees.map((emp) =>
-      emp.id === selectedEmployeeForBlock.id ? { ...emp, isBlocked: !emp.isBlocked } : emp
-    );
-    setSalesEmployees(updatedList);
-    saveStaffingEmployees(updatedList);
-    setOpenBlockModal(false);
-    setSelectedEmployeeForBlock(null);
-  };
-
-  // Delete Employee handler
-  const handleDeleteEmployee = (id) => {
+  const handleDeleteEmployee = async (id) => {
     if (window.confirm("Are you sure you want to delete this employee?")) {
-      const updatedList = salesEmployees.filter((emp) => emp.id !== id);
-      setSalesEmployees(updatedList);
-      saveStaffingEmployees(updatedList);
-      if (paginatedEmployees.length === 1 && employeesCurrentPage > 1) {
-        setEmployeesCurrentPage((prev) => prev - 1);
+      setActionId(id);
+      setApiError("");
+      try {
+        await deleteStaffing(id);
+        setSalesEmployees((previous) => previous.filter((staffing) => getId(staffing) !== id));
+        setPendingStaffings((previous) => previous.filter((staffing) => getId(staffing) !== id));
+      } catch (error) {
+        setApiError(error.response?.data?.message || "Unable to delete staffing.");
+      } finally {
+        setActionId(null);
       }
     }
   };
 
+  const handleApprove = async (id) => {
+    setActionId(id);
+    setApiError("");
+    try {
+      await approveStaffing(id);
+      setSalesEmployees((previous) => previous.map((staffing) =>
+        getId(staffing) === id ? { ...staffing, status: "approved", approvalStatus: "approved" } : staffing
+      ));
+      setPendingStaffings((previous) => previous.filter((staffing) => getId(staffing) !== id));
+      setStats((previous) => ({ ...previous, pending: Math.max(0, Number(previous.pending || 0) - 1) }));
+    } catch (error) {
+      setApiError(error.response?.data?.message || "Unable to approve staffing.");
+    } finally {
+      setActionId(null);
+    }
+  };
+
   // Filtered Agency Counts
-  const approvedList = useMemo(() => agencies.filter((a) => a.status === "Approved"), [agencies]);
-  const pendingList = useMemo(() => agencies.filter((a) => a.status === "Pending"), [agencies]);
-  const rejectedList = useMemo(() => agencies.filter((a) => a.status === "Rejected"), [agencies]);
+  const approvedList = useMemo(() => salesEmployees.filter((staffing) => getStatus(staffing) === "approved"), [salesEmployees]);
+  const pendingList = pendingStaffings.length ? pendingStaffings : salesEmployees.filter((staffing) => getStatus(staffing) === "pending");
+  const rejectedList = useMemo(() => salesEmployees.filter((staffing) => ["rejected", "reject"].includes(getStatus(staffing))), [salesEmployees]);
 
   return (
     <div className="w-full bg-[#F4F6FA] p-4 min-h-screen flex flex-col justify-between">
@@ -245,7 +169,7 @@ function StaffingManagement() {
           >
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-gray-500">Approved Agencies</span>
-              <span className="text-2xl font-bold text-purple-700 mt-2">{approvedList.length}</span>
+              <span className="text-2xl font-bold text-purple-700 mt-2">{statValue(stats, ["approved", "approvedCount", "totalApproved"], approvedList.length)}</span>
               <div className="flex items-center gap-1 mt-2 text-xs text-green-600 font-medium">
                 <TrendingUp size={14} />
                 <span>Active Listing</span>
@@ -267,7 +191,7 @@ function StaffingManagement() {
             )}
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-gray-500">Pending Approvals</span>
-              <span className="text-2xl font-bold text-purple-700 mt-2">{pendingList.length}</span>
+              <span className="text-2xl font-bold text-purple-700 mt-2">{statValue(stats, ["pending", "pendingCount", "totalPending"], pendingList.length)}</span>
               <div className="flex items-center gap-1 mt-2 text-xs text-amber-600 font-medium">
                 <Clock size={14} />
                 <span>Awaiting review</span>
@@ -286,7 +210,7 @@ function StaffingManagement() {
           >
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-gray-500">Rejected Requests</span>
-              <span className="text-2xl font-bold text-purple-700 mt-2">{rejectedList.length}</span>
+              <span className="text-2xl font-bold text-purple-700 mt-2">{statValue(stats, ["rejected", "rejectedCount", "totalRejected"], rejectedList.length)}</span>
               <div className="flex items-center gap-1 mt-2 text-xs text-red-600 font-medium">
                 <AlertCircle size={14} />
                 <span>Not active</span>
@@ -301,7 +225,7 @@ function StaffingManagement() {
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-gray-500">Total Jobs Posted</span>
               <span className="text-2xl font-bold text-purple-700 mt-2">
-                {agencies.reduce((sum, item) => sum + item.postedJobs, 0)}
+                {statValue(stats, ["totalJobsPosted", "jobsPosted", "totalJobs"], salesEmployees.reduce((sum, item) => sum + Number(item.postedJobs || item.totalJobs || 0), 0))}
               </span>
               <div className="flex items-center gap-1 mt-2 text-xs text-purple-600 font-medium">
                 <Users size={14} />
@@ -321,6 +245,7 @@ function StaffingManagement() {
             <h5 className="text-lg font-bold text-black">Sales Employee Performance</h5>
           </div>
 
+          {apiError && <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{apiError}</p>}
           <div className="overflow-x-auto border border-gray-200 rounded-lg">
             <table className="w-full text-sm text-center border-collapse">
               <thead>
@@ -329,29 +254,33 @@ function StaffingManagement() {
                   <th className="py-3 px-4 font-semibold">Designation</th>
                   <th className="py-3 px-4 font-semibold">Mobile</th>
                   <th className="py-3 px-4 font-semibold">Email</th>
+                  <th className="py-3 px-4 font-semibold">Status</th>
                   <th className="py-3 px-4 font-semibold text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedEmployees.map((emp) => (
-                  <tr key={emp.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                {isLoading ? (
+                  <tr><td colSpan="6" className="py-8 text-center text-gray-500">Loading staffing data...</td></tr>
+                ) : paginatedEmployees.map((emp) => (
+                  <tr key={getId(emp)} className="border-b border-gray-100 hover:bg-gray-50 transition">
                     <td className="py-3.5 px-4 text-left font-medium text-gray-900">
                       <div className="flex flex-col">
-                        <span>{emp.name}</span>
+                        <span>{getName(emp)}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-gray-700 font-semibold">{emp.designation || "-"}</td>
-                    <td className="py-3.5 px-4 text-gray-700 font-semibold">{emp.phone || "-"}</td>
+                    <td className="py-3.5 px-4 text-gray-700 font-semibold">{emp.mobileNumber || emp.phone || "-"}</td>
                     <td className="py-3.5 px-4 text-gray-700 font-semibold">{emp.email || "-"}</td>
+                    <td className="py-3.5 px-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getStatus(emp) === "approved" ? "bg-green-100 text-green-700" : getStatus(emp) === "pending" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>{getStatus(emp)}</span></td>
                     <td className="py-3.5 px-4 text-center">
                       <div className="flex items-center justify-center gap-3">
                         {/* View Button -> Opens Companies Onboarded (Image 3) */}
                         <button
                           onClick={() =>
-                            navigate(`/staffing-management/${emp.id}`, {
+                            navigate(`/staffing-management/${getId(emp)}`, {
                               state: {
                                 employee: emp,
-                                companies: getCompaniesForEmployee(emp.name)
+                                companies: getCompaniesForEmployee(getName(emp))
                               }
                             })
                           }
@@ -370,23 +299,15 @@ function StaffingManagement() {
                           <Pencil size={18} />
                         </button>
 
-                        {/* Block/Unblock Button */}
-                        <div
-                          className="cursor-pointer p-1"
-                          onClick={() => handleBlockClick(emp)}
-                          title={emp.isBlocked ? "Unblock Member" : "Block Member"}
-                        >
-                          <Ban
-                            size={18}
-                            className={`transition ${
-                              emp.isBlocked ? "text-red-700 font-bold" : "text-red-500 hover:text-red-700"
-                            }`}
-                          />
-                        </div>
+                        {getStatus(emp) === "pending" && (
+                          <button onClick={() => handleApprove(getId(emp))} disabled={actionId === getId(emp)} className="rounded-md bg-green-600 px-2 py-1 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50" title="Approve staffing">
+                            {actionId === getId(emp) ? "..." : "Approve"}
+                          </button>
+                        )}
 
                         {/* Delete Button */}
                         <button
-                          onClick={() => handleDeleteEmployee(emp.id)}
+                          onClick={() => handleDeleteEmployee(getId(emp))}
                           className="text-red-500 hover:text-red-700 transition cursor-pointer p-1"
                           title="Delete Member"
                         >
@@ -532,21 +453,6 @@ function StaffingManagement() {
           </div>
         </div>
       )}
-
-      {/* --- BLOCK MODAL --- */}
-      <BlockModal
-        isOpen={openBlockModal}
-        onClose={() => setOpenBlockModal(false)}
-        onConfirm={handleConfirmBlock}
-        title={selectedEmployeeForBlock?.isBlocked ? "Unblock Member" : "Block Member"}
-        message={
-          selectedEmployeeForBlock?.isBlocked
-            ? `Are you sure you want to unblock ${selectedEmployeeForBlock?.name}?`
-            : `Are you sure you want to block ${selectedEmployeeForBlock?.name}?`
-        }
-        buttonText={selectedEmployeeForBlock?.isBlocked ? "Unblock" : "Block"}
-        variant={selectedEmployeeForBlock?.isBlocked ? "primary" : "danger"}
-      />
 
       <Footer />
     </div>

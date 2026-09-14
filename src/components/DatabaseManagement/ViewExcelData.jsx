@@ -62,19 +62,111 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
   const [parsedFileRows, setParsedFileRows] = useState([]);
   const [acceptedCandidateKeys, setAcceptedCandidateKeys] = useState([]);
   const [deletedCandidateKeys, setDeletedCandidateKeys] = useState([]);
+  const [candidateActionKey, setCandidateActionKey] = useState(null);
   const itemsPerPage = 10;
 
-  const handleAcceptIndividualCandidate = (row, key) => {
-    setAcceptedCandidateKeys((prev) => [...prev, key]);
-    const name = row["FULL NAME"] || row.name || row["Name"] || row["Candidate Name"] || "Candidate";
-    toast.success(`${name} accepted successfully!`);
+  const getCandidateId = (row) => {
+    const possibleIds = [
+      row?.__candidateId,
+      row?._id,
+      row?.id,
+      row?.candidateId,
+      row?.candidate_id,
+      row?.candidateID,
+      row?.CandidateId,
+      row?.CandidateID,
+      row?.["Candidate ID"],
+      row?.["candidate id"],
+      row?.candidate,
+    ];
+
+    for (const possibleId of possibleIds) {
+      if (typeof possibleId === "string" || typeof possibleId === "number") return String(possibleId);
+      if (possibleId && typeof possibleId === "object") {
+        const nestedId = possibleId._id || possibleId.id || possibleId.candidateId;
+        if (nestedId) return String(nestedId);
+      }
+    }
+    return null;
   };
 
-  const handleDeleteIndividualCandidate = (row, key) => {
+  const getCandidateSearchValue = (row) =>
+    row?.phone || row?.mobile || row?.mobileNumber || row?.contact || row?.Contact ||
+    row?.CONTACT || row?.["Mobile Number"] || row?.["Phone Number"] ||
+    row?.name || row?.Name || row?.["FULL NAME"] || row?.["Candidate Name"] || "";
+
+  const resolveCandidateId = async (row) => {
+    const embeddedId = getCandidateId(row);
+    if (embeddedId) return embeddedId;
+
+    const searchValue = String(getCandidateSearchValue(row)).trim();
+    if (!searchValue) return null;
+
+    const token = localStorage.getItem("token");
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+    const response = await axios.get(`${baseUrl}/api/admin/candidate-database/getCandidates`, {
+      params: { search: searchValue, page: 1, limit: 25 },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    const payload = response.data?.data || response.data || {};
+    const candidates = Array.isArray(payload)
+      ? payload
+      : payload.candidates || payload.data || payload.results || [];
+    const matchingCandidate = candidates.find((candidate) =>
+      String(getCandidateSearchValue(candidate)).replace(/\D/g, "") === searchValue.replace(/\D/g, "") ||
+      String(getCandidateSearchValue(candidate)).trim().toLowerCase() === searchValue.toLowerCase()
+    );
+    return getCandidateId(matchingCandidate);
+  };
+
+  const handleAcceptIndividualCandidate = async (row, key) => {
+    const name = row["FULL NAME"] || row.name || row["Name"] || row["Candidate Name"] || "Candidate";
+    setCandidateActionKey(key);
+    try {
+      const candidateId = await resolveCandidateId(row);
+      if (!viewId || !candidateId) {
+        toast.error("Candidate ID could not be resolved for this row.");
+        return;
+      }
+      const token = localStorage.getItem("token");
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+      const response = await axios.put(
+        `${baseUrl}/api/admin/accept-reject/${encodeURIComponent(viewId)}/candidate/${encodeURIComponent(candidateId)}/accept`,
+        {},
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+      );
+      setAcceptedCandidateKeys((previous) => [...previous, key]);
+      toast.success(response.data?.message || `${name} accepted successfully!`);
+    } catch (error) {
+      toast.error(error.response?.data?.message || `Unable to accept ${name}.`);
+    } finally {
+      setCandidateActionKey(null);
+    }
+  };
+
+  const handleDeleteIndividualCandidate = async (row, key) => {
     const name = row["FULL NAME"] || row.name || row["Name"] || row["Candidate Name"] || "this candidate";
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+      setCandidateActionKey(key);
+      try {
+        const candidateId = await resolveCandidateId(row);
+        if (!viewId || !candidateId) {
+          toast.error("Candidate ID could not be resolved for this row.");
+          return;
+        }
+        const token = localStorage.getItem("token");
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+        const response = await axios.delete(
+          `${baseUrl}/api/admin/accept-reject/${encodeURIComponent(viewId)}/candidate/${encodeURIComponent(candidateId)}`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        );
       setDeletedCandidateKeys((prev) => [...prev, key]);
-      toast.success(`${name} deleted successfully!`);
+        toast.success(response.data?.message || `${name} deleted successfully!`);
+      } catch (error) {
+        toast.error(error.response?.data?.message || `Unable to delete ${name}.`);
+      } finally {
+        setCandidateActionKey(null);
+      }
     }
   };
 
@@ -218,6 +310,28 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
     return [];
   }, [responseData, databaseRecord]);
 
+  const candidateRecords = useMemo(() => {
+    const possibleLists = [
+      responseData?.candidates,
+      responseData?.candidateRecords,
+      responseData?.candidateData,
+      responseData?.data?.candidates,
+      databaseRecord?.candidates,
+      databaseRecord?.candidateRecords,
+      databaseRecord?.candidateData,
+    ];
+    return possibleLists.find(Array.isArray) || [];
+  }, [responseData, databaseRecord]);
+
+  const rowsWithCandidateIds = useMemo(
+    () => apiExtractedRows.map((row, index) => {
+      if (getCandidateId(row)) return row;
+      const candidateId = getCandidateId(candidateRecords[index]);
+      return candidateId ? { ...row, __candidateId: candidateId } : row;
+    }),
+    [apiExtractedRows, candidateRecords]
+  );
+
   // Fallback: If API doesn't return embedded JSON rows, fetch and parse the Excel file directly from fileUrl
   useEffect(() => {
     let isMounted = true;
@@ -256,12 +370,12 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
 
   // Determine final rows to display
   const rawRows = useMemo(() => {
-    const list = apiExtractedRows.length > 0 ? apiExtractedRows : parsedFileRows;
+    const list = rowsWithCandidateIds.length > 0 ? rowsWithCandidateIds : parsedFileRows;
     return list.filter((row, idx) => {
       const key = row._id || idx;
       return !deletedCandidateKeys.includes(key);
     });
-  }, [apiExtractedRows, parsedFileRows, deletedCandidateKeys]);
+  }, [rowsWithCandidateIds, parsedFileRows, deletedCandidateKeys]);
 
   const loading = apiLoading || fileParsingLoading;
   const error = apiError || fileParsingError;
@@ -273,7 +387,7 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
     rawRows.forEach((row) => {
       if (typeof row === "object" && row !== null) {
         Object.keys(row).forEach((key) => {
-          if (key !== "_id" && key !== "__v") {
+          if (key !== "_id" && key !== "__v" && key !== "__candidateId") {
             keysSet.add(key);
           }
         });
@@ -297,6 +411,21 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredRows.length / itemsPerPage) || 1;
+  const paginationItems = useMemo(() => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
+
+    const pages = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
+    const sortedPages = [...pages]
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((firstPage, secondPage) => firstPage - secondPage);
+
+    return sortedPages.reduce((items, page, index) => {
+      if (index > 0 && page - sortedPages[index - 1] > 1) items.push(`ellipsis-${page}`);
+      items.push(page);
+      return items;
+    }, []);
+  }, [currentPage, totalPages]);
+
   const paginatedRows = useMemo(() => {
     return filteredRows.slice(
       (currentPage - 1) * itemsPerPage,
@@ -339,13 +468,13 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
 
   const handleApprove = () => {
     if (window.confirm("Are you sure you want to approve this candidate database?")) {
-      dispatch(approveCandidate(id));
+      dispatch(approveCandidate(viewId));
     }
   };
 
   const handleReject = () => {
     if (window.confirm("Are you sure you want to reject this candidate database?")) {
-      dispatch(rejectCandidate(id));
+      dispatch(rejectCandidate(viewId));
     }
   };
 
@@ -572,7 +701,8 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
                   <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
                     {paginatedRows.length > 0 ? (
                       paginatedRows.map((row, idx) => {
-                        const rowKey = row._id || (currentPage - 1) * itemsPerPage + idx;
+                        const rowKey = `${currentPage}-${idx}-${row._id || row.id || "candidate"}`;
+                        const isCandidateActionLoading = candidateActionKey === rowKey;
                         const isAccepted = acceptedCandidateKeys.includes(rowKey) || row.status === "Accepted" || row.isAccepted;
 
                         return (
@@ -604,16 +734,18 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
                                 ) : (
                                   <button
                                     onClick={() => handleAcceptIndividualCandidate(row, rowKey)}
-                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded text-xs font-semibold shadow-sm transition flex items-center gap-1 cursor-pointer"
+                                    disabled={isCandidateActionLoading}
+                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded text-xs font-semibold shadow-sm transition flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                     title="Accept Candidate"
                                   >
                                     <Check size={14} />
-                                    Accept
+                                    {isCandidateActionLoading ? "Processing..." : "Accept"}
                                   </button>
                                 )}
                                 <button
                                   onClick={() => handleDeleteIndividualCandidate(row, rowKey)}
-                                  className="p-1.5 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-600 rounded transition cursor-pointer"
+                                  disabled={isCandidateActionLoading}
+                                  className="p-1.5 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-600 rounded transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                   title="Delete Candidate"
                                 >
                                   <Trash2 size={15} />
@@ -639,37 +771,41 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row justify-between items-center pt-3 text-sm text-gray-600 gap-3">
-                  <div>
+                <div className="flex flex-col sm:flex-row justify-between items-center pt-4 text-sm text-gray-600 gap-3">
+                  <div className="whitespace-nowrap">
                     Page{" "}
                     <span className="font-semibold text-purple-600">
                       {currentPage}
                     </span>{" "}
                     of <span className="font-semibold">{totalPages}</span>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap items-center justify-center gap-1.5">
                     <button
                       onClick={() =>
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className="px-3 py-1 border border-gray-200 rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-purple-50 hover:text-purple-600 transition-colors cursor-pointer"
+                      className="h-9 px-3 border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-purple-50 hover:text-purple-600 transition-colors cursor-pointer"
                     >
                       Previous
                     </button>
-                    {[...Array(totalPages)].map((_, i) => (
-                      <button
-                        key={i + 1}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={`w-8 h-8 rounded-md flex items-center justify-center font-medium cursor-pointer ${
-                          currentPage === i + 1
-                            ? "bg-purple-600 text-white"
-                            : "border border-gray-200 hover:bg-purple-50 hover:text-purple-600"
-                        }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
+                    {paginationItems.map((page) =>
+                      typeof page === "string" ? (
+                        <span key={page} className="w-7 text-center text-gray-400">...</span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center font-medium cursor-pointer ${
+                            currentPage === page
+                              ? "bg-purple-600 text-white shadow-sm"
+                              : "border border-gray-200 hover:bg-purple-50 hover:text-purple-600"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    )}
                     <button
                       onClick={() =>
                         setCurrentPage((prev) =>
@@ -677,7 +813,7 @@ const ViewExcelData = ({ item: propItem = null, id: propId = null, onClose = nul
                         )
                       }
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 border border-gray-200 rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-purple-50 hover:text-purple-600 transition-colors cursor-pointer"
+                      className="h-9 px-3 border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-purple-50 hover:text-purple-600 transition-colors cursor-pointer"
                     >
                       Next
                     </button>

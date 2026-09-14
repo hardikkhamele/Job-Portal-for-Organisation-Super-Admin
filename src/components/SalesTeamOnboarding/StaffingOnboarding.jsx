@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import Footer from "../Footer";
-import { addStaffingMember } from "../StaffingManagement/staffingStore";
+import { createStaffing } from "../StaffingManagement/staffingApi";
 
 function StaffingOnboarding() {
   const navigate = useNavigate();
@@ -55,30 +55,33 @@ function StaffingOnboarding() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const memberPayload = {
+        staffingName: formData.staffingName.trim(),
+        name: formData.staffingName.trim(),
+        designation: formData.designation.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        mobileNumber: formData.mobileNumber.trim()
+      };
+      await createStaffing(memberPayload);
       setIsSubmitting(false);
       setShowSuccess(true);
-      const memberPayload = {
-        name: formData.staffingName.trim(),
-        companyName: formData.staffingName.trim(),
-        email: formData.email.trim(),
-        mobileNumber: formData.mobileNumber.trim(),
-        designation: formData.designation.trim()
-      };
-      addStaffingMember(memberPayload);
       setTimeout(() => {
-        navigate("/staffing-management", {
-          state: {
-            newStaffing: memberPayload
-          }
-        });
+        navigate("/staffing-management");
       }, 1000);
-    }, 500);
+    } catch (error) {
+      setIsSubmitting(false);
+      setErrors((prev) => ({
+        ...prev,
+        submit: error.response?.data?.message || "Unable to create staffing. Please try again."
+      }));
+    }
   };
 
   return (
@@ -111,6 +114,7 @@ function StaffingOnboarding() {
         {/* Main Form Container Card */}
         <div className="w-full bg-white rounded-2xl border border-gray-200/80 p-8 md:p-10 shadow-sm">
           <form onSubmit={handleSubmit}>
+            {errors.submit && <p className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-600">{errors.submit}</p>}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               
               {/* Staffing Name */}
