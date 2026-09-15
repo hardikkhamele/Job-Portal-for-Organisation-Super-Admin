@@ -367,7 +367,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdDashboard, MdPostAdd, MdSubscriptions, MdHelpOutline } from "react-icons/md";
 import { RiMoneyDollarCircleLine, RiShieldLine } from "react-icons/ri";
-import { Banknote, Briefcase, Building2, ChevronDown, ChevronUp, Database, FolderKanban, ShieldCheck, Users, UserSearch,NotebookPen } from "lucide-react";
+import { Banknote, Briefcase, Building2, ChevronDown, ChevronUp, ClipboardList, Database, FolderKanban, ShieldCheck, Users, UserSearch,NotebookPen } from "lucide-react";
 import logo from "../../assets/Logo.svg";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slice/auth/loginSlice";
@@ -432,6 +432,9 @@ const Sidebar = () => {
           
           {/* 3.1 Staffing Management */}
           <NavItem icon={<Building2 />} text="Staffing Management" active={window.location.pathname.startsWith("/staffing-management")} onClick={() => handleNavigation("/staffing-management")} />
+          
+          {/* 3.2 Current Vacancy */}
+          <NavItem icon={<ClipboardList />} text="Current Vacancy" active={window.location.pathname.startsWith("/current-vacancy")} onClick={() => handleNavigation("/current-vacancy")} />
           
           {/* 3.5. Sales Team Onboarding */}
           <NavItem icon={<Users />} text="Sales Team Onboarding" active={window.location.pathname.startsWith("/sales-team-onboarding")} onClick={() => handleNavigation("/sales-team-onboarding")} />

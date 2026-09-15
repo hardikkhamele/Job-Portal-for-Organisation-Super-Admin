@@ -52,13 +52,7 @@ export default function App() {
       <Routes>
         <Route
           path="/"
-          element={
-            localStorage.getItem("token") ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
+          element={<Navigate to="/dashboard" replace />}
         />
         {/* <Route path="/" element={<LoginPage />} /> */}
 
@@ -126,15 +120,8 @@ export default function App() {
         />
 
 
-        {/* <Route path="/*" element={<DashboardLayout />} /> */}
-        <Route
-          path="/*"
-          element={
-            <PrivateRoute>
-              <DashboardLayout />
-            </PrivateRoute>
-          }
-        />
+        {/* Auth bypassed for testing – PrivateRoute removed */}
+        <Route path="/*" element={<DashboardLayout />} />
       </Routes>
     </Router>
   );

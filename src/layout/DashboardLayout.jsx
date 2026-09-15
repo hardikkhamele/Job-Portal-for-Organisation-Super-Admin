@@ -79,6 +79,9 @@ import SalesEmployeeCompanies from "../components/SalesTeamOnboarding/SalesEmplo
 import SalesCompanyDetails from "../components/SalesTeamOnboarding/SalesCompanyDetails";
 import VendorModule from "../components/VendorModule/VendorModule";
 import VendorCompanyDetails from "../components/VendorModule/VendorCompanyDetails";
+import CurrentVacancy from "../components/CurrentVacancy/CurrentVacancy";
+import VacancyDetails from "../components/CurrentVacancy/VacancyDetails";
+import AddVacancy from "../components/CurrentVacancy/AddVacancy";
 
 function DashboardLayout() {
   return (
@@ -176,6 +179,9 @@ function DashboardLayout() {
             <Route path="staffing-management/create-staffing" element={<StaffingOnboarding />} />
             <Route path="staffing-management/:employeeId" element={<StaffingEmployeeCompanies />} />
             <Route path="staffing-management/:employeeId/company/:companyId" element={<StaffingCompanyDetails />} />
+            <Route path="current-vacancy" element={<CurrentVacancy />} />
+            <Route path="current-vacancy/add" element={<AddVacancy />} />
+            <Route path="current-vacancy/view/:id" element={<VacancyDetails />} />
             <Route path="sales-team-onboarding/:employeeId" element={<SalesEmployeeCompanies />} />
             <Route path="sales-team-onboarding/:employeeId/company/:companyId" element={<SalesCompanyDetails />} />
             <Route path="sales-team-onboarding/vendors" element={<VendorModule />} />
