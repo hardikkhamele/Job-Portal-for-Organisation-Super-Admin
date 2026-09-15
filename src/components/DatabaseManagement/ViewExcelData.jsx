@@ -38,6 +38,7 @@ const ViewExcelData = () => {
 
   // Item passed via route state from AcceptReject.jsx
   const itemFromState = location.state?.item;
+  const fromPage = location.state?.fromPage;
   const viewId = id || itemFromState?._id;
 
   // Redux states
@@ -484,7 +485,15 @@ const ViewExcelData = () => {
         <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (fromPage) {
+                  navigate(`/accept-reject?page=${fromPage}`, {
+                    state: { fromPage },
+                  });
+                } else {
+                  navigate(-1);
+                }
+              }}
               className="p-2 rounded-full border border-gray-300 hover:bg-purple-50 hover:border-purple-600 hover:text-purple-600 transition-colors cursor-pointer"
               title="Go Back"
             >
