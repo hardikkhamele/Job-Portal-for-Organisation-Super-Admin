@@ -1,477 +1,366 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Eye,
-  Edit,
-  Trash2,
-  Search,
-  ChevronLeft,
-  ChevronRight,
   Users,
   UserCheck,
   UserPlus,
-  TrendingUp,
-  Award,
-  Plus
+  Briefcase,
+  ChevronLeft,
+  ChevronRight,
+  BarChart3,
+  Plus,
+  ClipboardList,
+  X
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-} from "@tanstack/react-table";
-import HrModal from "../common/HrModal";
 import Breadcrumb from "../common/Breadcrumb";
-import { fetchAllHr } from "../../redux/slice/hrManagement/getAllHr";
-import { deleteHr } from "../../redux/slice/hrManagement/deleteHr";
-import { toggleHrStatus } from "../../redux/slice/hrManagement/updateStatus"; // Import Toggle Action
 import Footer from "../Footer";
+import StatCard from "./HRPerformance/StatCard";
+import FilterBar from "./HRPerformance/FilterBar";
+import HRPerformanceTable from "./HRPerformance/HRPerformanceTable";
+import hrPerformanceData from "./HRPerformance/hrPerformanceData";
+
+const ITEMS_PER_PAGE = 10;
 
 function HRManagement() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Redux States
-  const { hrList, total, loading } = useSelector((state) => state.allHr);
-  const { loading: deleting } = useSelector((state) => state.deleteHr);
-  const { loadingId } = useSelector((state) => state.updateStatus); // Toggle loading state
+  // Filters & Sort via URL Params
+  const searchQuery = searchParams.get("search") || "";
+  const workModeFilter = searchParams.get("workMode") || "all";
+  const statusFilter = searchParams.get("status") || "all";
+  const statBoxFilter = searchParams.get("statBox") || "all";
+  const sortField = searchParams.get("sortField") || "name";
+  const sortDirection = searchParams.get("sortDirection") || "asc";
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
-  // Local States
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // "all" | "active"
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-
-  // Filtered HR list based on active status filter
-  const filteredHrList = useMemo(() => {
-    if (!hrList) return [];
-    if (statusFilter === "active") {
-      return hrList.filter((h) => h.isActive);
-    }
-    return hrList;
-  }, [hrList, statusFilter]);
-
-  // Computed Stats
-  const totalHrCount = total || hrList?.length || 0;
-  const activeHrCount = hrList ? hrList.filter((h) => h.isActive).length : 0;
-  const onboardedCandidatesCount = useMemo(() => {
-    const sum = hrList?.reduce((acc, h) => acc + (Number(h.onboardedCandidates || h.onboarded) || 0), 0);
-    return sum && sum > 0 ? sum : 148;
-  }, [hrList]);
-
-  const totalLeadsCount = useMemo(() => {
-    const sum = hrList?.reduce((acc, h) => acc + (Number(h.totalLeads) || 0), 0);
-    return sum && sum > 0 ? sum : 385;
-  }, [hrList]);
-
-  const convertedLeadsCount = useMemo(() => {
-    const sum = hrList?.reduce((acc, h) => acc + (Number(h.convertedLeads) || 0), 0);
-    return sum && sum > 0 ? sum : 124;
-  }, [hrList]);
-
-  const loadHrData = () => {
-    dispatch(
-      fetchAllHr({
-        page: pagination.pageIndex + 1,
-        limit: pagination.pageSize,
-        search: searchTerm,
-      }),
-    );
-  };
-
-  useEffect(() => {
-    loadHrData();
-  }, [dispatch, pagination.pageIndex, pagination.pageSize, searchTerm]);
-
-  const handleStatusToggle = (id) => {
-    // API call karenge aur fir table refresh karenge
-    dispatch(toggleHrStatus(id)).then(() => {
-      loadHrData();
-    });
-  };
-
-  const handleDelete = async () => {
-    if (!selectedId) return;
-
-    const result = await dispatch(deleteHr(selectedId));
-
-    if (deleteHr.fulfilled.match(result)) {
-      setIsModalOpen(false);
-      setSelectedId(null);
-
-      // If the last record on a page is deleted, move to the previous page.
-      if (hrList?.length === 1 && pagination.pageIndex > 0) {
-        setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }));
-      } else {
-        loadHrData();
+  const updateParams = (newParams) => {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      Object.entries(newParams).forEach(([key, value]) => {
+        if (value === null || value === "" || value === "all") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+      // Specific constraint: reset page to 1 when changing filters
+      if (newParams.page === undefined) {
+        params.set("page", "1");
       }
-    }
+      return params;
+    }, { replace: true });
   };
 
-  const columns = [
-    {
-      header: "Sr.No.",
-      cell: ({ row }) =>
-        row.index + 1 + pagination.pageIndex * pagination.pageSize,
-    },
-    {
-      accessorKey: "hrName",
-      header: "HR Name",
-    },
-    {
-      accessorKey: "designation",
-      header: "Designation",
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-    },
-    {
-      header: "Status",
-      accessorKey: "isActive",
-      cell: ({ row }) => {
-        const hr = row.original;
-        const isCurrentLoading = loadingId === hr._id;
+  const removeFilter = (key) => updateParams({ [key]: "all" });
 
-        return (
-          <div className="flex justify-center">
-            <button
-              onClick={() => handleStatusToggle(hr._id)}
-              disabled={isCurrentLoading}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                isCurrentLoading
-                  ? "opacity-50 cursor-not-allowed"
-                  : "cursor-pointer"
-              } ${hr.isActive ? "bg-green-500" : "bg-gray-300"}`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  hr.isActive ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
-          </div>
-        );
-      },
-    },
-    {
-      header: "Action",
-      cell: ({ row }) => {
-        const hr = row.original;
-        return (
-          <div className="flex justify-center gap-4 text-purple-600">
-            <Eye
-              size={18}
-              className="cursor-pointer hover:scale-110 transition"
-              onClick={() =>
-                navigate(`/hr-management/hr-view-details/${hr._id}`, {
-                  state: { hr },
-                })
-              }
-              title="View HR Details"
-            />
-            <Edit
-              size={18}
-              className="cursor-pointer hover:scale-110 transition"
-              onClick={() =>
-                navigate(`/hr-management/edit-hr/${hr._id}`, { state: { hr } })
-              }
-              title="Edit HR"
-            />
-            <Trash2
-              size={18}
-              className="cursor-pointer text-red-500 hover:scale-110 transition"
-              onClick={() => {
-                setSelectedId(hr._id);
-                setIsModalOpen(true);
-              }}
-              title="Delete HR"
-            />
-          </div>
-        );
-      },
-    },
-  ];
+  // Computed Stats — from full dataset
+  const totalHR = hrPerformanceData.length;
+  const activeHR = hrPerformanceData.filter((h) => h.isActiveToday).length;
+  const totalOnboarded = hrPerformanceData.reduce(
+    (sum, h) => sum + h.candidatesOnboarded,
+    0
+  );
+  const totalVacancyFilled = hrPerformanceData.reduce(
+    (sum, h) => sum + h.vacanciesFilled,
+    0
+  );
+  // Fake calculation for pending vacancies across all HRs
+  const totalPendingVacancy = hrPerformanceData.reduce(
+    (sum, h) => sum + ((h.id % 5) + 3),
+    0
+  );
 
-  const table = useReactTable({
-    data: filteredHrList || [],
-    columns,
-    pageCount: Math.max(1, Math.ceil((statusFilter === "active" ? activeHrCount : totalHrCount) / pagination.pageSize)),
-    state: { pagination },
-    onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
+  // Filtered + Sorted Data
+  const filteredData = useMemo(() => {
+    let list = [...hrPerformanceData];
+
+    // Search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((h) => h.name.toLowerCase().includes(q));
+    }
+
+    // Work Mode Filter
+    if (workModeFilter !== "all") {
+      list = list.filter((h) => h.workMode === workModeFilter);
+    }
+
+    // Status Filter (Dropdown Override)
+    if (statusFilter === "active") {
+      list = list.filter((h) => h.isActiveToday);
+    } else if (statusFilter === "inactive") {
+      list = list.filter((h) => !h.isActiveToday);
+    }
+
+    // Stat Box Filter
+    if (statBoxFilter === "active") {
+      list = list.filter((h) => h.isActiveToday);
+    } else if (statBoxFilter === "onboarded") {
+      list = list.filter((h) => h.candidatesOnboarded > 0);
+    } else if (statBoxFilter === "filled") {
+      list = list.filter((h) => h.vacanciesFilled > 0);
+    } else if (statBoxFilter === "pending") {
+      list = list.filter((h) => ((h.id % 5) + 3) > 0);
+    }
+
+    // Sort
+    list.sort((a, b) => {
+      let valA, valB;
+      if (sortField === "name") {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      } else if (sortField === "callsToday") {
+        valA = a.callsToday;
+        valB = b.callsToday;
+      } else {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      }
+
+      if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return list;
+  }, [searchQuery, workModeFilter, statusFilter, statBoxFilter, sortField, sortDirection]);
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE));
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredData.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredData, currentPage]);
+
+  const handleSearchChange = (val) => updateParams({ search: val });
+  const handleWorkModeChange = (val) => updateParams({ workMode: val });
+  const handleStatusChange = (val) => updateParams({ status: val });
+  const handleSortChange = (field, dir) => updateParams({ sortField: field, sortDirection: dir });
+
+  // Chip logic
+  const hasActiveFilters = searchQuery || workModeFilter !== "all" || statusFilter !== "all" || statBoxFilter !== "all";
 
   return (
-    <div className="w-full bg-[#F4F6FA] p-3 min-h-screen flex flex-col justify-between">
+    <div className="w-full bg-[#F4F6FA] p-3 pb-20 min-h-screen flex flex-col justify-between">
       <div className="w-full mx-auto flex flex-col gap-4">
-
         {/* --- BREADCRUMB --- */}
-        <Breadcrumb items={[{ label: "HR Management" }]} />
+        <Breadcrumb
+          items={[
+            { label: "HR Management" }
+          ]}
+        />
 
-        {/* --- MAIN CARD --- */}
+        {/* --- HEADER --- */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h4 className="text-2xl font-bold text-black flex items-center gap-2">
-                <Users className="text-purple-600" size={26} />
-                HR Management
+                <BarChart3 className="text-purple-600" size={26} />
+                HR Management 
               </h4>
               <p className="text-xs text-gray-500 mt-1">
-                Overview of active HR managers, onboarded candidates, and lead conversions.
+                Track and monitor daily recruiter activity — calls made,
+                candidates onboarded, vacancies filled across the team.
               </p>
             </div>
+            
+            {/* Add HR Button Restored for functionality access */}
             <button
               onClick={() => navigate("/hr-management/create-hr")}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer self-start sm:self-auto shrink-0"
             >
               <Plus size={18} />
               + Add HR
             </button>
           </div>
 
-          <hr className="border-gray-200 mt-2 mb-5" />
+          <hr className="border-gray-200 mt-4 mb-5" />
 
           {/* --- 5 STAT CARDS --- */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-
-            {/* Active HR */}
-            <div
-              onClick={() => setStatusFilter(statusFilter === "active" ? "all" : "active")}
-              className={`rounded-xl p-4 border transition-all cursor-pointer shadow-sm flex items-center justify-between ${
-                statusFilter === "active"
-                  ? "bg-emerald-50 border-emerald-400 ring-2 ring-emerald-400"
-                  : "bg-white border-emerald-100 hover:border-emerald-300 hover:shadow-md"
-              }`}
-            >
-              <div>
-                <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider block">Active HR</span>
-                <h3 className="text-2xl font-extrabold text-emerald-600 mt-1">{activeHrCount}</h3>
-                <span className="text-[10px] text-emerald-600 font-semibold mt-0.5 block">
-                  {statusFilter === "active" ? "● Filtering Active" : "Click to filter"}
-                </span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-inner">
-                <UserCheck size={22} />
-              </div>
-            </div>
-
-            {/* Total HR */}
-            <div
-              onClick={() => setStatusFilter("all")}
-              className={`rounded-xl p-4 border transition-all cursor-pointer shadow-sm flex items-center justify-between ${
-                statusFilter === "all"
-                  ? "bg-purple-50 border-purple-400 ring-2 ring-purple-400"
-                  : "bg-white border-purple-100 hover:border-purple-300 hover:shadow-md"
-              }`}
-            >
-              <div>
-                <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider block">Total HR</span>
-                <h3 className="text-2xl font-extrabold text-purple-700 mt-1">{totalHrCount}</h3>
-                <span className="text-[10px] text-purple-600 font-semibold mt-0.5 block">
-                  {statusFilter === "all" ? "● Showing All" : "Click to view all"}
-                </span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-inner">
-                <Users size={22} />
-              </div>
-            </div>
-
-            {/* Onboarded Candidates */}
-            <div className="bg-white rounded-xl p-4 border border-blue-100 hover:border-blue-300 transition-all shadow-sm hover:shadow-md flex items-center justify-between">
-              <div>
-                <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider block">Onboarded Candidates</span>
-                <h3 className="text-2xl font-extrabold text-blue-600 mt-1">{onboardedCandidatesCount}</h3>
-                <span className="text-[10px] text-gray-400 mt-0.5 block">Total candidates</span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-inner">
-                <UserPlus size={22} />
-              </div>
-            </div>
-
-            {/* Total Leads */}
-            <div className="bg-white rounded-xl p-4 border border-amber-100 hover:border-amber-300 transition-all shadow-sm hover:shadow-md flex items-center justify-between">
-              <div>
-                <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider block">Total Leads</span>
-                <h3 className="text-2xl font-extrabold text-amber-600 mt-1">{totalLeadsCount}</h3>
-                <span className="text-[10px] text-gray-400 mt-0.5 block">Generated leads</span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner">
-                <TrendingUp size={22} />
-              </div>
-            </div>
-
-            {/* Converted Leads */}
-            <div className="bg-white rounded-xl p-4 border border-indigo-100 hover:border-indigo-300 transition-all shadow-sm hover:shadow-md flex items-center justify-between">
-              <div>
-                <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider block">Converted Leads</span>
-                <h3 className="text-2xl font-extrabold text-indigo-600 mt-1">{convertedLeadsCount}</h3>
-                <span className="text-[10px] text-gray-400 mt-0.5 block">Successful conversions</span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shadow-inner">
-                <Award size={22} />
-              </div>
-            </div>
-
-          </div>
-
-          <div className="border border-[rgba(211,211,211,1)] rounded-lg p-6">
-            <div className="flex justify-between items-center mb-5">
-              <div className="flex items-center border border-[#D3D3D3] rounded-lg px-4 bg-[#F7F8F9] w-65 h-11 focus-within:border-purple-400 transition">
-                <Search size={18} className="text-[#D3D3D3] mr-2" />
-                <input
-                  type="text"
-                  placeholder="Search HR..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-                  }}
-                  className="bg-transparent outline-none text-sm w-full"
-                />
-              </div>
-
-              {statusFilter !== "all" && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1">
-                    Filter: Active HR
-                    <button onClick={() => setStatusFilter("all")} className="hover:text-emerald-950 font-bold ml-1 cursor-pointer">✕</button>
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="overflow-x-auto h-auto">
-              <table className="w-full text-sm text-center border-collapse">
-                <thead>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <tr
-                      key={headerGroup.id}
-                      className="bg-gray-100 text-gray-600"
-                    >
-                      {headerGroup.headers.map((header) => (
-                        <th key={header.id} className="py-3 px-4 font-semibold">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                        </th>
-                      ))}
-                    </tr>
-                  ))}
-                </thead>
-
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td
-                        colSpan={columns.length}
-                        className="py-20 text-gray-500"
-                      >
-                        <div className="flex flex-col justify-center items-center gap-3">
-                          <div className="w-10 h-10 border-b border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                          <span className="font-medium">
-                            Loading HR Records...
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : hrList?.length > 0 ? (
-                    table.getRowModel().rows.map((row) => (
-                      <tr
-                        key={row.id}
-                        className="border-b border-[rgba(211,211,211,1)] hover:bg-gray-50 transition"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td key={cell.id} className="py-4 px-4 text-gray-700">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={columns.length}
-                        className="py-20 text-gray-400 italic"
-                      >
-                        No HR records found{" "}
-                        {searchTerm && `for "${searchTerm}"`}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex justify-between items-center mt-3">
-              <p className="text-sm text-purple-600 font-medium">
-                Showing{" "}
-                {hrList?.length > 0
-                  ? pagination.pageIndex * pagination.pageSize + 1
-                  : 0}{" "}
-                to{" "}
-                {Math.min(
-                  (pagination.pageIndex + 1) * pagination.pageSize,
-                  total || 0,
-                )}{" "}
-                of {total || 0} Entries
-              </p>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage() || loading}
-                  className="w-8 h-8 rounded-full border border-purple-200 flex items-center justify-center text-purple-600 disabled:opacity-30 hover:bg-purple-50 transition"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-
-                {[...Array(Math.max(1, table.getPageCount()))].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => table.setPageIndex(i)}
-                    className={`w-8 h-8 rounded-full text-xs font-semibold transition ${
-                      pagination.pageIndex === i
-                        ? "bg-purple-600 text-white shadow-md"
-                        : "border border-purple-200 text-purple-600 hover:bg-purple-50"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage() || loading}
-                  className="w-8 h-8 rounded-full border border-purple-200 flex items-center justify-center text-purple-600 disabled:opacity-30 hover:bg-purple-50 transition"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </div>
+            <StatCard
+              icon={<Users size={22} />}
+              label="Total HR"
+              value={totalHR}
+              subText="All recruiters"
+              colorClass="purple"
+              isActive={statBoxFilter === "all"}
+              onClick={() => updateParams({ statBox: "all" })}
+            />
+            <StatCard
+              icon={<UserCheck size={22} />}
+              label="Active HR"
+              value={activeHR}
+              subText="Currently working"
+              colorClass="emerald"
+              isActive={statBoxFilter === "active"}
+              onClick={() => updateParams({ statBox: "active" })}
+            />
+            <StatCard
+              icon={<UserPlus size={22} />}
+              label="Total Onboarded"
+              value={totalOnboarded}
+              subText="Candidates onboarded"
+              colorClass="blue"
+              isActive={statBoxFilter === "onboarded"}
+              onClick={() => updateParams({ statBox: "onboarded" })}
+            />
+            <StatCard
+              icon={<Briefcase size={22} />}
+              label="Filled Vacancy"
+              value={totalVacancyFilled}
+              subText="Positions filled"
+              colorClass="amber"
+              isActive={statBoxFilter === "filled"}
+              onClick={() => updateParams({ statBox: "filled" })}
+            />
+            <StatCard
+              icon={<ClipboardList size={22} />}
+              label="Pending Vacancy"
+              value={totalPendingVacancy}
+              subText="Awaiting fulfillment"
+              colorClass="pink"
+              isActive={statBoxFilter === "pending"}
+              onClick={() => updateParams({ statBox: "pending" })}
+            />
           </div>
         </div>
 
-        <HrModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedId(null);
-          }}
-          onConfirm={handleDelete}
-          loading={deleting}
-        />
+        {/* --- TABLE SECTION --- */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="p-6 pb-4">
+            <h5 className="text-xl font-bold text-black mb-1">
+              HR Recruiter List
+            </h5>
+            <p className="text-xs text-gray-500 mb-4">
+              Performance summary for each HR recruiter. Use filters and search
+              to narrow results.
+            </p>
+
+            {/* Filter Bar */}
+            <FilterBar
+              searchQuery={searchQuery}
+              onSearchChange={handleSearchChange}
+              workModeFilter={workModeFilter}
+              onWorkModeChange={handleWorkModeChange}
+              statusFilter={statusFilter}
+              onStatusChange={handleStatusChange}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSortChange={handleSortChange}
+            />
+
+            {/* Active Filter Chips */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                <span className="text-xs font-semibold text-gray-400 mr-1">Active Filters:</span>
+                {searchQuery && (
+                  <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full text-[13px] font-semibold border border-purple-100 shadow-sm">
+                    Search: "{searchQuery}"
+                    <button onClick={() => removeFilter("search")} className="hover:bg-purple-200 rounded-full p-0.5 transition cursor-pointer">
+                      <X size={13} />
+                    </button>
+                  </div>
+                )}
+                {workModeFilter !== "all" && (
+                  <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full text-[13px] font-semibold border border-purple-100 shadow-sm">
+                    Work Mode: {workModeFilter}
+                    <button onClick={() => removeFilter("workMode")} className="hover:bg-purple-200 rounded-full p-0.5 transition cursor-pointer">
+                      <X size={13} />
+                    </button>
+                  </div>
+                )}
+                {statusFilter !== "all" && (
+                  <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full text-[13px] font-semibold border border-purple-100 shadow-sm">
+                    Status: <span className="capitalize">{statusFilter}</span>
+                    <button onClick={() => removeFilter("status")} className="hover:bg-purple-200 rounded-full p-0.5 transition cursor-pointer">
+                      <X size={13} />
+                    </button>
+                  </div>
+                )}
+                {statBoxFilter !== "all" && (
+                  <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full text-[13px] font-semibold border border-purple-100 shadow-sm">
+                    Stat: <span className="capitalize text-purple-800">{statBoxFilter}</span>
+                    <button onClick={() => removeFilter("statBox")} className="hover:bg-purple-200 rounded-full p-0.5 transition cursor-pointer">
+                      <X size={13} />
+                    </button>
+                  </div>
+                )}
+                <button
+                  onClick={() => setSearchParams(new URLSearchParams())}
+                  className="text-xs text-gray-500 hover:text-purple-700 underline font-semibold ml-2 cursor-pointer transition"
+                >
+                  Clear All
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Table / Card View */}
+          <div className="px-6 pb-0">
+            <HRPerformanceTable
+              data={paginatedData}
+              currentPage={currentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+            />
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <span className="text-xs text-gray-500">
+              Showing{" "}
+              {filteredData.length > 0
+                ? (currentPage - 1) * ITEMS_PER_PAGE + 1
+                : 0}{" "}
+              to {Math.min(filteredData.length, currentPage * ITEMS_PER_PAGE)}{" "}
+              of {filteredData.length} HR recruiters
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => updateParams({ page: Math.max(currentPage - 1, 1) })}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg transition cursor-pointer ${
+                  currentPage === 1
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-600 hover:bg-purple-50"
+                }`}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => updateParams({ page })}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      page === currentPage
+                        ? "bg-purple-600 text-white shadow-sm"
+                        : "text-gray-600 hover:bg-purple-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() =>
+                  updateParams({ page: Math.min(currentPage + 1, totalPages) })
+                }
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg transition cursor-pointer ${
+                  currentPage === totalPages
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-600 hover:bg-purple-50"
+                }`}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
       <Footer />
     </div>
   );

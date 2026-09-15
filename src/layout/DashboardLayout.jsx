@@ -82,6 +82,7 @@ import VendorCompanyDetails from "../components/VendorModule/VendorCompanyDetail
 import CurrentVacancy from "../components/CurrentVacancy/CurrentVacancy";
 import VacancyDetails from "../components/CurrentVacancy/VacancyDetails";
 import AddVacancy from "../components/CurrentVacancy/AddVacancy";
+import AddSingleVacancy from "../components/CurrentVacancy/AddSingleVacancy";
 
 function DashboardLayout() {
   return (
@@ -181,6 +182,7 @@ function DashboardLayout() {
             <Route path="staffing-management/:employeeId/company/:companyId" element={<StaffingCompanyDetails />} />
             <Route path="current-vacancy" element={<CurrentVacancy />} />
             <Route path="current-vacancy/add" element={<AddVacancy />} />
+            <Route path="current-vacancy/add-vacancy" element={<AddSingleVacancy />} />
             <Route path="current-vacancy/view/:id" element={<VacancyDetails />} />
             <Route path="sales-team-onboarding/:employeeId" element={<SalesEmployeeCompanies />} />
             <Route path="sales-team-onboarding/:employeeId/company/:companyId" element={<SalesCompanyDetails />} />

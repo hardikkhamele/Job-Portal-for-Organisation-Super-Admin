@@ -394,6 +394,7 @@ const Sidebar = () => {
     setIsHelpOpen(false);
   };
 
+
   // Improved Navigation Handler
   const handleNavigation = (path) => {
     closeAllDropdowns(); // Dashboard etc pe click karte hi dropdown band
@@ -426,6 +427,7 @@ const Sidebar = () => {
           
           {/* 2. HR Management */}
           <NavItem icon={<Users />} text="HR Management" active={window.location.pathname.startsWith("/hr-management")} onClick={() => handleNavigation("/hr-management")} />
+
           
           {/* 3. Employer Management */}
           <NavItem icon={<Briefcase />} text="Employer Management" active={window.location.pathname.startsWith("/employee")} onClick={() => handleNavigation("/employee")} />

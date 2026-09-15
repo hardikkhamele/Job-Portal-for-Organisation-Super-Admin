@@ -189,19 +189,24 @@ function AddVacancy() {
         />
 
         {/* --- TOP HEADER --- */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 tracking-tight">Add New Company</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Fill in company or contact details (all fields are optional) and define job requirements.
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/current-vacancy")}
+              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition cursor-pointer text-gray-600 shrink-0"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                <Building2 className="text-purple-600" size={26} />
+                Add New Company
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Fill in company or contact details (all fields are optional) and define job requirements.
+              </p>
+            </div>
           </div>
-          <button
-            onClick={() => navigate("/current-vacancy")}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-purple-700 hover:text-purple-900 cursor-pointer self-start sm:self-auto"
-          >
-            <ArrowLeft size={16} /> Back to Vacancies
-          </button>
         </div>
 
         <form onSubmit={handleSubmitAll} className="flex flex-col gap-6">

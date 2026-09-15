@@ -31,7 +31,7 @@ const Breadcrumb = ({ items = [], onBack }) => {
       </button>
 
       {/* Breadcrumb links */}
-      <nav className="flex items-center gap-1.5 text-xs text-gray-500">
+      <nav className="flex items-center gap-1.5 text-xs text-gray-500 pt-[2px]">
         <Link
           to="/dashboard"
           className="flex items-center gap-1 text-gray-500 hover:text-purple-700 transition font-medium"

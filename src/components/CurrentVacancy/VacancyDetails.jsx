@@ -1,311 +1,228 @@
-import React, { useMemo } from "react";
-import { ArrowLeft, Building2, Calendar, CheckCircle2, ClipboardList, MapPin, Send, User, Users, Briefcase, Mail, Phone, Code, FileText, Globe, DollarSign, Clock, Award } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { ArrowLeft, MapPin, Briefcase, Calendar, Search, Mail, FileText, Check, Trash2, ExternalLink } from "lucide-react";
 import { useLocation, useNavigate, useParams, Navigate } from "react-router-dom";
 import Footer from "../Footer";
-import Breadcrumb from "../common/Breadcrumb";
-import { getVacancies, saveVacancies } from "./vacancyStore";
-
-const workModeBadge = {
-  Remote: "bg-green-100 text-green-700 border border-green-300",
-  Hybrid: "bg-orange-100 text-orange-700 border border-orange-300",
-  Onsite: "bg-blue-100 text-blue-700 border border-blue-300"
-};
+import { getVacancies } from "./vacancyStore";
 
 function VacancyDetails() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { id } = useParams();
 
-  const [vacancies, setVacancies] = React.useState(() => getVacancies());
+  const [vacancies] = useState(() => getVacancies());
+  const [searchQuery, setSearchQuery] = useState("");
 
   const vacancy = useMemo(() => {
     if (state?.vacancy) return state.vacancy;
     return vacancies.find((v) => String(v.id) === String(id)) || null;
   }, [state, id, vacancies]);
 
+  const [candidates, setCandidates] = useState([
+    {
+      id: 1,
+      name: "",
+      email: "N/A",
+      contact: "",
+      city: "Mumbai",
+      cvAvailable: false,
+      status: "Accepted"
+    },
+    {
+      id: 2,
+      name: "Amol Shinde",
+      email: "amol.shinde@example.com",
+      contact: "9527445459",
+      city: "Mukhed",
+      cvAvailable: true,
+      status: "Pending"
+    },
+    {
+      id: 3,
+      name: "ASHWINI CHANDRAKANT CHABRE",
+      email: "ashwini.c@example.com",
+      contact: "9158458147",
+      city: "Mukhed",
+      cvAvailable: true,
+      status: "Pending"
+    }
+  ]);
+
   if (!vacancy) {
     return <Navigate to="/current-vacancy" replace />;
   }
 
-  const handleToggleStatus = () => {
-    const updated = vacancies.map((v) =>
-      v.id === vacancy.id ? { ...v, status: v.status === "Open" ? "Closed" : "Open" } : v
+  const handleAccept = (candidateId) => {
+    setCandidates((prev) =>
+      prev.map((c) => (c.id === candidateId ? { ...c, status: "Accepted" } : c))
     );
-    setVacancies(updated);
-    saveVacancies(updated);
   };
 
   const currentVacancy = vacancies.find((v) => String(v.id) === String(vacancy.id)) || vacancy;
 
   return (
-    <div className="w-full min-h-screen bg-[#F4F6FA] p-4 flex flex-col justify-between">
-      <div className="max-w-7xl mx-auto w-full flex flex-col gap-4">
-
-        {/* --- BREADCRUMB --- */}
-        <Breadcrumb
-          items={[
-            { label: "Staffing Management", link: "/staffing-management" },
-            { label: "Current Vacancy", link: "/current-vacancy" },
-            { label: `Vacancy Details (${currentVacancy.vacancyId})` }
-          ]}
-        />
-
-        {/* --- TOP BACK BAR & HEADER --- */}
-        <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="w-full min-h-screen bg-[#F4F6FA] p-6 pb-20 flex flex-col justify-between">
+      <div className="max-w-7xl mx-auto w-full flex flex-col gap-6">
+        
+        {/* --- HEADER --- */}
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
             <button
               onClick={() => navigate("/current-vacancy")}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-purple-700 hover:text-purple-900 cursor-pointer w-fit"
+              className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-purple-600 hover:bg-gray-50 transition cursor-pointer shadow-sm"
             >
-              <ArrowLeft size={18} /> Back to Vacancies
+              <ArrowLeft size={18} />
             </button>
+            Submitted Applications
+          </h2>
+          <p className="text-sm text-gray-500 mt-1 ml-[48px]">
+            Candidate applications for vacancy profile: <span className="text-purple-600 font-semibold">{currentVacancy.profile}</span>
+          </p>
+        </div>
 
-            <div className="flex items-center gap-3">
-              <span
-                className={`px-4 py-1.5 rounded-full text-xs font-bold border ${
-                  currentVacancy.status === "Open"
-                    ? "bg-green-100 text-green-700 border-green-300"
-                    : "bg-red-100 text-red-700 border-red-300"
-                }`}
-              >
-                {currentVacancy.status === "Open" ? "● Open Position" : "✓ Closed"}
-              </span>
-
-              <button
-                onClick={handleToggleStatus}
-                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white transition cursor-pointer shadow-sm ${
-                  currentVacancy.status === "Open"
-                    ? "bg-purple-600 hover:bg-purple-700"
-                    : "bg-green-600 hover:bg-green-700"
-                }`}
-              >
-                {currentVacancy.status === "Open" ? (
-                  <>
-                    <Send size={14} />
-                    Mark as Closed
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 size={14} />
-                    Re-open Vacancy
-                  </>
-                )}
-              </button>
-            </div>
+        {/* --- VACANCY DETAILS CARD --- */}
+        <div className="bg-white rounded-2xl p-6 border border-purple-50 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-5 mt-2">
+          <div>
+            <span className="text-[11px] font-black uppercase text-purple-600 tracking-wider">
+              VACANCY DETAILS
+            </span>
+            <h3 className="text-2xl font-bold text-slate-800 mt-1">
+              {currentVacancy.profile} <span className="text-purple-600 font-semibold text-[15px]">({currentVacancy.vacancyId})</span>
+            </h3>
+            <p className="text-[13px] text-gray-500 font-medium mt-1">
+              {currentVacancy.category} • {currentVacancy.subCategory || "Frontend Development"}
+            </p>
           </div>
 
-          <div className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t border-gray-100 pt-6">
-            <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-purple-50 p-4 text-purple-600 border border-purple-100">
-                <Briefcase size={32} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-2xl font-bold text-gray-900">{currentVacancy.profile}</h3>
-                  <span className="text-xs font-bold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md">
-                    {currentVacancy.vacancyId}
-                  </span>
-                  {currentVacancy.companyType && (
-                    <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
-                      {currentVacancy.companyType}
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm font-semibold text-gray-600 mt-1 flex items-center gap-2">
-                  <Building2 size={16} className="text-purple-500" />
-                  {currentVacancy.companyName}
-                  {currentVacancy.industrySector && (
-                    <span className="text-gray-400 font-normal">({currentVacancy.industrySector})</span>
-                  )}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-purple-50/60 rounded-xl p-4 border border-purple-100 flex items-center gap-6">
-              <div>
-                <span className="text-[11px] font-bold text-purple-600 uppercase tracking-wider block">Added By</span>
-                <span className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mt-0.5">
-                  <User size={14} className="text-purple-600" />
-                  {currentVacancy.addedBy || "Super Admin"}
-                </span>
-              </div>
-              <div className="h-8 w-px bg-purple-200"></div>
-              <div>
-                <span className="text-[11px] font-bold text-purple-600 uppercase tracking-wider block">Category</span>
-                <span className="text-sm font-bold text-gray-800 mt-0.5 block">
-                  {currentVacancy.category} {currentVacancy.subCategory ? `— ${currentVacancy.subCategory}` : ""}
-                </span>
-              </div>
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="bg-white rounded-full px-4 py-2 text-[13px] font-semibold text-gray-700 flex items-center gap-2 border border-gray-100 shadow-sm">
+              <MapPin size={15} className="text-purple-500" />
+              {[currentVacancy.city, currentVacancy.state].filter(Boolean).join(", ")}
+            </span>
+            <span className="bg-white rounded-full px-4 py-2 text-[13px] font-semibold text-gray-700 flex items-center gap-2 border border-gray-100 shadow-sm">
+              <Briefcase size={15} className="text-purple-500" />
+              {currentVacancy.workMode}
+            </span>
+            <span className="bg-white rounded-full px-4 py-2 text-[13px] font-semibold text-gray-700 flex items-center gap-2 border border-gray-100 shadow-sm">
+              <Calendar size={15} className="text-purple-500" />
+              Deadline: {currentVacancy.deadline}
+            </span>
           </div>
         </div>
 
-        {/* --- COMPANY & HR DETAILS --- */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <h4 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-100 pb-3">
-            <Building2 size={18} className="text-purple-600" />
-            Company & HR Information
-          </h4>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Building2 size={13} className="text-purple-500" /> Company Name
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.companyName || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Mail size={13} className="text-purple-500" /> Official Email
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.email || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Phone size={13} className="text-purple-500" /> Company Mobile
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.contactNumber || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Globe size={13} className="text-purple-500" /> Website
-              </span>
-              <span className="text-sm font-bold text-purple-700 mt-1 block truncate">
-                {currentVacancy.website ? (
-                  <a href={currentVacancy.website} target="_blank" rel="noreferrer" className="underline">
-                    {currentVacancy.website}
-                  </a>
-                ) : "—"}
-              </span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <User size={13} className="text-purple-500" /> HR Name
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.hrName || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Phone size={13} className="text-purple-500" /> HR Mobile
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.hrMobile || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Mail size={13} className="text-purple-500" /> HR Email
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.hrEmail || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <MapPin size={13} className="text-purple-500" /> Location
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">
-                {[currentVacancy.city, currentVacancy.state].filter(Boolean).join(", ") || "—"}
-              </span>
-            </div>
+        {/* --- SEARCH & TOTAL --- */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search candidate name, email, contact..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-2.5 rounded-full border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white"
+            />
           </div>
-
-          {currentVacancy.address && (
-            <div className="mt-4 bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <MapPin size={13} className="text-purple-500" /> Full Address
-              </span>
-              <span className="text-sm font-medium text-gray-800 mt-1 block">{currentVacancy.address}</span>
-            </div>
-          )}
+          <div className="bg-white rounded-full px-6 py-2.5 border border-gray-200 shadow-sm text-sm font-semibold text-gray-600">
+            Total Applications: <span className="text-purple-600 font-black ml-1 text-base">{candidates.length}</span>
+          </div>
         </div>
 
-        {/* --- JOB REQUIREMENT DETAILS GRID --- */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <h4 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-100 pb-3">
-            <ClipboardList size={18} className="text-purple-600" />
-            Requirement Specifications
-          </h4>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider">
-                Category
-              </span>
-              <span className="text-sm font-bold text-purple-700 mt-1 block">{currentVacancy.category || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Code size={13} className="text-purple-500" /> Technology
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.technology || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Users size={13} className="text-purple-500" /> Required Candidates
-              </span>
-              <span className="text-sm font-bold text-purple-700 mt-1 block">{currentVacancy.noOfVacancy} Positions</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Award size={13} className="text-purple-500" /> Experience
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.experience || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <DollarSign size={13} className="text-purple-500" /> Budget / Salary
-              </span>
-              <span className="text-sm font-bold text-green-700 mt-1 block">
-                {currentVacancy.budget ? `₹${currentVacancy.budget}` : "—"}
-              </span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider">
-                Work Mode
-              </span>
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mt-1 ${workModeBadge[currentVacancy.workMode] || "bg-gray-100 text-gray-600"}`}>
-                {currentVacancy.workMode || "—"}
-              </span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Clock size={13} className="text-purple-500" /> Notice Period
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.noticePeriod || "—"}</span>
-            </div>
-
-            <div className="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100">
-              <span className="text-[11px] font-bold uppercase text-gray-400 block tracking-wider flex items-center gap-1">
-                <Calendar size={13} className="text-purple-500" /> Deadline Date
-              </span>
-              <span className="text-sm font-bold text-gray-800 mt-1 block">{currentVacancy.deadline || "—"}</span>
-            </div>
+        {/* --- CANDIDATES TABLE --- */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-1">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="py-5 px-6 font-black text-xs uppercase tracking-wider text-purple-800">
+                    SR.<br/>NO.
+                  </th>
+                  <th className="py-5 px-6 font-black text-xs uppercase tracking-wider text-purple-800">
+                    CANDIDATE NAME
+                  </th>
+                  <th className="py-5 px-6 font-black text-xs uppercase tracking-wider text-purple-800">
+                    EMAIL
+                  </th>
+                  <th className="py-5 px-6 font-black text-xs uppercase tracking-wider text-purple-800">
+                    CONTACT
+                  </th>
+                  <th className="py-5 px-6 font-black text-xs uppercase tracking-wider text-purple-800">
+                    CITY / LOCATION
+                  </th>
+                  <th className="py-5 px-6 font-black text-xs uppercase tracking-wider text-purple-800 text-center">
+                    CV / RESUME
+                  </th>
+                  <th className="py-5 px-6 font-black text-xs uppercase tracking-wider text-purple-800 text-center">
+                    ACTION
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {candidates.map((candidate, idx) => (
+                  <tr key={candidate.id} className="hover:bg-purple-50/20 transition-colors">
+                    <td className="py-4 px-6 text-gray-500 font-semibold align-middle">
+                      {idx + 1}
+                    </td>
+                    <td className="py-4 px-6 align-middle">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs shrink-0">
+                          {candidate.name ? candidate.name.charAt(0).toUpperCase() : ""}
+                        </div>
+                        <span className="font-bold text-gray-800 uppercase text-[13px] tracking-wide">
+                          {candidate.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 align-middle">
+                      {candidate.email !== "N/A" ? (
+                        <div className="flex items-center gap-2 text-purple-600 font-semibold text-[13px]">
+                          <Mail size={14} className="text-purple-400" />
+                          {candidate.email}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 font-medium text-[13px]">N/A</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 align-middle text-gray-700 font-semibold text-[13px] tracking-wide">
+                      {candidate.contact}
+                    </td>
+                    <td className="py-4 px-6 align-middle font-bold text-gray-700 text-[13px]">
+                      {candidate.city}
+                    </td>
+                    <td className="py-4 px-6 align-middle text-center">
+                      {candidate.cvAvailable ? (
+                        <button className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition text-[13px] font-bold shadow-sm m-auto">
+                          <FileText size={14} /> View CV <ExternalLink size={13} className="ml-0.5 text-purple-400" />
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 font-semibold text-[13px]">No CV</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 align-middle">
+                      <div className="flex items-center justify-center gap-2">
+                        {candidate.status === "Accepted" ? (
+                          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 text-[13px] font-bold tracking-wide">
+                            <Check size={15} /> Accepted
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleAccept(candidate.id)}
+                            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition text-[13px] font-bold shadow-sm"
+                          >
+                            <Check size={15} /> Accept
+                          </button>
+                        )}
+                        <button className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition shadow-sm border border-red-100">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          {currentVacancy.requirements && (
-            <div className="mt-4 bg-purple-50/50 rounded-xl p-4 border border-purple-100">
-              <span className="text-xs font-bold uppercase text-purple-700 tracking-wider flex items-center gap-1.5 mb-2">
-                <FileText size={15} /> Requirements & Job Description
-              </span>
-              <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
-                {currentVacancy.requirements}
-              </p>
-            </div>
-          )}
         </div>
 
       </div>
-
       <Footer />
     </div>
   );
