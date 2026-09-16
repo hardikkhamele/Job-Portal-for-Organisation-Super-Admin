@@ -1887,6 +1887,10 @@ const DatabaseCandidate = () => {
     currentPageKeys.length > 0 &&
     currentPageKeys.every((key) => selectedCandidates.includes(key));
 
+  const isCurrentPageIndeterminate =
+    !isCurrentPageAllSelected &&
+    currentPageKeys.some((key) => selectedCandidates.includes(key));
+
   const handleSelectCurrentPage = () => {
     if (!currentPageKeys.length) return;
     if (isCurrentPageAllSelected) {
@@ -2263,26 +2267,23 @@ const DatabaseCandidate = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-100 text-gray-700 text-sm">
-                  <th className="p-3 text-center w-10">
-                    {selectAllLoading ? (
-                      <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto" title="Selecting all candidates..." />
-                    ) : (
-                      <input
-                        type="checkbox"
-                        checked={isAllSelected}
-                        ref={(el) => { if (el) el.indeterminate = isIndeterminate; }}
-                        onChange={handleSelectAll}
-                        disabled={filteredIds.length === 0}
-                        className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle disabled:cursor-not-allowed"
-                        title={
-                          isAllSelected
-                            ? `Deselect all ${selectedCandidates.length} candidates`
-                            : total > filteredIds.length
-                            ? `Select all ${total} filtered candidates (across all pages)`
-                            : `Select all ${filteredIds.length} candidates`
-                        }
-                      />
-                    )}
+                  <th
+                    className="p-3 text-center w-10 cursor-pointer"
+                    onClick={handleSelectCurrentPage}
+                    title={
+                      isCurrentPageAllSelected
+                        ? `Deselect all ${currentPageKeys.length} entries on Page ${currentPage}`
+                        : `Select all ${currentPageKeys.length} entries on Page ${currentPage}`
+                    }
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isCurrentPageAllSelected}
+                      ref={(el) => { if (el) el.indeterminate = isCurrentPageIndeterminate; }}
+                      onChange={handleSelectCurrentPage}
+                      disabled={currentPageKeys.length === 0}
+                      className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle disabled:cursor-not-allowed"
+                    />
                   </th>
                   <th
                     className={`p-3 text-center cursor-pointer select-none transition hover:bg-purple-100 hover:text-purple-800 ${
