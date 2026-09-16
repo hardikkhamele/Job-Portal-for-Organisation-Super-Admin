@@ -108,7 +108,7 @@ export default function VendorModule() {
               <button 
                 type="button"
                 onClick={handleExport}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 cursor-pointer"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98] cursor-pointer"
                 title="Export vendors to Excel"
               >
                 <Download size={16} />
