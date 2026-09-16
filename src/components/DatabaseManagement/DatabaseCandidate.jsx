@@ -640,6 +640,10 @@ const DatabaseCandidate = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [transferCountPreset, setTransferCountPreset] = useState("");
+  const [transferLowerLimit, setTransferLowerLimit] = useState("");
+  const [transferHigherLimit, setTransferHigherLimit] = useState("");
+  const [transferRangeError, setTransferRangeError] = useState("");
+  const [transferRangeInfo, setTransferRangeInfo] = useState("");
   const [fetchedTransferCandidates, setFetchedTransferCandidates] = useState([]);
   const [currentPage, setCurrentPage] = useState(getInitialPage);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
@@ -1051,23 +1055,58 @@ const DatabaseCandidate = () => {
     }
   };
 
-  const handleTransferPresetChange = async (value) => {
-    setTransferCountPreset(value);
-    if (!value) {
-      setFetchedTransferCandidates([]);
+  const handleApplyTransferRange = async (lowerVal = transferLowerLimit, higherVal = transferHigherLimit) => {
+    const rawLower = String(lowerVal ?? "").trim();
+    const rawHigher = String(higherVal ?? "").trim();
+
+    if (!rawLower || !rawHigher) {
+      const msg = "Please enter both lower and higher values.";
+      setTransferRangeError(msg);
+      toast.error(msg);
       return;
     }
 
-    const count = parseInt(value, 10);
-    if (isNaN(count) || count <= 0) return;
+    const lower = parseInt(rawLower, 10);
+    const higher = parseInt(rawHigher, 10);
 
-    let availableCandidates = candidates || [];
-    if (availableCandidates.length < count) {
-      setSelectAllLoading(true);
-      try {
+    if (isNaN(lower) || isNaN(higher)) {
+      const msg = "Please enter valid numeric values for the transfer range.";
+      setTransferRangeError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (lower <= 0 || higher <= 0) {
+      const msg = "Lower and higher values must be greater than 0.";
+      setTransferRangeError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (lower > higher) {
+      const msg = `Validation Error: Lower value (${lower}) cannot be greater than Higher value (${higher})! Please select in lower-to-higher order.`;
+      setTransferRangeError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    setTransferRangeError("");
+
+    const totalCount = total || candidates?.length || 0;
+    if (totalCount > 0 && lower > totalCount) {
+      const msg = `Lower value (${lower}) exceeds total candidates available (${totalCount}).`;
+      setTransferRangeError(msg);
+      toast.warning(msg);
+      return;
+    }
+
+    setSelectAllLoading(true);
+    try {
+      let availableCandidates = candidates || [];
+      if (availableCandidates.length < higher) {
         const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const token = localStorage.getItem("token");
-        const params = { limit: count, page: 1 };
+        const params = { limit: higher, page: 1 };
         if (search?.trim()) params.search = search.trim();
         if (selectedCategory) params.category = selectedCategory;
         if (selectedDesignation) params.designation = selectedDesignation;
@@ -1116,23 +1155,43 @@ const DatabaseCandidate = () => {
           availableCandidates = fetchedList;
           setFetchedTransferCandidates(fetchedList);
         }
-      } catch (err) {
-        console.error("Error fetching candidates for preset transfer:", err);
-      } finally {
-        setSelectAllLoading(false);
       }
+
+      const slicedCandidates = availableCandidates.slice(lower - 1, higher);
+      const idsToSelect = slicedCandidates
+        .filter((item) => item.uniqueKey || item._id)
+        .map((item) => item.uniqueKey || item._id);
+
+      if (idsToSelect.length > 0) {
+        setSelectedCandidates(idsToSelect);
+        const rangeText = `Sr. No. ${lower} to ${lower + idsToSelect.length - 1} (${idsToSelect.length} candidates)`;
+        setTransferRangeInfo(rangeText);
+        toast.success(`Selected ${idsToSelect.length} candidate(s) (from #${lower} to #${lower + idsToSelect.length - 1}) for transfer.`);
+      } else {
+        toast.warning("No candidates found in the specified range.");
+      }
+    } catch (err) {
+      console.error("Error fetching candidates for range transfer:", err);
+      toast.error("Failed to load candidates for the selected range.");
+    } finally {
+      setSelectAllLoading(false);
     }
+  };
 
-    const idsToSelect = availableCandidates
-      .slice(0, count)
-      .filter((item) => item.uniqueKey || item._id)
-      .map((item) => item.uniqueKey || item._id);
-
-    if (idsToSelect.length > 0) {
-      setSelectedCandidates(idsToSelect);
-      toast.info(`${idsToSelect.length} candidate(s) selected for transfer.`);
-    } else {
-      toast.warning("No candidates available to transfer.");
+  const handleTransferPresetChange = (value) => {
+    setTransferCountPreset(value);
+    if (!value) {
+      setTransferLowerLimit("");
+      setTransferHigherLimit("");
+      setTransferRangeError("");
+      setTransferRangeInfo("");
+      return;
+    }
+    const count = parseInt(value, 10);
+    if (!isNaN(count) && count > 0) {
+      setTransferLowerLimit("1");
+      setTransferHigherLimit(String(count));
+      handleApplyTransferRange(1, count);
     }
   };
 
@@ -1149,6 +1208,10 @@ const DatabaseCandidate = () => {
     setStartDate("");
     setEndDate("");
     setTransferCountPreset("");
+    setTransferLowerLimit("");
+    setTransferHigherLimit("");
+    setTransferRangeError("");
+    setTransferRangeInfo("");
     setFetchedTransferCandidates([]);
     setCurrentPage(1);
     setSelectedCandidates([]);
@@ -1562,6 +1625,17 @@ const DatabaseCandidate = () => {
       return;
     }
 
+    if (transferLowerLimit && transferHigherLimit) {
+      const low = parseInt(transferLowerLimit, 10);
+      const high = parseInt(transferHigherLimit, 10);
+      if (!isNaN(low) && !isNaN(high) && low > high) {
+        const msg = `Validation Error: Lower value (${low}) cannot be greater than Higher value (${high})! Please select in lower-to-higher order.`;
+        setTransferRangeError(msg);
+        toast.error(msg);
+        return;
+      }
+    }
+
     let targetPersonName = "";
     if (transferTarget === "hr_management") {
       const foundHr = formattedHrList?.find(
@@ -1642,7 +1716,7 @@ const DatabaseCandidate = () => {
 
         addTransferRecord({
           count: selectedCandidates.length,
-          range: `Sr. No. 1 to ${selectedCandidates.length} (Batch of ${selectedCandidates.length})`,
+          range: transferRangeInfo || `Sr. No. 1 to ${selectedCandidates.length} (Batch of ${selectedCandidates.length})`,
           transferredTo: targetPersonName,
           destModule: destModuleName,
           transferredBy: adminName,
@@ -1652,6 +1726,10 @@ const DatabaseCandidate = () => {
 
         setSelectedCandidates([]);
         setTransferCountPreset("");
+        setTransferLowerLimit("");
+        setTransferHigherLimit("");
+        setTransferRangeError("");
+        setTransferRangeInfo("");
         setFetchedTransferCandidates([]);
         setTransferTarget("");
         setSelectedPersonId("");
@@ -1938,24 +2016,99 @@ const DatabaseCandidate = () => {
                 />
               </div>
 
-              {/* Candidate Data Transfer Preset Dropdown */}
-              <div className="flex items-center gap-2 border-l border-gray-300 pl-3 ml-1">
+              {/* Candidate Data Transfer Range (Lower to Higher) & Presets */}
+              <div className="flex flex-wrap items-center gap-2 border-l border-gray-300 pl-3 ml-1">
                 <span className="font-semibold text-gray-600 uppercase text-xs tracking-wider">
-                  Data Transfer:
+                  Transfer Range:
                 </span>
-                <select
-                  value={transferCountPreset}
-                  onChange={(e) => handleTransferPresetChange(e.target.value)}
-                  className="rounded border border-purple-300 bg-purple-50 px-2.5 py-1.5 text-xs font-semibold text-purple-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 cursor-pointer hover:bg-purple-100 transition"
-                >
-                  <option value="">Select Data Transfer</option>
-                  <option value="10">10 candidate transfer</option>
-                  <option value="20">20 candidate transfer</option>
-                  <option value="30">30 candidate transfer</option>
-                  <option value="40">40 candidate transfer</option>
-                  <option value="50">50 candidate transfer</option>
-                  <option value="100">100 candidate transfer</option>
-                </select>
+                
+                <div className="flex items-center gap-1.5">
+                  <span className="text-gray-500 text-xs font-medium">Lower:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Min"
+                    value={transferLowerLimit}
+                    onChange={(e) => {
+                      setTransferLowerLimit(e.target.value);
+                      setTransferRangeError("");
+                    }}
+                    className={`w-16 rounded border px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-purple-200 transition ${
+                      transferRangeError ? "border-red-400 bg-red-50 text-red-700" : "border-gray-300 bg-white"
+                    }`}
+                    title="Lower limit (From index/Sr.No)"
+                  />
+
+                  <span className="text-gray-500 text-xs font-medium">Higher:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Max"
+                    value={transferHigherLimit}
+                    onChange={(e) => {
+                      setTransferHigherLimit(e.target.value);
+                      setTransferRangeError("");
+                    }}
+                    className={`w-16 rounded border px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-purple-200 transition ${
+                      transferRangeError ? "border-red-400 bg-red-50 text-red-700" : "border-gray-300 bg-white"
+                    }`}
+                    title="Higher limit (To index/Sr.No)"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyTransferRange()}
+                    disabled={selectAllLoading}
+                    className="rounded bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 text-xs font-semibold shadow-sm transition cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                    title="Apply Range Filter"
+                  >
+                    {selectAllLoading ? "Selecting..." : "Apply Range"}
+                  </button>
+
+                  <select
+                    value={transferCountPreset}
+                    onChange={(e) => handleTransferPresetChange(e.target.value)}
+                    className="rounded border border-purple-200 bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 cursor-pointer hover:bg-purple-100 transition"
+                    title="Quick Presets"
+                  >
+                    <option value="">Quick Presets</option>
+                    <option value="10">Top 10 (1 - 10)</option>
+                    <option value="20">Top 20 (1 - 20)</option>
+                    <option value="30">Top 30 (1 - 30)</option>
+                    <option value="40">Top 40 (1 - 40)</option>
+                    <option value="50">Top 50 (1 - 50)</option>
+                    <option value="100">Top 100 (1 - 100)</option>
+                  </select>
+
+                  {(transferLowerLimit || transferHigherLimit || selectedCandidates.length > 0) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTransferLowerLimit("");
+                        setTransferHigherLimit("");
+                        setTransferCountPreset("");
+                        setTransferRangeError("");
+                        setTransferRangeInfo("");
+                        setSelectedCandidates([]);
+                      }}
+                      className="text-gray-400 hover:text-red-500 p-1 transition"
+                      title="Clear Range Selection"
+                    >
+                      <X size={15} />
+                    </button>
+                  )}
+                </div>
+
+                {transferRangeError && (
+                  <span className="text-xs font-semibold text-red-600">
+                    ⚠️ {transferRangeError}
+                  </span>
+                )}
+                {transferRangeInfo && !transferRangeError && (
+                  <span className="text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
+                    ✓ {transferRangeInfo}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -2128,13 +2281,69 @@ const DatabaseCandidate = () => {
             </div>
 
             <div className="py-4 space-y-4">
-              <p className="text-sm text-gray-600">
-                You are transferring{" "}
-                <strong className="text-purple-700 font-bold">
-                  {selectedCandidates.length}
-                </strong>{" "}
-                selected candidate(s).
-              </p>
+              <div className="rounded-lg bg-purple-50 p-3 border border-purple-100">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">
+                    Transfer Range (Lower to Higher)
+                  </span>
+                  <span className="text-xs font-bold text-purple-700 bg-white px-2 py-0.5 rounded-full border border-purple-200">
+                    {selectedCandidates.length} Selected
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <label className="block text-[11px] text-gray-600 font-medium mb-0.5">Lower Value (From):</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 1"
+                      value={transferLowerLimit}
+                      onChange={(e) => {
+                        setTransferLowerLimit(e.target.value);
+                        setTransferRangeError("");
+                      }}
+                      className="w-full border border-gray-300 rounded px-2.5 py-1 text-xs bg-white outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-gray-600 font-medium mb-0.5">Higher Value (To):</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 50"
+                      value={transferHigherLimit}
+                      onChange={(e) => {
+                        setTransferHigherLimit(e.target.value);
+                        setTransferRangeError("");
+                      }}
+                      className="w-full border border-gray-300 rounded px-2.5 py-1 text-xs bg-white outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-2.5 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyTransferRange()}
+                    disabled={selectAllLoading}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-semibold shadow-sm transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {selectAllLoading ? "Selecting..." : "Update Range Selection"}
+                  </button>
+                  {transferRangeInfo && !transferRangeError && (
+                    <span className="text-[11px] text-purple-800 font-medium truncate max-w-[200px]" title={transferRangeInfo}>
+                      ✓ {transferRangeInfo}
+                    </span>
+                  )}
+                </div>
+
+                {transferRangeError && (
+                  <p className="mt-2 text-xs font-semibold text-red-600">
+                    ⚠️ {transferRangeError}
+                  </p>
+                )}
+              </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
