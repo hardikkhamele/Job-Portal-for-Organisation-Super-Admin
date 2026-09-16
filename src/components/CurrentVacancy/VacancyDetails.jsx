@@ -177,23 +177,23 @@ function VacancyDetails() {
 
         {/* --- CANDIDATES TABLE --- */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-1">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left whitespace-nowrap">
+          <div className="overflow-x-visible">
+            <table className="w-full text-sm text-left table-auto">
               <thead>
                 <tr className="bg-[#F8F9FC] border-b border-gray-100">
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Sr. No.</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Candidate Name</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">City / Location</th>
-                  <th className="py-4 px-6 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">CV / Resume</th>
-                  <th className="py-4 px-6 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Sr. No.</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Candidate Name</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Email</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Contact</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">City / Location</th>
+                  <th className="py-4 px-6 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">CV / Resume</th>
+                  <th className="py-4 px-6 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredCandidates.map((candidate, idx) => (
                   <tr key={candidate._id || candidate.id || idx} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-4 px-6 text-gray-500 font-semibold align-middle">
+                    <td className="py-4 px-6 text-gray-500 font-semibold align-middle whitespace-nowrap">
                       {idx + 1}
                     </td>
                     <td className="py-4 px-6 align-middle">
@@ -201,50 +201,50 @@ function VacancyDetails() {
                         <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-bold flex items-center justify-center text-xs shrink-0">
                           {candidate.fullName ? candidate.fullName.charAt(0).toUpperCase() : "?"}
                         </div>
-                        <span className="font-bold text-gray-800 uppercase text-[13px] tracking-wide">
+                        <span className="font-bold text-gray-800 uppercase text-[13px] tracking-wide truncate max-w-[160px] block" title={candidate.fullName || "GUEST"}>
                           {candidate.fullName || "GUEST"}
                         </span>
                       </div>
                     </td>
                     <td className="py-4 px-6 align-middle">
                       {candidate.email && candidate.email !== "N/A" ? (
-                        <div className="flex items-center gap-2 text-gray-600 font-medium text-[13px]">
-                          <Mail size={14} className="text-gray-400" />
-                          {candidate.email}
+                        <div className="flex items-center gap-2 text-gray-600 font-medium text-[13px] truncate max-w-[180px]" title={candidate.email}>
+                          <Mail size={14} className="text-gray-400 shrink-0" />
+                          <span className="truncate">{candidate.email}</span>
                         </div>
                       ) : (
                         <span className="text-gray-400 font-medium text-[13px]">N/A</span>
                       )}
                     </td>
-                    <td className="py-4 px-6 align-middle text-gray-700 font-medium text-[13px] tracking-wide">
+                    <td className="py-4 px-6 align-middle text-gray-700 font-medium text-[13px] tracking-wide whitespace-nowrap">
                       {candidate.phone || candidate.contact || "N/A"}
                     </td>
-                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px]">
+                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] truncate max-w-[120px]" title={candidate.city || "N/A"}>
                       {candidate.city || "N/A"}
                     </td>
-                    <td className="py-4 px-6 align-middle text-center">
+                    <td className="py-4 px-6 align-middle text-center whitespace-nowrap">
                       {candidate.resumeLink ? (
-                        <a href={candidate.resumeLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg bg-gray-50 text-purple-600 hover:bg-gray-100 border border-gray-200 transition text-[13px] font-bold shadow-sm m-auto">
-                          <FileText size={14} /> View CV <ExternalLink size={13} className="ml-0.5 text-purple-400" />
+                        <a href={candidate.resumeLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg bg-gray-50 text-purple-600 hover:bg-gray-100 border border-gray-200 transition text-[13px] font-bold shadow-sm m-auto hover:text-purple-700 group">
+                          <FileText size={14} className="text-purple-500 group-hover:text-purple-600" /> View CV <ExternalLink size={13} className="ml-0.5 text-purple-400 group-hover:text-purple-500" />
                         </a>
                       ) : (
                         <span className="text-gray-400 font-semibold text-[13px]">No CV</span>
                       )}
                     </td>
-                    <td className="py-4 px-6 align-middle">
+                    <td className="py-4 px-6 align-middle whitespace-nowrap">
                       <div className="flex items-center justify-center gap-2">
                         {candidate.status === "accepted" ? (
-                          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 text-[13px] font-bold tracking-wide">
+                          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 text-[13px] font-bold tracking-wide shadow-sm">
                             <Check size={15} /> Accepted
                           </span>
                         ) : candidate.status === "rejected" ? (
-                          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 text-[13px] font-bold tracking-wide cursor-pointer" title={candidate.rejectionReason}>
+                          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 text-[13px] font-bold tracking-wide cursor-default shadow-sm" title={candidate.rejectionReason}>
                             <Trash2 size={13} /> Rejected
                           </span>
                         ) : (
                           <button
                             onClick={() => handleAccept(candidate._id || candidate.applicationId)}
-                            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition text-[13px] font-bold shadow-sm cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition text-[13px] font-bold shadow-sm cursor-pointer border border-emerald-600/50"
                           >
                             <Check size={15} /> Accept
                           </button>
@@ -253,7 +253,7 @@ function VacancyDetails() {
                         {candidate.status !== "rejected" && (
                           <button 
                             onClick={() => handleReject(candidate._id || candidate.applicationId)}
-                            className="px-3 py-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition shadow-sm border border-red-100 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition shadow-sm border border-red-100 cursor-pointer"
                             title="Reject Candidate"
                           >
                             <Trash2 size={15} />

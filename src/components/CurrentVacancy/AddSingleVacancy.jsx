@@ -119,44 +119,8 @@ function AddSingleVacancy() {
   }, [formData.state]);
 
   const validate = () => {
-    const newErrors = {};
-
-    if (!formData.hiring) {
-      newErrors.hiring = "Hiring Type is required";
-    }
-    if (!formData.profile.trim()) {
-      newErrors.profile = "Profile / Designation is required";
-    }
-    if (!formData.state) {
-      newErrors.state = "Job Location State is required";
-    }
-    if (!formData.city.trim()) {
-      newErrors.city = "Job Location City is required";
-    }
-    if (!formData.technology.trim()) {
-      newErrors.technology = "Technology / Skill is required";
-    }
-    if (!formData.experience) {
-      newErrors.experience = "Experience is required";
-    }
-    if (!formData.workMode) {
-      newErrors.workMode = "Work mode is required";
-    }
-    if (!formData.jobType) {
-      newErrors.jobType = "Job type is required";
-    }
-    if (!formData.salaryRange.trim()) {
-      newErrors.salaryRange = "Salary Range is required";
-    }
-    if (!formData.deadline) {
-      newErrors.deadline = "Deadline date is required";
-    }
-    if (!formData.requirements.trim()) {
-      newErrors.requirements = "Job Description & Requirements are required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors({});
+    return true;
   };
 
   const handleCityChange = (cityName) => {
@@ -280,7 +244,7 @@ function AddSingleVacancy() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {/* Hiring Type Selection */}
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Hiring <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Hiring</label>
                 <div className="relative">
                   <select
                     value={formData.hiring}
@@ -343,7 +307,7 @@ function AddSingleVacancy() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Profile / Designation <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Profile / Designation</label>
                 <input
                   type="text"
                   placeholder="e.g. Senior Frontend Developer"
@@ -363,7 +327,7 @@ function AddSingleVacancy() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* State (Auto Detected or Manual Dropdown) */}
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location State <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location State</label>
                 <input
                   type="text"
                   list="state-options"
@@ -399,7 +363,7 @@ function AddSingleVacancy() {
 
               {/* City */}
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location City <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location City</label>
                 <input
                   type="text"
                   list="city-options"
@@ -427,7 +391,7 @@ function AddSingleVacancy() {
             {/* Technology / Skill & Experience */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Technology / Skill <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Technology / Skill</label>
                 <input
                   type="text"
                   placeholder="e.g. React, Node.js, Python, Figma"
@@ -443,7 +407,7 @@ function AddSingleVacancy() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Experience <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Experience</label>
                 <select
                   value={formData.experience}
                   onChange={(e) => handleChange("experience", e.target.value)}
@@ -468,7 +432,7 @@ function AddSingleVacancy() {
             {/* Work Mode & Job Type */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Work Mode <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Work Mode</label>
                 <select
                   value={formData.workMode}
                   onChange={(e) => handleChange("workMode", e.target.value)}
@@ -486,7 +450,7 @@ function AddSingleVacancy() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Job Type <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Job Type</label>
                 <select
                   value={formData.jobType}
                   onChange={(e) => handleChange("jobType", e.target.value)}
@@ -507,7 +471,7 @@ function AddSingleVacancy() {
             {/* Salary Range & Deadline Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Salary Range :- <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Salary Range :-</label>
                 <input
                   type="text"
                   placeholder="e.g. ₹5,000 - ₹10,000 / month or 6-8 LPA"
@@ -523,7 +487,7 @@ function AddSingleVacancy() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Deadline (Date) <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Deadline (Date)</label>
                 <input
                   type="date"
                   value={formData.deadline}
@@ -542,7 +506,7 @@ function AddSingleVacancy() {
 
             {/* Job Description & Requirements */}
             <div className="space-y-1">
-              <label className="text-xs font-bold uppercase text-gray-700 block">Job Description & Requirements <span className="text-red-500">*</span></label>
+              <label className="text-xs font-bold uppercase text-gray-700 block">Job Description & Requirements</label>
               <textarea
                 rows={4}
                 placeholder="Enter detailed job requirements..."
