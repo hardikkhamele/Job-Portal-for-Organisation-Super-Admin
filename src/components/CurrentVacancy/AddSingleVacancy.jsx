@@ -35,7 +35,8 @@ function AddSingleVacancy() {
   const vacancies = getVacancies(); // To get existing company names
 
   const [formData, setFormData] = useState({
-    companyName: "",
+    hiring: "Internal",
+    priority: "Medium",
     state: "",
     city: "",
     category: "IT",
@@ -58,11 +59,8 @@ function AddSingleVacancy() {
   const [loadingCities, setLoadingCities] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Extract unique existing company names for selection dropdown
-  const existingCompanyNames = useMemo(() => {
-    const names = vacancies.map((v) => v.companyName).filter(Boolean);
-    return Array.from(new Set(names));
-  }, [vacancies]);
+  // Filter for unique strings is not needed for hiring type, standard static list used instead
+  const hiringOptions = ["Internal", "External"];
 
   // Fetch States from Open Source API (CountriesNow API)
   useEffect(() => {
@@ -123,8 +121,8 @@ function AddSingleVacancy() {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.companyName.trim()) {
-      newErrors.companyName = "Company Name is required";
+    if (!formData.hiring) {
+      newErrors.hiring = "Hiring Type is required";
     }
     if (!formData.profile.trim()) {
       newErrors.profile = "Profile / Designation is required";
@@ -208,6 +206,8 @@ function AddSingleVacancy() {
       
       const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
       const payload = {
+        hiring: formData.hiring,
+        priority: formData.priority,
         designation: formData.profile,
         category: formData.category,
         subCategory: formData.technology, 
@@ -276,33 +276,72 @@ function AddSingleVacancy() {
 
           <form onSubmit={handleSubmit} className="p-6 space-y-5" noValidate>
             
-            {/* Company Selection / Input */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold uppercase text-gray-700 block">Company Name <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <input
-                  type="text"
-                  list="company-options"
-                  placeholder="Select or enter company name"
-                  value={formData.companyName}
-                  onChange={(e) => handleChange("companyName", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 ${
-                    errors.companyName ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
-                  }`}
-                />
-                <datalist id="company-options">
-                  {existingCompanyNames.map((c) => (
-                    <option key={c} value={c} />
-                  ))}
-                </datalist>
+            {/* Hiring, Priority & No. of Vacancies */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Hiring Type Selection */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">Hiring <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <select
+                    value={formData.hiring}
+                    onChange={(e) => handleChange("hiring", e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 cursor-pointer ${
+                      errors.hiring ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
+                    }`}
+                  >
+                    <option value="Internal">Internal</option>
+                    <option value="External">External</option>
+                  </select>
+                </div>
+                {errors.hiring && (
+                  <p className="text-red-600 text-xs font-semibold mt-1">{errors.hiring}</p>
+                )}
               </div>
-              {errors.companyName && (
-                <p className="text-red-600 text-xs font-semibold mt-1">{errors.companyName}</p>
-              )}
+
+              {/* Priority */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">Priority</label>
+                <div className="relative">
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => handleChange("priority", e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 cursor-pointer font-medium"
+                  >
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* No. of Vacancies */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">No. of Vacancies</label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 1"
+                  value={formData.noOfVacancy}
+                  onChange={(e) => handleChange("noOfVacancy", e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 font-medium"
+                />
+              </div>
             </div>
 
-            {/* Profile / Designation & Category */}
+            {/* Category & Profile / Designation */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => handleChange("category", e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 cursor-pointer font-medium"
+                >
+                  <option value="IT">IT</option>
+                  <option value="Non IT">Non IT</option>
+                </select>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-gray-700 block">Profile / Designation <span className="text-red-500">*</span></label>
                 <input
@@ -318,22 +357,46 @@ function AddSingleVacancy() {
                   <p className="text-red-600 text-xs font-semibold mt-1">{errors.profile}</p>
                 )}
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => handleChange("category", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 cursor-pointer font-medium"
-                >
-                  <option value="IT">IT</option>
-                  <option value="Non IT">Non IT</option>
-                </select>
-              </div>
             </div>
 
-            {/* Job Location: City (First) & State (Auto Selected) */}
+            {/* Job Location: State & City */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* State (Auto Detected or Manual Dropdown) */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location State <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  list="state-options"
+                  placeholder={loadingStates ? "Loading States..." : "Select State"}
+                  value={formData.state}
+                  onChange={(e) => handleChange("state", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 ${
+                    errors.state ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
+                  }`}
+                />
+                <datalist id="state-options">
+                  {statesList.length > 0 ? (
+                    statesList.map((st) => <option key={st} value={st} />)
+                  ) : (
+                    <>
+                      <option value="Andhra Pradesh" />
+                      <option value="Delhi" />
+                      <option value="Gujarat" />
+                      <option value="Haryana" />
+                      <option value="Karnataka" />
+                      <option value="Maharashtra" />
+                      <option value="Tamil Nadu" />
+                      <option value="Telangana" />
+                      <option value="Uttar Pradesh" />
+                      <option value="West Bengal" />
+                    </>
+                  )}
+                </datalist>
+                {errors.state && (
+                  <p className="text-red-600 text-xs font-semibold mt-1">{errors.state}</p>
+                )}
+              </div>
+
               {/* City */}
               <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-gray-700 block">Job Location City <span className="text-red-500">*</span></label>
@@ -356,41 +419,6 @@ function AddSingleVacancy() {
                 )}
                 {errors.city && (
                   <p className="text-red-600 text-xs font-semibold mt-1">{errors.city}</p>
-                )}
-              </div>
-
-              {/* State (Auto Detected or Manual Dropdown) */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location State <span className="text-red-500">*</span></label>
-                <select
-                  value={formData.state}
-                  onChange={(e) => handleChange("state", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 cursor-pointer ${
-                    errors.state ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
-                  }`}
-                >
-                  <option value="">{loadingStates ? "Loading States..." : "Select State"}</option>
-                  {statesList.map((st) => (
-                    <option key={st} value={st}>{st}</option>
-                  ))}
-                  {/* Fallback if API list is empty */}
-                  {statesList.length === 0 && (
-                    <>
-                      <option value="Andhra Pradesh">Andhra Pradesh</option>
-                      <option value="Delhi">Delhi</option>
-                      <option value="Gujarat">Gujarat</option>
-                      <option value="Haryana">Haryana</option>
-                      <option value="Karnataka">Karnataka</option>
-                      <option value="Maharashtra">Maharashtra</option>
-                      <option value="Tamil Nadu">Tamil Nadu</option>
-                      <option value="Telangana">Telangana</option>
-                      <option value="Uttar Pradesh">Uttar Pradesh</option>
-                      <option value="West Bengal">West Bengal</option>
-                    </>
-                  )}
-                </select>
-                {errors.state && (
-                  <p className="text-red-600 text-xs font-semibold mt-1">{errors.state}</p>
                 )}
               </div>
             </div>
@@ -510,18 +538,7 @@ function AddSingleVacancy() {
               </div>
             </div>
 
-            {/* No. of Vacancies */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold uppercase text-gray-700 block">No. of Vacancies</label>
-              <input
-                type="number"
-                min="1"
-                placeholder="e.g. 1"
-                value={formData.noOfVacancy}
-                onChange={(e) => handleChange("noOfVacancy", e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 font-medium"
-              />
-            </div>
+
 
             {/* Job Description & Requirements */}
             <div className="space-y-1">
