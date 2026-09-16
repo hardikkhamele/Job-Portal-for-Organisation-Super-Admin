@@ -629,6 +629,7 @@ const DatabaseCandidate = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [transferCountPreset, setTransferCountPreset] = useState("");
+  const [startSrNoInput, setStartSrNoInput] = useState("1");
   const [fetchedTransferCandidates, setFetchedTransferCandidates] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
@@ -636,6 +637,25 @@ const DatabaseCandidate = () => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferHistoryList, setTransferHistoryList] = useState([]);
   const adminProfile = useSelector((state) => state.adminProfile?.profile);
+
+  const totalTransferredCount = useMemo(() => {
+    const uniqueIds = new Set();
+    let countSum = 0;
+    (transferHistoryList || []).forEach((rec) => {
+      countSum += (rec.count || 0);
+      if (Array.isArray(rec.candidates)) {
+        rec.candidates.forEach((c) => {
+          if (c && c.id) uniqueIds.add(String(c.id));
+        });
+      }
+    });
+    return uniqueIds.size > 0 ? uniqueIds.size : countSum;
+  }, [transferHistoryList]);
+
+  useEffect(() => {
+    const nextSr = totalTransferredCount + 1;
+    setStartSrNoInput(String(nextSr));
+  }, [totalTransferredCount]);
 
   useEffect(() => {
     const loadHistory = () => {
@@ -1012,7 +1032,7 @@ const DatabaseCandidate = () => {
     }
   };
 
-  const handleTransferPresetChange = async (value) => {
+  const handleTransferPresetChange = async (value, customStart) => {
     setTransferCountPreset(value);
     if (!value) {
       setFetchedTransferCandidates([]);
@@ -1022,78 +1042,101 @@ const DatabaseCandidate = () => {
     const count = parseInt(value, 10);
     if (isNaN(count) || count <= 0) return;
 
-    let availableCandidates = candidates || [];
-    if (availableCandidates.length < count) {
-      setSelectAllLoading(true);
-      try {
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const token = localStorage.getItem("token");
-        const params = { limit: count, page: 1 };
-        if (search?.trim()) params.search = search.trim();
-        if (selectedCategory) params.category = selectedCategory;
-        if (selectedDesignation) params.designation = selectedDesignation;
-        if (selectedCity || selectedState || selectedCountry) {
-          params.location = selectedCity || selectedState || selectedCountry;
-        }
-        if (selectedCity) params.city = selectedCity;
-        if (selectedState) params.state = selectedState;
-        if (selectedCountry) params.country = selectedCountry;
-        if (selectedWorkMode) params.workMode = selectedWorkMode;
-        if (selectedExperience) params.experience = selectedExperience;
-        if (startDate) {
-          const formatDate = (d) => {
-            const [y, m, day] = d.split("-");
-            return `${day}/${m}/${y}`;
-          };
-          params.startDate = formatDate(startDate);
-          params.fromDate = formatDate(startDate);
-        }
-        if (endDate) {
-          const formatDate = (d) => {
-            const [y, m, day] = d.split("-");
-            return `${day}/${m}/${y}`;
-          };
-          params.endDate = formatDate(endDate);
-          params.toDate = formatDate(endDate);
-        }
+    const startVal = customStart !== undefined ? customStart : startSrNoInput;
+    const parsedStart = parseInt(startVal, 10);
+    const safeStartSr = isNaN(parsedStart) || parsedStart < 1 ? 1 : parsedStart;
+    const startIndex = safeStartSr - 1; // 0-based index
+    const endIndex = startIndex + count; // exclusive
 
-        const response = await axios.get(
-          `${BASE_URL}/api/admin/candidate-database/getCandidates`,
-          { params, headers: { Authorization: `Bearer ${token}` } }
-        );
-        const payload = response.data;
-        let fetchedList = [];
-        if (Array.isArray(payload)) {
-          fetchedList = payload;
-        } else if (Array.isArray(payload?.candidates)) {
-          fetchedList = payload.candidates;
-        } else if (Array.isArray(payload?.data)) {
-          fetchedList = payload.data;
-        } else if (Array.isArray(payload?.data?.candidates)) {
-          fetchedList = payload.data.candidates;
-        }
+    setSelectAllLoading(true);
+    try {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const token = localStorage.getItem("token");
 
-        if (fetchedList.length > 0) {
-          availableCandidates = fetchedList;
-          setFetchedTransferCandidates(fetchedList);
-        }
-      } catch (err) {
-        console.error("Error fetching candidates for preset transfer:", err);
-      } finally {
-        setSelectAllLoading(false);
+      // Fetch enough candidates to cover the requested range
+      const fetchLimit = Math.max(endIndex, total || 1000);
+      const params = { limit: fetchLimit, page: 1 };
+
+      if (search?.trim()) params.search = search.trim();
+      if (selectedCategory) params.category = selectedCategory;
+      if (selectedDesignation) params.designation = selectedDesignation;
+      if (selectedCity || selectedState || selectedCountry) {
+        params.location = selectedCity || selectedState || selectedCountry;
       }
-    }
+      if (selectedCity) params.city = selectedCity;
+      if (selectedState) params.state = selectedState;
+      if (selectedCountry) params.country = selectedCountry;
+      if (selectedWorkMode) params.workMode = selectedWorkMode;
+      if (selectedExperience) params.experience = selectedExperience;
+      if (startDate) {
+        const formatDate = (d) => {
+          const [y, m, day] = d.split("-");
+          return `${day}/${m}/${y}`;
+        };
+        params.startDate = formatDate(startDate);
+        params.fromDate = formatDate(startDate);
+      }
+      if (endDate) {
+        const formatDate = (d) => {
+          const [y, m, day] = d.split("-");
+          return `${day}/${m}/${y}`;
+        };
+        params.endDate = formatDate(endDate);
+        params.toDate = formatDate(endDate);
+      }
 
-    const idsToSelect = availableCandidates
-      .slice(0, count)
-      .filter((item) => item.uniqueKey || item._id)
-      .map((item) => item.uniqueKey || item._id);
+      const response = await axios.get(
+        `${BASE_URL}/api/admin/candidate-database/getCandidates`,
+        { params, headers: { Authorization: `Bearer ${token}` } }
+      );
+      const payload = response.data;
+      let fetchedList = [];
+      if (Array.isArray(payload)) {
+        fetchedList = payload;
+      } else if (Array.isArray(payload?.candidates)) {
+        fetchedList = payload.candidates;
+      } else if (Array.isArray(payload?.data)) {
+        fetchedList = payload.data;
+      } else if (Array.isArray(payload?.data?.candidates)) {
+        fetchedList = payload.data.candidates;
+      }
 
-    if (idsToSelect.length > 0) {
-      setSelectedCandidates(idsToSelect);
-      toast.info(`${idsToSelect.length} candidate(s) selected for transfer.`);
-    } else {
-      toast.warning("No candidates available to transfer.");
+      const allCandidatesList = fetchedList.length > 0 ? fetchedList : (candidates || []);
+
+      if (fetchedList.length > 0) {
+        setFetchedTransferCandidates(fetchedList);
+      }
+
+      // Slice precisely from startIndex to endIndex (e.g. index 40 to 80 for Sr. No. 41 to 80)
+      const slicedCandidates = allCandidatesList.slice(startIndex, endIndex);
+
+      const idsToSelect = slicedCandidates
+        .filter((item) => item.uniqueKey || item._id)
+        .map((item) => item.uniqueKey || item._id);
+
+      if (idsToSelect.length > 0) {
+        setSelectedCandidates(idsToSelect);
+        const actualStart = safeStartSr;
+        const actualEnd = safeStartSr + idsToSelect.length - 1;
+        toast.info(
+          `${idsToSelect.length} candidate(s) selected for transfer (Sr. No. ${actualStart} to ${actualEnd}).`
+        );
+
+        // Jump to the table page of the first selected candidate for immediate visual confirmation
+        const targetPage = Math.floor((safeStartSr - 1) / itemsPerPage) + 1;
+        if (targetPage > 0) {
+          setCurrentPage(targetPage);
+        }
+      } else {
+        toast.warning(
+          `No candidates found starting from Sr. No. ${safeStartSr}. (Total available: ${allCandidatesList.length})`
+        );
+      }
+    } catch (err) {
+      console.error("Error fetching candidates for preset transfer:", err);
+      toast.error("Failed to fetch candidates for transfer preset.");
+    } finally {
+      setSelectAllLoading(false);
     }
   };
 
@@ -1110,6 +1153,7 @@ const DatabaseCandidate = () => {
     setStartDate("");
     setEndDate("");
     setTransferCountPreset("");
+    setStartSrNoInput(String(totalTransferredCount + 1));
     setFetchedTransferCandidates([]);
     setCurrentPage(1);
     setSelectedCandidates([]);
@@ -1601,15 +1645,50 @@ const DatabaseCandidate = () => {
           };
         });
 
+        // Calculate actual start and end serial numbers
+        let firstIdx = -1;
+        let lastIdx = -1;
+        for (let i = 0; i < allKnownCandidates.length; i++) {
+          const c = allKnownCandidates[i];
+          const candId = c._id || c.uniqueKey;
+          if (selectedCandidates.includes(candId)) {
+            if (firstIdx === -1) firstIdx = i;
+            lastIdx = i;
+          }
+        }
+        const recordStartSr = firstIdx >= 0 ? firstIdx + 1 : (parseInt(startSrNoInput, 10) || 1);
+        const recordEndSr = lastIdx >= 0 ? lastIdx + 1 : (recordStartSr + selectedCandidates.length - 1);
+
         addTransferRecord({
           count: selectedCandidates.length,
-          range: `Sr. No. 1 to ${selectedCandidates.length} (Batch of ${selectedCandidates.length})`,
+          range: `Sr. No. ${recordStartSr} to ${recordEndSr} (Batch of ${selectedCandidates.length})`,
           transferredTo: targetPersonName,
           destModule: destModuleName,
           transferredBy: adminName,
           status: "Success",
           candidates: transferredCandidatesDetails,
         });
+
+        // Advance startSrNoInput to the next number
+        setStartSrNoInput(String(recordEndSr + 1));
+
+        // Refresh candidates table
+        dispatch(
+          fetchCandidates({
+            page: currentPage,
+            limit: itemsPerPage,
+            search: debouncedSearch,
+            category: selectedCategory,
+            designation: selectedDesignation,
+            country: selectedCountry,
+            state: selectedState,
+            city: selectedCity,
+            workMode: selectedWorkMode,
+            experience: selectedExperience,
+            startDate: startDate,
+            endDate: endDate,
+          })
+        );
 
         setSelectedCandidates([]);
         setTransferCountPreset("");
@@ -1899,11 +1978,28 @@ const DatabaseCandidate = () => {
                 />
               </div>
 
-              {/* Candidate Data Transfer Preset Dropdown */}
-              <div className="flex items-center gap-2 border-l border-gray-300 pl-3 ml-1">
+              {/* Candidate Data Transfer Preset & Range Controls */}
+              <div className="flex flex-wrap items-center gap-2 border-l border-gray-300 pl-3 ml-1">
                 <span className="font-semibold text-gray-600 uppercase text-xs tracking-wider">
                   Data Transfer:
                 </span>
+                <div className="flex items-center gap-1.5 rounded border border-purple-200 bg-purple-50 px-2 py-1 text-xs" title="Starting candidate Sr. No. (automatically advances to the next available batch)">
+                  <span className="text-purple-700 font-semibold whitespace-nowrap">From Sr:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={startSrNoInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setStartSrNoInput(val);
+                      if (transferCountPreset) {
+                        handleTransferPresetChange(transferCountPreset, val);
+                      }
+                    }}
+                    className="w-14 rounded border border-purple-300 bg-white px-1.5 py-0.5 text-center font-bold text-purple-800 outline-none focus:ring-1 focus:ring-purple-500"
+                    title="Starting candidate serial number"
+                  />
+                </div>
                 <select
                   value={transferCountPreset}
                   onChange={(e) => handleTransferPresetChange(e.target.value)}
@@ -1917,6 +2013,11 @@ const DatabaseCandidate = () => {
                   <option value="50">50 candidate transfer</option>
                   <option value="100">100 candidate transfer</option>
                 </select>
+                {selectedCandidates.length > 0 && (
+                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-300 px-2 py-1 rounded">
+                    Selected: {selectedCandidates.length}
+                  </span>
+                )}
               </div>
             </div>
           </div>
