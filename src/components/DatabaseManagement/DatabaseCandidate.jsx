@@ -1877,6 +1877,32 @@ const DatabaseCandidate = () => {
     return candidates || [];
   }, [candidates]);
 
+  const currentPageKeys = useMemo(() => {
+    return paginatedCandidates
+      .map((item, idx) => getCandidateUniqueKey(item) || `${item._id || "cand"}_${startIndex + idx}`)
+      .filter(Boolean);
+  }, [paginatedCandidates, startIndex]);
+
+  const isCurrentPageAllSelected =
+    currentPageKeys.length > 0 &&
+    currentPageKeys.every((key) => selectedCandidates.includes(key));
+
+  const handleSelectCurrentPage = () => {
+    if (!currentPageKeys.length) return;
+    if (isCurrentPageAllSelected) {
+      setSelectedCandidates((prev) => prev.filter((key) => !currentPageKeys.includes(key)));
+      toast.info(`Deselected all ${currentPageKeys.length} candidates on Page ${currentPage}`);
+    } else {
+      setSelectedCandidates((prev) => Array.from(new Set([...prev, ...currentPageKeys])));
+      setFetchedTransferCandidates((prev) => {
+        const existing = new Set(prev.map((c) => getCandidateUniqueKey(c)));
+        const newItems = paginatedCandidates.filter((c) => !existing.has(getCandidateUniqueKey(c)));
+        return [...prev, ...newItems];
+      });
+      toast.success(`Selected all ${currentPageKeys.length} candidates on Page ${currentPage}`);
+    }
+  };
+
   return (
     <div className="w-full bg-[#F4F6FA] p-3 min-h-screen">
       <div className="w-full mx-auto">
@@ -2258,7 +2284,24 @@ const DatabaseCandidate = () => {
                       />
                     )}
                   </th>
-                  <th className="p-3 text-center">Sr.No</th>
+                  <th
+                    className={`p-3 text-center cursor-pointer select-none transition hover:bg-purple-100 hover:text-purple-800 ${
+                      isCurrentPageAllSelected ? "text-purple-700 font-bold bg-purple-50" : ""
+                    }`}
+                    onClick={handleSelectCurrentPage}
+                    title={
+                      isCurrentPageAllSelected
+                        ? `Click to deselect all ${currentPageKeys.length} entries on Page ${currentPage}`
+                        : `Click to select all ${currentPageKeys.length} entries on Page ${currentPage}`
+                    }
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span>Sr.No</span>
+                      {isCurrentPageAllSelected && (
+                        <span className="text-xs text-purple-600 font-bold">✓</span>
+                      )}
+                    </div>
+                  </th>
                   <th className="p-3 text-center">Name</th>
                   <th className="p-3 text-center">Category</th>
                   <th className="p-3 text-center">Designation</th>
