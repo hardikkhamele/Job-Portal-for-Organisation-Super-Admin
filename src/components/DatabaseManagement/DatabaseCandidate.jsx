@@ -602,6 +602,24 @@ const getCandidateDesignation = (item, designationList = []) => {
   return "";
 };
 
+const getCandidateUniqueKey = (item) => {
+  if (!item) return "";
+  const phone = getCandidatePhone(item);
+  const email = getCandidateEmail(item);
+  const name = getCandidateName(item);
+
+  const cleanPhone = phone && phone !== "N/A" ? String(phone).replace(/\D/g, "") : "";
+  const cleanEmail = email && email !== "N/A" ? String(email).trim().toLowerCase() : "";
+  const cleanName = name && name !== "N/A" ? String(name).trim().toLowerCase().replace(/\s+/g, "_") : "";
+
+  const rawId = item._id || item.id || "";
+
+  if (cleanPhone) return `${rawId}_p_${cleanPhone}`;
+  if (cleanEmail) return `${rawId}_e_${cleanEmail}`;
+  if (cleanName) return `${rawId}_n_${cleanName}`;
+  return `${rawId}_${item.uniqueKey || ""}`;
+};
+
 const DatabaseCandidate = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -1246,7 +1264,7 @@ const DatabaseCandidate = () => {
         list.forEach((item, idx) => {
           const globalSrNo = (pageNo - 1) * pageSize + idx + 1;
           if (globalSrNo >= lower && globalSrNo <= higher) {
-            const itemKey = item.uniqueKey || item._id;
+            const itemKey = getCandidateUniqueKey(item);
             if (itemKey) {
               idsToSelect.push(itemKey);
               allFetched.push(item);
@@ -1392,7 +1410,7 @@ const DatabaseCandidate = () => {
 
   // IDs of candidates currently visible after all filters applied (ignore undefined _id)
   const filteredIds = useMemo(
-    () => filteredCandidates.filter((item) => item.uniqueKey || item._id).map((item) => item.uniqueKey || item._id),
+    () => filteredCandidates.map((item) => getCandidateUniqueKey(item)).filter(Boolean),
     [filteredCandidates]
   );
 
@@ -1465,8 +1483,8 @@ const DatabaseCandidate = () => {
             (Array.isArray(payload) ? payload : []);
 
       const allIds = allList
-        .filter((item) => item.uniqueKey || item._id)
-        .map((item) => item.uniqueKey || item._id);
+        .map((item) => getCandidateUniqueKey(item))
+        .filter(Boolean);
 
       if (allIds.length > 0) {
         setSelectedCandidates((prev) =>
@@ -1705,7 +1723,7 @@ const DatabaseCandidate = () => {
     // Resolve candidates to valid MongoDB ObjectIds
     const rawCandidateIds = selectedCandidates.map((selKey) => {
       const foundCandidate = allKnownCandidates.find(
-        (c) => (c.uniqueKey || c._id) === selKey || c._id === selKey
+        (c) => getCandidateUniqueKey(c) === selKey || (c.uniqueKey || c._id) === selKey || c._id === selKey
       );
       if (foundCandidate?._id && isValidObjectId(String(foundCandidate._id))) {
         return String(foundCandidate._id);
@@ -1801,7 +1819,7 @@ const DatabaseCandidate = () => {
 
         const transferredCandidatesDetails = selectedCandidates.map((selKey, idx) => {
           const found = allKnownCandidates.find(
-            (c) => (c.uniqueKey || c._id) === selKey || c._id === selKey
+            (c) => getCandidateUniqueKey(c) === selKey || (c.uniqueKey || c._id) === selKey || c._id === selKey
           );
           return {
             id: found?._id || selKey,
@@ -2260,7 +2278,7 @@ const DatabaseCandidate = () => {
                   </tr>
                 ) : (
                   paginatedCandidates.map((item, index) => {
-                    const itemKey = item.uniqueKey || item._id;
+                    const itemKey = getCandidateUniqueKey(item) || `${item._id || "cand"}_${startIndex + index}`;
                     const isChecked = selectedCandidates.includes(itemKey);
                     return (
                       <tr
