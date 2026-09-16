@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { Plus, Briefcase, MapPin, DollarSign, Calendar, FileText, Code2, Clock } from "lucide-react";
 import Breadcrumb from "../common/Breadcrumb";
 import Footer from "../Footer";
@@ -55,6 +56,7 @@ function AddSingleVacancy() {
   const [citiesList, setCitiesList] = useState([]);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Extract unique existing company names for selection dropdown
   const existingCompanyNames = useMemo(() => {
@@ -190,16 +192,53 @@ function AddSingleVacancy() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
       return;
     }
-    addVacancy({
-      ...formData,
-      budget: formData.salaryRange
-    });
-    navigate("/current-vacancy?page=1");
+    
+    setIsSubmitting(true);
+    try {
+      let token = localStorage.getItem("token");
+      if (!token) {
+        const match = document.cookie.match(/(?:^|;)\s*(?:token|access_token)\s*=\s*([^;]+)/);
+        if (match) token = match[1];
+      }
+      
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
+      const payload = {
+        designation: formData.profile,
+        category: formData.category,
+        subCategory: formData.technology, 
+        numberOfVacancies: Number(formData.noOfVacancy),
+        experience: formData.experience,
+        budget: formData.salaryRange,
+        workMode: formData.workMode,
+        deadline: formData.deadline,
+        state: formData.state,
+        city: formData.city,
+        jobDescription: formData.requirements
+      };
+      
+      const headers = { "Content-Type": "application/json" };
+      if (token && token !== "null") {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await axios.post(`${BASE_URL}/api/admin/vacancies`, payload, {
+        headers
+      });
+      if (!response.data.success && response.data.success !== undefined) {
+        throw new Error(response.data.message || "Failed to create vacancy");
+      }
+      navigate("/current-vacancy?page=1");
+    } catch (error) {
+      console.error(error);
+      alert("Error adding vacancy: " + (error.response?.data?.message || error.message));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -506,16 +545,27 @@ function AddSingleVacancy() {
               <button
                 type="button"
                 onClick={() => navigate("/current-vacancy")}
-                className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition cursor-pointer"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition shadow-sm flex gap-2 items-center cursor-pointer"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition shadow-sm flex gap-2 items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Plus size={18} />
-                Save Vacancy
+                {isSubmitting ? (
+                  <>
+                    <Clock size={18} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Plus size={18} />
+                    Save Vacancy
+                  </>
+                )}
               </button>
             </div>
 

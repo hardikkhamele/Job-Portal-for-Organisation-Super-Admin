@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import {
   ClipboardList,
   Search,
@@ -46,8 +47,10 @@ function CurrentVacancy() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [vacancies, setVacancies] = useState(() => getVacancies());
-  const itemsPerPage = 5;
+  const [vacancies, setVacancies] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const itemsPerPage = 10;
 
   // Read URL search params in lowercase
   const statusFilter = (searchParams.get("status") || "all").toLowerCase();
@@ -81,63 +84,70 @@ function CurrentVacancy() {
     setSearchParams(params, { replace: true });
   };
 
-  // Stats Counts
-  const openCount = useMemo(() => vacancies.filter((v) => v.status === "Open").length, [vacancies]);
-  const closedCount = useMemo(() => vacancies.filter((v) => v.status === "Closed").length, [vacancies]);
-  const itCount = useMemo(() => vacancies.filter((v) => v.category.toLowerCase() === "it").length, [vacancies]);
-  const nonItCount = useMemo(() => vacancies.filter((v) => v.category.toLowerCase().includes("non")).length, [vacancies]);
-  const totalCount = vacancies.length;
-
-  // Filtered Vacancies based on URL params
-  const filteredVacancies = useMemo(() => {
-    let list = vacancies;
-
-    // Filter by Status (from Stat cards or URL status param)
-    if (statusFilter === "open") {
-      list = list.filter((v) => v.status === "Open");
-    } else if (statusFilter === "closed") {
-      list = list.filter((v) => v.status === "Closed");
-    }
-
-    // Filter by Category
-    if (categoryFilter !== "all") {
-      if (categoryFilter === "it") {
-        list = list.filter((v) => v.category.toLowerCase() === "it");
-      } else if (categoryFilter === "non-it" || categoryFilter === "non it") {
-        list = list.filter((v) => v.category.toLowerCase().includes("non"));
-      } else {
-        list = list.filter((v) => v.category.toLowerCase() === categoryFilter);
+  // Fetch from API
+  useEffect(() => {
+    const fetchVacancies = async () => {
+      try {
+        let token = localStorage.getItem("token");
+        if (!token) {
+          const match = document.cookie.match(/(?:^|;)\s*(?:token|access_token)\s*=\s*([^;]+)/);
+          if (match) token = match[1];
+        }
+        
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
+      
+        const params = new URLSearchParams({
+          page: currentPage,
+          limit: itemsPerPage
+        });
+        
+        if (searchQuery) params.set("search", searchQuery);
+        if (categoryFilter && categoryFilter !== "all") {
+           params.set("category", categoryFilter === "it" ? "IT" : "Non IT");
+        }
+        if (workModeFilter && workModeFilter !== "all") {
+           params.set("workMode", workModeFilter.charAt(0).toUpperCase() + workModeFilter.slice(1));
+        }
+        if (statusFilter && statusFilter !== "all") {
+           params.set("status", statusFilter === "open" ? "active" : "closed");
+        }
+        
+        const headers = {};
+        if (token && token !== "null") {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+        
+        const res = await axios.get(`${BASE_URL}/api/admin/vacancies?${params.toString()}`, {
+          headers
+        });
+        
+        const data = res.data;
+        if (data.success && data.data) {
+          setVacancies(data.data);
+          setTotalPages(data.pagination?.totalPages || 1);
+          setTotalCount(data.pagination?.total || data.data.length);
+        } else {
+          setVacancies([]);
+          setTotalPages(1);
+          setTotalCount(0);
+        }
+      } catch (error) {
+        console.error("Fetch vacancies failed:", error);
       }
-    }
+    };
+    
+    fetchVacancies();
+  }, [currentPage, searchQuery, categoryFilter, workModeFilter, statusFilter]);
 
-    // Filter by Work Mode
-    if (workModeFilter !== "all") {
-      list = list.filter((v) => v.workMode.toLowerCase() === workModeFilter);
-    }
+  // Stats Counts (from current visible page limit due to lack of a stats endpoint)
+  const openCount = useMemo(() => vacancies.filter((v) => (v.status || "active").toLowerCase() === "active").length, [vacancies]);
+  const closedCount = useMemo(() => vacancies.filter((v) => (v.status || "").toLowerCase() !== "active").length, [vacancies]);
+  const itCount = useMemo(() => vacancies.filter((v) => (v.category || "").toLowerCase() === "it").length, [vacancies]);
+  const nonItCount = useMemo(() => vacancies.filter((v) => (v.category || "").toLowerCase().includes("non")).length, [vacancies]);
 
-    // Filter by Search Query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(
-        (v) =>
-          v.companyName.toLowerCase().includes(q) ||
-          v.profile.toLowerCase().includes(q) ||
-          v.category.toLowerCase().includes(q) ||
-          v.city.toLowerCase().includes(q) ||
-          v.state.toLowerCase().includes(q) ||
-          v.addedBy.toLowerCase().includes(q) ||
-          v.technology.toLowerCase().includes(q)
-      );
-    }
-
-    return list;
-  }, [vacancies, statusFilter, categoryFilter, workModeFilter, searchQuery]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredVacancies.length / itemsPerPage));
-  const paginatedVacancies = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredVacancies.slice(start, start + itemsPerPage);
-  }, [filteredVacancies, currentPage]);
+  // API handles filtering and pagination
+  const filteredVacancies = vacancies;
+  const paginatedVacancies = vacancies;
 
   // Check if any filter is active
   const hasActiveFilters =
@@ -146,27 +156,22 @@ function CurrentVacancy() {
     workModeFilter !== "all" ||
     searchQuery.trim() !== "";
 
-  // Toggle Status Handler
   const handleToggleStatus = (id) => {
     const updated = vacancies.map((v) =>
-      v.id === id ? { ...v, status: v.status === "Open" ? "Closed" : "Open" } : v
+      v._id === id ? { ...v, status: v.status === "active" ? "inactive" : "active" } : v
     );
     setVacancies(updated);
-    saveVacancies(updated);
   };
 
-  // Delete Vacancy Handler
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this vacancy?")) {
-      const updated = vacancies.filter((v) => v.id !== id);
+      const updated = vacancies.filter((v) => v._id !== id);
       setVacancies(updated);
-      saveVacancies(updated);
     }
   };
 
-  // View Details Handler
   const handleView = (vacancy) => {
-    navigate(`/current-vacancy/view/${vacancy.id}`, { state: { vacancy } });
+    navigate(`/current-vacancy/view/${vacancy._id || vacancy.vacancyId}`, { state: { vacancy } });
   };
 
   return (
@@ -473,9 +478,11 @@ function CurrentVacancy() {
                     </td>
                   </tr>
                 ) : (
-                  paginatedVacancies.map((v, idx) => (
+                  paginatedVacancies.map((v, idx) => {
+                    const formattedDeadline = v.deadline ? new Date(v.deadline).toISOString().split('T')[0] : '';
+                    return (
                     <tr
-                      key={v.id}
+                      key={v._id || idx}
                       className="border-b border-gray-100 hover:bg-purple-50/30 transition-colors duration-150"
                     >
                       {/* Sr */}
@@ -496,7 +503,7 @@ function CurrentVacancy() {
                       {/* Profile / Designation */}
                       <td className="py-4 px-3">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-sm text-purple-700">{v.profile}</span>
+                          <span className="font-semibold text-sm text-purple-700">{v.designation || v.profile}</span>
                           <span className="text-[11px] text-gray-400 mt-0.5">ID: {v.vacancyId}</span>
                         </div>
                       </td>
@@ -511,7 +518,7 @@ function CurrentVacancy() {
                       <td className="py-4 px-3 text-center">
                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold">
                           <Users size={12} />
-                          {v.noOfVacancy}
+                          {v.numberOfVacancies || v.noOfVacancy}
                         </span>
                       </td>
 
@@ -519,7 +526,7 @@ function CurrentVacancy() {
                       <td className="py-4 px-3 text-center">
                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
                           <CheckCircle2 size={12} />
-                          {v.applicationSubmitted}
+                          {v.applicationSubmittedCount || v.applicationSubmitted || 0}
                         </span>
                       </td>
 
@@ -534,7 +541,7 @@ function CurrentVacancy() {
                       <td className="py-4 px-3 text-center">
                         <span className="inline-flex items-center gap-1.5 text-gray-700 font-medium text-xs">
                           <Calendar size={13} className="text-purple-400" />
-                          {v.deadline}
+                          {formattedDeadline}
                         </span>
                       </td>
 
@@ -550,15 +557,15 @@ function CurrentVacancy() {
                             View
                           </button>
                           <button
-                            onClick={() => handleToggleStatus(v.id)}
+                            onClick={() => handleToggleStatus(v._id)}
                             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shadow-sm ${
-                              v.status === "Open"
+                              v.status === "active" || v.status === "Open"
                                 ? "bg-purple-600 text-white hover:bg-purple-700"
                                 : "bg-green-600 text-white hover:bg-green-700"
                             }`}
-                            title={v.status === "Open" ? "Mark as Closed" : "Re-open Vacancy"}
+                            title={v.status === "active" || v.status === "Open" ? "Mark as Closed" : "Re-open Vacancy"}
                           >
-                            {v.status === "Open" ? (
+                            {v.status === "active" || v.status === "Open" ? (
                               <>
                                 <Send size={14} />
                                 Submit Details
@@ -573,7 +580,7 @@ function CurrentVacancy() {
                         </div>
                       </td>
                     </tr>
-                  ))
+                  )})
                 )}
               </tbody>
             </table>
@@ -583,7 +590,7 @@ function CurrentVacancy() {
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
             <span className="text-xs text-gray-500">
               Showing {filteredVacancies.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to{" "}
-              {Math.min(filteredVacancies.length, currentPage * itemsPerPage)} of {filteredVacancies.length} vacancies
+              {Math.min(totalCount, currentPage * itemsPerPage)} of {totalCount} vacancies
             </span>
             <div className="flex items-center gap-1">
               <button
