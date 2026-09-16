@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Briefcase, Calendar, Search, Mail, FileText, Check, Trash2, ExternalLink } from "lucide-react";
+import { ArrowLeft, MapPin, Briefcase, Calendar, Search, Mail, FileText, Check, Trash2, ExternalLink, Eye } from "lucide-react";
 import { useLocation, useNavigate, useParams, Navigate } from "react-router-dom";
 import axios from "axios";
 import Footer from "../Footer";
@@ -177,8 +177,8 @@ function VacancyDetails() {
 
         {/* --- CANDIDATES TABLE --- */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-1">
-          <div className="overflow-x-visible">
-            <table className="w-full text-sm text-left table-auto">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left min-w-[1200px] table-auto">
               <thead>
                 <tr className="bg-[#F8F9FC] border-b border-gray-100">
                   <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Sr. No.</th>
@@ -186,6 +186,10 @@ function VacancyDetails() {
                   <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Email</th>
                   <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Contact</th>
                   <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">City / Location</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Experience</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Current Org</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Notice Period</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Expected CTC</th>
                   <th className="py-4 px-6 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">CV / Resume</th>
                   <th className="py-4 px-6 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
@@ -222,6 +226,18 @@ function VacancyDetails() {
                     <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] truncate max-w-[120px]" title={candidate.city || "N/A"}>
                       {candidate.city || "N/A"}
                     </td>
+                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] whitespace-nowrap">
+                      {candidate.totalExperience ? `${candidate.totalExperience} Yrs` : "N/A"}
+                    </td>
+                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] truncate max-w-[140px]" title={candidate.currentOrganization}>
+                      {candidate.currentOrganization || "N/A"}
+                    </td>
+                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] whitespace-nowrap">
+                      {candidate.noticePeriod || "N/A"}
+                    </td>
+                    <td className="py-4 px-6 align-middle font-bold text-gray-800 text-[13px] whitespace-nowrap">
+                      {candidate.expectedCTC || "N/A"}
+                    </td>
                     <td className="py-4 px-6 align-middle text-center whitespace-nowrap">
                       {candidate.resumeLink ? (
                         <a href={candidate.resumeLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg bg-gray-50 text-purple-600 hover:bg-gray-100 border border-gray-200 transition text-[13px] font-bold shadow-sm m-auto hover:text-purple-700 group">
@@ -233,6 +249,13 @@ function VacancyDetails() {
                     </td>
                     <td className="py-4 px-6 align-middle whitespace-nowrap">
                       <div className="flex items-center justify-center gap-2">
+                        <button
+                          title="View Candidate"
+                          onClick={() => navigate(`/current-vacancy/candidate/${candidate._id || candidate.applicationId}`)}
+                          className="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition shadow-sm border border-blue-100 cursor-pointer"
+                        >
+                          <Eye size={15} />
+                        </button>
                         {candidate.status === "accepted" ? (
                           <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 text-[13px] font-bold tracking-wide shadow-sm">
                             <Check size={15} /> Accepted

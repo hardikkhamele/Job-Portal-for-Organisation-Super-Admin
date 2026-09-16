@@ -84,7 +84,7 @@ import VacancyDetails from "../components/CurrentVacancy/VacancyDetails";
 import AddVacancy from "../components/CurrentVacancy/AddVacancy";
 import AddSingleVacancy from "../components/CurrentVacancy/AddSingleVacancy";
 import EditVacancy from "../components/CurrentVacancy/EditVacancy";
-
+import ViewVacancyCandidate from "../components/CurrentVacancy/ViewVacancyCandidate";
 function DashboardLayout() {
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -186,6 +186,7 @@ function DashboardLayout() {
             <Route path="current-vacancy/add-vacancy" element={<AddSingleVacancy />} />
             <Route path="current-vacancy/edit-vacancy/:id" element={<EditVacancy />} />
             <Route path="current-vacancy/view/:id" element={<VacancyDetails />} />
+            <Route path="current-vacancy/candidate/:id" element={<ViewVacancyCandidate />} />
             <Route path="sales-team-onboarding/:employeeId" element={<SalesEmployeeCompanies />} />
             <Route path="sales-team-onboarding/:employeeId/company/:companyId" element={<SalesCompanyDetails />} />
             <Route path="sales-team-onboarding/vendors" element={<VendorModule />} />

@@ -58,6 +58,8 @@ function AddSingleVacancy() {
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isStateOpen, setIsStateOpen] = useState(false);
+  const [isCityOpen, setIsCityOpen] = useState(false);
 
   // Filter for unique strings is not needed for hiring type, standard static list used instead
   const hiringOptions = ["Internal", "External"];
@@ -326,60 +328,77 @@ function AddSingleVacancy() {
             {/* Job Location: State & City */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* State (Auto Detected or Manual Dropdown) */}
-              <div className="space-y-1">
+              <div className="space-y-1 relative" tabIndex={0} onBlur={(e) => { if(!e.currentTarget.contains(e.relatedTarget)) setIsStateOpen(false); }}>
                 <label className="text-xs font-bold uppercase text-gray-700 block">Job Location State</label>
-                <input
-                  type="text"
-                  list="state-options"
-                  placeholder={loadingStates ? "Loading States..." : "Select State"}
-                  value={formData.state}
-                  onChange={(e) => handleChange("state", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 ${
-                    errors.state ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
-                  }`}
-                />
-                <datalist id="state-options">
-                  {statesList.length > 0 ? (
-                    statesList.map((st) => <option key={st} value={st} />)
-                  ) : (
-                    <>
-                      <option value="Andhra Pradesh" />
-                      <option value="Delhi" />
-                      <option value="Gujarat" />
-                      <option value="Haryana" />
-                      <option value="Karnataka" />
-                      <option value="Maharashtra" />
-                      <option value="Tamil Nadu" />
-                      <option value="Telangana" />
-                      <option value="Uttar Pradesh" />
-                      <option value="West Bengal" />
-                    </>
-                  )}
-                </datalist>
+                <div
+                  onClick={() => setIsStateOpen(!isStateOpen)}
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm font-medium bg-slate-50/50 cursor-pointer flex justify-between items-center transition-all ${
+                    errors.state ? "border-red-500" : "border-gray-200"
+                  } ${isStateOpen ? "ring-2 ring-purple-400 border-purple-400" : ""}`}
+                >
+                  <span className={formData.state ? "text-gray-900 font-bold" : "text-gray-500"}>
+                    {formData.state || (loadingStates ? "Loading States..." : "Select State")}
+                  </span>
+                  <svg className={`w-4 h-4 text-gray-500 transition-transform ${isStateOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                
+                {isStateOpen && (
+                  <div className="absolute z-[99] w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] max-h-[260px] overflow-y-auto top-[100%] left-0 py-1">
+                    {(statesList.length > 0 ? statesList : [
+                      "Andhra Pradesh", "Delhi", "Gujarat", "Haryana", "Karnataka",
+                      "Maharashtra", "Tamil Nadu", "Telangana", "Uttar Pradesh", "West Bengal"
+                    ]).map((st) => (
+                      <div
+                        key={st}
+                        className="px-4 py-2.5 text-[13px] font-semibold cursor-pointer hover:bg-purple-50 hover:text-purple-700 text-gray-700 transition"
+                        onClick={() => {
+                          handleChange("state", st);
+                          setIsStateOpen(false);
+                        }}
+                      >
+                        {st}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {errors.state && (
                   <p className="text-red-600 text-xs font-semibold mt-1">{errors.state}</p>
                 )}
               </div>
 
-              {/* City */}
-              <div className="space-y-1">
+              <div className="space-y-1 relative" tabIndex={0} onBlur={(e) => { if(!e.currentTarget.contains(e.relatedTarget)) setIsCityOpen(false); }}>
                 <label className="text-xs font-bold uppercase text-gray-700 block">Job Location City</label>
-                <input
-                  type="text"
-                  list="city-options"
-                  placeholder="Enter city (e.g. Mumbai, Pune, Bengaluru)"
-                  value={formData.city}
-                  onChange={(e) => handleChange("city", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 ${
-                    errors.city ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
-                  }`}
-                />
-                {citiesList.length > 0 && (
-                  <datalist id="city-options">
-                    {citiesList.map((ct) => (
-                      <option key={ct} value={ct} />
-                    ))}
-                  </datalist>
+                <div
+                  onClick={() => setIsCityOpen(!isCityOpen)}
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm font-medium bg-slate-50/50 cursor-pointer flex justify-between items-center transition-all ${
+                    errors.city ? "border-red-500" : "border-gray-200"
+                  } ${isCityOpen ? "ring-2 ring-purple-400 border-purple-400" : ""}`}
+                >
+                  <span className={formData.city ? "text-gray-900 font-bold" : "text-gray-500"}>
+                    {formData.city || "Enter city (e.g. Mumbai, Pune, Bengaluru)"}
+                  </span>
+                  <svg className={`w-4 h-4 text-gray-500 transition-transform ${isCityOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                
+                {isCityOpen && (
+                  <div className="absolute z-[99] w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] max-h-[260px] overflow-y-auto top-[100%] left-0 py-1">
+                    {citiesList.length === 0 ? (
+                      <div className="px-4 py-3 text-[13px] font-semibold text-gray-400 italic">Please select a state first</div>
+                    ) : (
+                      citiesList.map((ct) => (
+                        <div
+                          key={ct}
+                          className="px-4 py-2.5 text-[13px] font-semibold cursor-pointer hover:bg-purple-50 hover:text-purple-700 text-gray-700 transition"
+                          onClick={() => {
+                            handleChange("city", ct);
+                            setIsCityOpen(false);
+                          }}
+                        >
+                          {ct}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 )}
                 {errors.city && (
                   <p className="text-red-600 text-xs font-semibold mt-1">{errors.city}</p>
