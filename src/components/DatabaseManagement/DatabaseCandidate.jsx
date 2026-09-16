@@ -1055,6 +1055,65 @@ const DatabaseCandidate = () => {
     }
   };
 
+  const unpackCandidatePayload = (payload) => {
+    if (!payload) return [];
+    let directList = [];
+    if (Array.isArray(payload)) {
+      directList = payload;
+    } else if (Array.isArray(payload?.candidates)) {
+      directList = payload.candidates;
+    } else if (Array.isArray(payload?.data)) {
+      directList = payload.data;
+    } else if (Array.isArray(payload?.data?.candidates)) {
+      directList = payload.data.candidates;
+    }
+
+    const result = [];
+    const seenKeys = new Set();
+
+    directList.forEach((item, idx) => {
+      if (!item) return;
+
+      const rows =
+        (Array.isArray(item.excelData) && item.excelData.length > 0 && item.excelData) ||
+        (Array.isArray(item.candidates) && item.candidates.length > 0 && item.candidates) ||
+        (Array.isArray(item.excel_data) && item.excel_data.length > 0 && item.excel_data) ||
+        (Array.isArray(item.parsedData) && item.parsedData.length > 0 && item.parsedData) ||
+        (Array.isArray(item.rows) && item.rows.length > 0 && item.rows) ||
+        (Array.isArray(item.data) && item.data.length > 0 && item.data);
+
+      if (rows) {
+        const dbId = item._id || item.id || `batch_${idx}`;
+        rows.forEach((row, rIdx) => {
+          if (!row) return;
+          const key = row.uniqueKey || row._id || `${dbId}_${rIdx}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            result.push({
+              ...row,
+              _id: row._id || dbId,
+              uniqueKey: key,
+              dbItemId: dbId,
+            });
+          }
+        });
+      } else {
+        const key = item.uniqueKey || (item._id && !seenKeys.has(String(item._id)) ? String(item._id) : `${item._id || item.id || "cand"}_${idx}`);
+        if (!seenKeys.has(String(key))) {
+          seenKeys.add(String(key));
+          result.push({
+            ...item,
+            _id: item._id || item.id || key,
+            uniqueKey: String(key),
+            dbItemId: item.dbItemId || item._id || item.id,
+          });
+        }
+      }
+    });
+
+    return result;
+  };
+
   const handleApplyTransferRange = async (lowerVal = transferLowerLimit, higherVal = transferHigherLimit) => {
     const rawLower = String(lowerVal ?? "").trim();
     const rawHigher = String(higherVal ?? "").trim();
@@ -1102,71 +1161,56 @@ const DatabaseCandidate = () => {
 
     setSelectAllLoading(true);
     try {
-      let availableCandidates = candidates || [];
-      if (availableCandidates.length < higher) {
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const token = localStorage.getItem("token");
-        const params = { limit: higher, page: 1 };
-        if (search?.trim()) params.search = search.trim();
-        if (selectedCategory) params.category = selectedCategory;
-        if (selectedDesignation) params.designation = selectedDesignation;
-        if (selectedCity || selectedState || selectedCountry) {
-          params.location = selectedCity || selectedState || selectedCountry;
-        }
-        if (selectedCity) params.city = selectedCity;
-        if (selectedState) params.state = selectedState;
-        if (selectedCountry) params.country = selectedCountry;
-        if (selectedWorkMode) params.workMode = selectedWorkMode;
-        if (selectedExperience) params.experience = selectedExperience;
-        if (startDate) {
-          const formatDate = (d) => {
-            const [y, m, day] = d.split("-");
-            return `${day}/${m}/${y}`;
-          };
-          params.startDate = formatDate(startDate);
-          params.fromDate = formatDate(startDate);
-        }
-        if (endDate) {
-          const formatDate = (d) => {
-            const [y, m, day] = d.split("-");
-            return `${day}/${m}/${y}`;
-          };
-          params.endDate = formatDate(endDate);
-          params.toDate = formatDate(endDate);
-        }
-
-        const response = await axios.get(
-          `${BASE_URL}/api/admin/candidate-database/getCandidates`,
-          { params, headers: { Authorization: `Bearer ${token}` } }
-        );
-        const payload = response.data;
-        let fetchedList = [];
-        if (Array.isArray(payload)) {
-          fetchedList = payload;
-        } else if (Array.isArray(payload?.candidates)) {
-          fetchedList = payload.candidates;
-        } else if (Array.isArray(payload?.data)) {
-          fetchedList = payload.data;
-        } else if (Array.isArray(payload?.data?.candidates)) {
-          fetchedList = payload.data.candidates;
-        }
-
-        if (fetchedList.length > 0) {
-          availableCandidates = fetchedList;
-          setFetchedTransferCandidates(fetchedList);
-        }
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const token = localStorage.getItem("token");
+      const params = { limit: Math.max(higher, 50), page: 1 };
+      if (search?.trim()) params.search = search.trim();
+      if (selectedCategory) params.category = selectedCategory;
+      if (selectedDesignation) params.designation = selectedDesignation;
+      if (selectedCity || selectedState || selectedCountry) {
+        params.location = selectedCity || selectedState || selectedCountry;
       }
+      if (selectedCity) params.city = selectedCity;
+      if (selectedState) params.state = selectedState;
+      if (selectedCountry) params.country = selectedCountry;
+      if (selectedWorkMode) params.workMode = selectedWorkMode;
+      if (selectedExperience) params.experience = selectedExperience;
+      if (startDate) {
+        const formatDate = (d) => {
+          const [y, m, day] = d.split("-");
+          return `${day}/${m}/${y}`;
+        };
+        params.startDate = formatDate(startDate);
+        params.fromDate = formatDate(startDate);
+      }
+      if (endDate) {
+        const formatDate = (d) => {
+          const [y, m, day] = d.split("-");
+          return `${day}/${m}/${y}`;
+        };
+        params.endDate = formatDate(endDate);
+        params.toDate = formatDate(endDate);
+      }
+
+      const response = await axios.get(
+        `${BASE_URL}/api/admin/candidate-database/getCandidates`,
+        { params, headers: { Authorization: `Bearer ${token}` } }
+      );
+      const unpacked = unpackCandidatePayload(response.data);
+      const availableCandidates = unpacked.length > 0 ? unpacked : (candidates || []);
+      setFetchedTransferCandidates(availableCandidates);
 
       const slicedCandidates = availableCandidates.slice(lower - 1, higher);
       const idsToSelect = slicedCandidates
-        .filter((item) => item.uniqueKey || item._id)
-        .map((item) => item.uniqueKey || item._id);
+        .map((item) => item.uniqueKey || item._id)
+        .filter(Boolean);
 
       if (idsToSelect.length > 0) {
         setSelectedCandidates(idsToSelect);
-        const rangeText = `Sr. No. ${lower} to ${lower + idsToSelect.length - 1} (${idsToSelect.length} candidates)`;
+        const actualCount = idsToSelect.length;
+        const rangeText = `Sr. No. ${lower} to ${lower + actualCount - 1} (${actualCount} candidates)`;
         setTransferRangeInfo(rangeText);
-        toast.success(`Selected ${idsToSelect.length} candidate(s) (from #${lower} to #${lower + idsToSelect.length - 1}) for transfer.`);
+        toast.success(`Selected ${actualCount} candidate(s) (from #${lower} to #${lower + actualCount - 1}) for transfer.`);
       } else {
         toast.warning("No candidates found in the specified range.");
       }
@@ -1358,10 +1402,13 @@ const DatabaseCandidate = () => {
       );
 
       const payload = response.data;
+      const unpackedAll = unpackCandidatePayload(payload);
       const allList =
-        payload?.data ||
-        payload?.candidates ||
-        (Array.isArray(payload) ? payload : []);
+        unpackedAll.length > 0
+          ? unpackedAll
+          : payload?.data ||
+            payload?.candidates ||
+            (Array.isArray(payload) ? payload : []);
 
       const allIds = allList
         .filter((item) => item.uniqueKey || item._id)
@@ -2158,19 +2205,22 @@ const DatabaseCandidate = () => {
                     </td>
                   </tr>
                 ) : (
-                  paginatedCandidates.map((item, index) => (
-                    <tr
-                      key={item.uniqueKey || item._id}
-                      className="border-t border-gray-300 text-center text-sm"
-                    >
-                      <td className="p-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedCandidates.includes(item._id)}
-                          onChange={() => handleSelectCandidate(item._id)}
-                          className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle"
-                        />
-                      </td>
+                  paginatedCandidates.map((item, index) => {
+                    const itemKey = item.uniqueKey || item._id;
+                    const isChecked = selectedCandidates.includes(itemKey);
+                    return (
+                      <tr
+                        key={itemKey}
+                        className={`border-t border-gray-300 text-center text-sm ${isChecked ? "bg-purple-50/50" : ""}`}
+                      >
+                        <td className="p-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleSelectCandidate(itemKey)}
+                            className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle"
+                          />
+                        </td>
                       <td className="p-3">{startIndex + index + 1}</td>
                       <td className="p-3">{getCandidateName(item)}</td>
                       <td className="p-3">{getCandidateCategory(item, categories) || "N/A"}</td>
@@ -2205,8 +2255,9 @@ const DatabaseCandidate = () => {
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
+                  );
+                })
+              )}
                 {!loading && paginatedCandidates.length === 0 && (
                   <tr>
                     <td colSpan="9" className="text-center p-5">
