@@ -450,7 +450,7 @@ const Sidebar = () => {
             onClick={() => handleNavigation("/sales-team-onboarding/vendors")}
           />
 
-          {/* 4. Job Seeker Management */}
+
           <NavItem icon={<UserSearch />} text="Category" active={window.location.pathname.startsWith("/job-seeker")} onClick={() => handleNavigation("/job-seeker")} />
 
           {/* 5. Database Management Dropdown */}
