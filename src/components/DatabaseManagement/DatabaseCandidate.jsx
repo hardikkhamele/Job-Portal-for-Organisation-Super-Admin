@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Eye, ChevronLeft, ChevronRight, Send, X, Trash2, History, CheckCircle2, UserCheck, Calendar, Clock, Search, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
@@ -615,6 +615,17 @@ const DatabaseCandidate = () => {
   const { hrList } = useSelector((state) => state.allHr);
   const { employers } = useSelector((state) => state.allEmployer);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isFirstRender = useRef(true);
+
+  const getInitialPage = () => {
+    const urlPage = parseInt(searchParams.get("page"), 10);
+    if (!isNaN(urlPage) && urlPage > 0) return urlPage;
+    const sessionPage = parseInt(sessionStorage.getItem("database_candidate_page"), 10);
+    if (!isNaN(sessionPage) && sessionPage > 0) return sessionPage;
+    return 1;
+  };
+
   // Local States
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -630,7 +641,7 @@ const DatabaseCandidate = () => {
   const [endDate, setEndDate] = useState("");
   const [transferCountPreset, setTransferCountPreset] = useState("");
   const [fetchedTransferCandidates, setFetchedTransferCandidates] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(getInitialPage);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [selectAllLoading, setSelectAllLoading] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -881,8 +892,36 @@ const DatabaseCandidate = () => {
     dispatch(fetchDesignations());
   }, [dispatch]);
 
-  // Reset page to 1 when filters change
+  // Sync page changes with URL and sessionStorage
   useEffect(() => {
+    sessionStorage.setItem("database_candidate_page", String(currentPage));
+    const urlPage = parseInt(searchParams.get("page"), 10);
+    if (urlPage !== currentPage) {
+      setSearchParams(
+        (prev) => {
+          const updated = new URLSearchParams(prev);
+          updated.set("page", String(currentPage));
+          return updated;
+        },
+        { replace: true }
+      );
+    }
+  }, [currentPage, searchParams, setSearchParams]);
+
+  // Sync state if URL search param changes externally (e.g. browser back/forward)
+  useEffect(() => {
+    const pageFromUrl = parseInt(searchParams.get("page"), 10);
+    if (!isNaN(pageFromUrl) && pageFromUrl > 0 && pageFromUrl !== currentPage) {
+      setCurrentPage(pageFromUrl);
+    }
+  }, [searchParams]);
+
+  // Reset page to 1 when filters change (skipping initial mount so refresh retains the current page)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     setCurrentPage(1);
   }, [
     debouncedSearch,
