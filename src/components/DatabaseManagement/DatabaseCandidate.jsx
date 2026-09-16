@@ -1139,7 +1139,8 @@ const DatabaseCandidate = () => {
     if (!rawLower || !rawHigher) {
       const msg = "Please enter both lower and higher values.";
       setTransferRangeError(msg);
-      toast.error(msg);
+      toast.dismiss();
+      toast.error(msg, { toastId: "range_val_toast" });
       return;
     }
 
@@ -1149,21 +1150,24 @@ const DatabaseCandidate = () => {
     if (isNaN(lower) || isNaN(higher)) {
       const msg = "Please enter valid numeric values for the transfer range.";
       setTransferRangeError(msg);
-      toast.error(msg);
+      toast.dismiss();
+      toast.error(msg, { toastId: "range_val_toast" });
       return;
     }
 
     if (lower <= 0 || higher <= 0) {
       const msg = "Lower and higher values must be greater than 0.";
       setTransferRangeError(msg);
-      toast.error(msg);
+      toast.dismiss();
+      toast.error(msg, { toastId: "range_val_toast" });
       return;
     }
 
     if (lower > higher) {
       const msg = `Validation Error: Lower value (${lower}) cannot be greater than Higher value (${higher})! Please select in lower-to-higher order.`;
       setTransferRangeError(msg);
-      toast.error(msg);
+      toast.dismiss();
+      toast.error(msg, { toastId: "range_val_toast" });
       return;
     }
 
@@ -1173,7 +1177,8 @@ const DatabaseCandidate = () => {
     if (totalCount > 0 && lower > totalCount) {
       const msg = `Lower value (${lower}) exceeds total candidates available (${totalCount}).`;
       setTransferRangeError(msg);
-      toast.warning(msg);
+      toast.dismiss();
+      toast.warning(msg, { toastId: "range_val_toast" });
       return;
     }
 
@@ -1280,15 +1285,19 @@ const DatabaseCandidate = () => {
         const actualCount = idsToSelect.length;
         const rangeText = `Sr. No. ${lower} to ${lower + actualCount - 1} (${actualCount} candidates)`;
         setTransferRangeInfo(rangeText);
+        toast.dismiss();
         toast.success(
-          `Selected ${actualCount} candidate(s) (from #${lower} to #${lower + actualCount - 1}) for transfer.`
+          `Selected ${actualCount} candidate(s) (from #${lower} to #${lower + actualCount - 1}) for transfer.`,
+          { toastId: "range_transfer_toast" }
         );
       } else {
-        toast.warning("No candidates found in the specified range.");
+        toast.dismiss();
+        toast.warning("No candidates found in the specified range.", { toastId: "range_transfer_toast" });
       }
     } catch (err) {
       console.error("Error fetching candidates for range transfer:", err);
-      toast.error("Failed to load candidates for the selected range.");
+      toast.dismiss();
+      toast.error("Failed to load candidates for the selected range.", { toastId: "range_transfer_toast" });
     } finally {
       setSelectAllLoading(false);
     }
@@ -1803,7 +1812,8 @@ const DatabaseCandidate = () => {
             : "Employee Management";
         const messageText = `${selectedCandidates.length} candidate(s) transferred to ${targetPersonName} (${destModuleName}) successfully!`;
 
-        toast.success(messageText);
+        toast.dismiss();
+        toast.success(messageText, { toastId: "transfer_complete_toast" });
         addNotification(
           "Candidate Transferred Successfully",
           messageText,
@@ -1891,11 +1901,15 @@ const DatabaseCandidate = () => {
     !isCurrentPageAllSelected &&
     currentPageKeys.some((key) => selectedCandidates.includes(key));
 
-  const handleSelectCurrentPage = () => {
+  const handleSelectCurrentPage = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     if (!currentPageKeys.length) return;
+    toast.dismiss();
     if (isCurrentPageAllSelected) {
       setSelectedCandidates((prev) => prev.filter((key) => !currentPageKeys.includes(key)));
-      toast.info(`Deselected all ${currentPageKeys.length} candidates on Page ${currentPage}`);
+      toast.info(`Deselected all ${currentPageKeys.length} candidates on Page ${currentPage}`, {
+        toastId: "page_select_toast",
+      });
     } else {
       setSelectedCandidates((prev) => Array.from(new Set([...prev, ...currentPageKeys])));
       setFetchedTransferCandidates((prev) => {
@@ -1903,7 +1917,9 @@ const DatabaseCandidate = () => {
         const newItems = paginatedCandidates.filter((c) => !existing.has(getCandidateUniqueKey(c)));
         return [...prev, ...newItems];
       });
-      toast.success(`Selected all ${currentPageKeys.length} candidates on Page ${currentPage}`);
+      toast.success(`Selected all ${currentPageKeys.length} candidates on Page ${currentPage}`, {
+        toastId: "page_select_toast",
+      });
     }
   };
 
@@ -2267,15 +2283,7 @@ const DatabaseCandidate = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-100 text-gray-700 text-sm">
-                  <th
-                    className="p-3 text-center w-10 cursor-pointer"
-                    onClick={handleSelectCurrentPage}
-                    title={
-                      isCurrentPageAllSelected
-                        ? `Deselect all ${currentPageKeys.length} entries on Page ${currentPage}`
-                        : `Select all ${currentPageKeys.length} entries on Page ${currentPage}`
-                    }
-                  >
+                  <th className="p-3 text-center w-10">
                     <input
                       type="checkbox"
                       checked={isCurrentPageAllSelected}
@@ -2283,6 +2291,11 @@ const DatabaseCandidate = () => {
                       onChange={handleSelectCurrentPage}
                       disabled={currentPageKeys.length === 0}
                       className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle disabled:cursor-not-allowed"
+                      title={
+                        isCurrentPageAllSelected
+                          ? `Deselect all ${currentPageKeys.length} entries on Page ${currentPage}`
+                          : `Select all ${currentPageKeys.length} entries on Page ${currentPage}`
+                      }
                     />
                   </th>
                   <th

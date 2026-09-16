@@ -41,6 +41,7 @@ export default function App() {
       <ToastContainer
         position="top-right"
         autoClose={3000}
+        limit={1}
         newestOnTop
         closeOnClick
         pauseOnHover
