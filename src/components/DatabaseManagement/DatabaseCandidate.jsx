@@ -1163,54 +1163,108 @@ const DatabaseCandidate = () => {
     try {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL;
       const token = localStorage.getItem("token");
-      const params = { limit: Math.max(higher, 50), page: 1 };
-      if (search?.trim()) params.search = search.trim();
-      if (selectedCategory) params.category = selectedCategory;
-      if (selectedDesignation) params.designation = selectedDesignation;
-      if (selectedCity || selectedState || selectedCountry) {
-        params.location = selectedCity || selectedState || selectedCountry;
-      }
-      if (selectedCity) params.city = selectedCity;
-      if (selectedState) params.state = selectedState;
-      if (selectedCountry) params.country = selectedCountry;
-      if (selectedWorkMode) params.workMode = selectedWorkMode;
-      if (selectedExperience) params.experience = selectedExperience;
-      if (startDate) {
-        const formatDate = (d) => {
-          const [y, m, day] = d.split("-");
-          return `${day}/${m}/${y}`;
+      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const pageSize = itemsPerPage || 10;
+      const startPage = Math.floor((lower - 1) / pageSize) + 1;
+      const endPage = Math.floor((higher - 1) / pageSize) + 1;
+
+      const buildParams = (pageNo) => {
+        const p = {
+          page: pageNo,
+          limit: pageSize,
         };
-        params.startDate = formatDate(startDate);
-        params.fromDate = formatDate(startDate);
-      }
-      if (endDate) {
-        const formatDate = (d) => {
-          const [y, m, day] = d.split("-");
-          return `${day}/${m}/${y}`;
-        };
-        params.endDate = formatDate(endDate);
-        params.toDate = formatDate(endDate);
+        if (search?.trim()) p.search = search.trim();
+        if (selectedCategory) {
+          p.category = selectedCategory;
+          p.categoryName = selectedCategory;
+        }
+        if (selectedDesignation) {
+          p.designation = selectedDesignation;
+          p.designationName = selectedDesignation;
+        }
+        if (selectedCity || selectedState || selectedCountry) {
+          p.location = selectedCity || selectedState || selectedCountry;
+        }
+        if (selectedCity) p.city = selectedCity;
+        if (selectedState) p.state = selectedState;
+        if (selectedCountry) p.country = selectedCountry;
+        if (selectedWorkMode) p.workMode = selectedWorkMode;
+        if (selectedExperience !== undefined && selectedExperience !== null && selectedExperience !== "") {
+          p.experience = selectedExperience;
+          p.totalExperience = selectedExperience;
+        }
+        if (startDate) {
+          const [y, m, d] = startDate.split("-");
+          p.startDate = `${d}/${m}/${y}`;
+          p.fromDate = `${d}/${m}/${y}`;
+        }
+        if (endDate) {
+          const [y, m, d] = endDate.split("-");
+          p.endDate = `${d}/${m}/${y}`;
+          p.toDate = `${d}/${m}/${y}`;
+        }
+        return p;
+      };
+
+      const pageNumbers = [];
+      for (let p = startPage; p <= endPage; p++) {
+        pageNumbers.push(p);
       }
 
-      const response = await axios.get(
-        `${BASE_URL}/api/admin/candidate-database/getCandidates`,
-        { params, headers: { Authorization: `Bearer ${token}` } }
+      const pageResults = await Promise.all(
+        pageNumbers.map(async (pageNo) => {
+          if (pageNo === currentPage && Array.isArray(candidates) && candidates.length > 0) {
+            return { pageNo, list: candidates };
+          }
+          try {
+            const res = await axios.get(
+              `${BASE_URL}/api/admin/candidate-database/getCandidates`,
+              { params: buildParams(pageNo), headers: authHeaders }
+            );
+            const payload = res.data;
+            const unpacked = unpackCandidatePayload(payload);
+            const list =
+              unpacked.length > 0
+                ? unpacked
+                : payload?.data ||
+                  payload?.candidates ||
+                  payload?.data?.candidates ||
+                  (Array.isArray(payload) ? payload : []);
+            return { pageNo, list: Array.isArray(list) ? list : [] };
+          } catch (err) {
+            console.error(`Failed to fetch page ${pageNo} for range:`, err);
+            return { pageNo, list: [] };
+          }
+        })
       );
-      const unpacked = unpackCandidatePayload(response.data);
-      const availableCandidates = unpacked.length > 0 ? unpacked : (candidates || []);
-      setFetchedTransferCandidates(availableCandidates);
 
-      const slicedCandidates = availableCandidates.slice(lower - 1, higher);
-      const idsToSelect = slicedCandidates
-        .map((item) => item.uniqueKey || item._id)
-        .filter(Boolean);
+      const allFetched = [];
+      const idsToSelect = [];
+
+      pageResults.forEach(({ pageNo, list }) => {
+        list.forEach((item, idx) => {
+          const globalSrNo = (pageNo - 1) * pageSize + idx + 1;
+          if (globalSrNo >= lower && globalSrNo <= higher) {
+            const itemKey = item.uniqueKey || item._id;
+            if (itemKey) {
+              idsToSelect.push(itemKey);
+              allFetched.push(item);
+            }
+          }
+        });
+      });
+
+      setFetchedTransferCandidates(allFetched);
 
       if (idsToSelect.length > 0) {
         setSelectedCandidates(idsToSelect);
         const actualCount = idsToSelect.length;
         const rangeText = `Sr. No. ${lower} to ${lower + actualCount - 1} (${actualCount} candidates)`;
         setTransferRangeInfo(rangeText);
-        toast.success(`Selected ${actualCount} candidate(s) (from #${lower} to #${lower + actualCount - 1}) for transfer.`);
+        toast.success(
+          `Selected ${actualCount} candidate(s) (from #${lower} to #${lower + actualCount - 1}) for transfer.`
+        );
       } else {
         toast.warning("No candidates found in the specified range.");
       }
