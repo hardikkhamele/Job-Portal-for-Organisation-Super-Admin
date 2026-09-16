@@ -638,24 +638,33 @@ const DatabaseCandidate = () => {
   const [transferHistoryList, setTransferHistoryList] = useState([]);
   const adminProfile = useSelector((state) => state.adminProfile?.profile);
 
-  const totalTransferredCount = useMemo(() => {
-    const uniqueIds = new Set();
-    let countSum = 0;
-    (transferHistoryList || []).forEach((rec) => {
-      countSum += (rec.count || 0);
-      if (Array.isArray(rec.candidates)) {
-        rec.candidates.forEach((c) => {
-          if (c && c.id) uniqueIds.add(String(c.id));
-        });
+  const nextSuggestedSrNo = useMemo(() => {
+    const totalCount = total || 100;
+    if (!transferHistoryList || transferHistoryList.length === 0) return 1;
+
+    // Use the most recent transfer record to determine next batch start
+    const latest = transferHistoryList[0];
+    if (latest) {
+      // Try to extract ending number from range string (e.g. "Sr. No. 1 to 40" -> 40)
+      const rangeMatch = latest.range?.match(/to\s+(\d+)/i);
+      if (rangeMatch) {
+        const lastEnd = parseInt(rangeMatch[1], 10);
+        if (!isNaN(lastEnd) && lastEnd > 0) {
+          const nextVal = lastEnd + 1;
+          return nextVal > totalCount ? 1 : nextVal;
+        }
       }
-    });
-    return uniqueIds.size > 0 ? uniqueIds.size : countSum;
-  }, [transferHistoryList]);
+      if (latest.count && latest.count > 0) {
+        const nextVal = latest.count + 1;
+        return nextVal > totalCount ? 1 : nextVal;
+      }
+    }
+    return 1;
+  }, [transferHistoryList, total]);
 
   useEffect(() => {
-    const nextSr = totalTransferredCount + 1;
-    setStartSrNoInput(String(nextSr));
-  }, [totalTransferredCount]);
+    setStartSrNoInput(String(nextSuggestedSrNo));
+  }, [nextSuggestedSrNo]);
 
   useEffect(() => {
     const loadHistory = () => {
@@ -1153,7 +1162,7 @@ const DatabaseCandidate = () => {
     setStartDate("");
     setEndDate("");
     setTransferCountPreset("");
-    setStartSrNoInput(String(totalTransferredCount + 1));
+    setStartSrNoInput(String(nextSuggestedSrNo));
     setFetchedTransferCandidates([]);
     setCurrentPage(1);
     setSelectedCandidates([]);
