@@ -445,7 +445,7 @@ const Sidebar = () => {
           />
           <NavItem 
             icon={<Building2 />} 
-            text="Vendor Module" 
+            text="Vendor Management" 
             active={location.pathname.startsWith("/sales-team-onboarding/vendors")} 
             onClick={() => handleNavigation("/sales-team-onboarding/vendors")} 
           />
