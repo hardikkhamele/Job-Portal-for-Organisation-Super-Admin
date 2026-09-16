@@ -5,8 +5,10 @@ import {
   ArrowLeft,
   FileText,
   Check,
-  X
+  X,
+  Trash2
 } from "lucide-react";
+import logo from "../../assets/Logo.svg";
 import Breadcrumb from "../common/Breadcrumb";
 import Footer from "../Footer";
 
@@ -23,6 +25,8 @@ function ViewVacancyCandidate() {
   const navigate = useNavigate();
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   useEffect(() => {
     const fetchCandidateDetails = async () => {
@@ -70,9 +74,21 @@ function ViewVacancyCandidate() {
     }
   };
 
-  const handleReject = async () => {
-    const reason = window.prompt("Enter rejection reason:");
-    if (reason === null) return;
+  const openRejectModal = () => {
+    setRejectionReason("");
+    setRejectModalOpen(true);
+  };
+
+  const closeRejectModal = () => {
+    setRejectModalOpen(false);
+    setRejectionReason("");
+  };
+
+  const submitReject = async () => {
+    if (!rejectionReason.trim()) {
+      alert("Please enter a rejection reason.");
+      return;
+    }
     
     try {
        let token = localStorage.getItem("token");
@@ -83,9 +99,10 @@ function ViewVacancyCandidate() {
        const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
        const headers = token && token !== "null" ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : {};
  
-       const res = await axios.patch(`${BASE_URL}/api/admin/vacancies/applications/${id}/reject`, { rejectionReason: reason }, { headers });
+       const res = await axios.patch(`${BASE_URL}/api/admin/vacancies/applications/${id}/reject`, { rejectionReason }, { headers });
        if (res.data?.success) {
-         setCandidate(prev => ({ ...prev, status: "rejected", rejectionReason: reason }));
+         setCandidate(prev => ({ ...prev, status: "rejected", rejectionReason: rejectionReason }));
+         closeRejectModal();
        }
     } catch (err) {
        console.error(err);
@@ -96,7 +113,22 @@ function ViewVacancyCandidate() {
   if (loading) {
     return (
       <div className="w-full bg-[#F4F6FA] min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+        <style>
+          {`
+            @keyframes heartbeat {
+              0%, 100% { transform: scale(1); }
+              25% { transform: scale(1.05); }
+              50% { transform: scale(0.95); }
+              75% { transform: scale(1.02); }
+            }
+          `}
+        </style>
+        <img 
+          src={logo} 
+          alt="Loading..." 
+          className="w-56 h-auto opacity-80 mix-blend-multiply drop-shadow-md" 
+          style={{ animation: 'heartbeat 1.5s infinite ease-in-out' }} 
+        />
       </div>
     );
   }
@@ -169,6 +201,17 @@ function ViewVacancyCandidate() {
           </div>
         </div>
 
+        {/* REJECTION REASON BANNER */}
+        {candidate.status?.toLowerCase() === 'rejected' && candidate.rejectionReason && (
+          <div className="bg-red-50 rounded-xl shadow-[0_2px_10px_-3px_rgba(239,68,68,0.2)] border border-red-200 p-5 flex items-start gap-3 animate-in fade-in slide-in-from-top-4">
+             <div className="mt-0.5 bg-red-200/50 p-1 rounded-full"><X size={18} className="text-red-600" /></div>
+             <div>
+                <h4 className="text-[15px] font-bold text-red-900 mb-1">Application Rejected</h4>
+                <p className="text-[14px] text-red-700 font-medium leading-relaxed">{candidate.rejectionReason}</p>
+             </div>
+          </div>
+        )}
+
         {/* UNIFIED DETAILS CARD */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-8 pb-10">
            
@@ -227,10 +270,10 @@ function ViewVacancyCandidate() {
            </div>
            
            {/* ACTION BAR */}
-           {candidate.status !== "accepted" && candidate.status !== "rejected" && (
+           {candidate.status?.toLowerCase() !== "accepted" && candidate.status?.toLowerCase() !== "rejected" && (
              <div className="mt-8 pt-6 border-t border-gray-200/60 flex items-center justify-end gap-4">
                <button 
-                 onClick={handleReject}
+                 onClick={openRejectModal}
                  className="px-6 py-2.5 rounded-lg border border-red-200 text-red-600 font-bold hover:bg-red-50 transition flex items-center gap-2"
                >
                  <X size={18} /> Reject Profile
@@ -247,6 +290,57 @@ function ViewVacancyCandidate() {
 
       </div>
       <Footer />
+
+      {/* --- REJECT MODAL --- */}
+      {rejectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-gray-100 flex flex-col scale-in-center">
+            
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Trash2 size={18} className="text-red-500" /> Reject Candidate
+              </h3>
+              <button 
+                onClick={closeRejectModal}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <p className="text-sm font-medium text-gray-600 mb-2">Please provide a reason for rejecting this application:</p>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="e.g., Does not meet experience requirement..."
+                className="w-full h-28 border border-gray-200 rounded-xl p-4 text-[14px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 resize-none shadow-inner"
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100">
+              <button 
+                onClick={closeRejectModal}
+                className="px-5 py-2 font-bold text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer text-sm"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitReject}
+                disabled={!rejectionReason.trim()}
+                className="px-5 py-2 font-bold text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-md transition-colors cursor-pointer text-sm"
+              >
+                Confirm Rejection
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
