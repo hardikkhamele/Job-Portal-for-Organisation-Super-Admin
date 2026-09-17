@@ -416,11 +416,8 @@ function CurrentVacancy() {
         {/* --- TABLE SECTION --- */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
 
-          {/* Title + Filters + Search */}
+          {/* Filters + Search */}
           <div className="p-6 pb-4">
-            <h5 className="text-xl font-bold text-black mb-1">Job Vacancies</h5>
-            <p className="text-xs text-gray-500 mb-4">Browse current open positions and submit candidate details with CV links.</p>
-
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Search input with URL sync */}
               <div className="relative w-full md:w-80">
