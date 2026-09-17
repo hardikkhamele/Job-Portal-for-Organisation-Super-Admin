@@ -665,6 +665,7 @@ const DatabaseCandidate = () => {
   const [fetchedTransferCandidates, setFetchedTransferCandidates] = useState([]);
   const [currentPage, setCurrentPage] = useState(getInitialPage);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
+  const candidateSrNoMap = useRef(new Map());
   const [selectAllLoading, setSelectAllLoading] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferHistoryList, setTransferHistoryList] = useState([]);
@@ -1184,7 +1185,8 @@ const DatabaseCandidate = () => {
 
     setSelectAllLoading(true);
     try {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const BASE_URL =
+        import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
       const token = localStorage.getItem("token");
       const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -1268,8 +1270,11 @@ const DatabaseCandidate = () => {
       pageResults.forEach(({ pageNo, list }) => {
         list.forEach((item, idx) => {
           const globalSrNo = (pageNo - 1) * pageSize + idx + 1;
+          const itemKey = getCandidateUniqueKey(item);
+          if (itemKey) {
+            candidateSrNoMap.current.set(itemKey, globalSrNo);
+          }
           if (globalSrNo >= lower && globalSrNo <= higher) {
-            const itemKey = getCandidateUniqueKey(item);
             if (itemKey) {
               idsToSelect.push(itemKey);
               allFetched.push(item);
@@ -1314,9 +1319,33 @@ const DatabaseCandidate = () => {
     }
     const count = parseInt(value, 10);
     if (!isNaN(count) && count > 0) {
-      setTransferLowerLimit("1");
-      setTransferHigherLimit(String(count));
-      handleApplyTransferRange(1, count);
+      const pageSize = itemsPerPage || 10;
+      const currentPageStartSrNo = (currentPage - 1) * pageSize + 1;
+      const totalCount = total || 0;
+
+      let startSrNo = currentPageStartSrNo;
+
+      const selectedSrNos = selectedCandidates
+        .map((key) => candidateSrNoMap.current.get(key))
+        .filter((sr) => typeof sr === "number" && !isNaN(sr) && sr > 0);
+
+      if (selectedSrNos.length > 0) {
+        startSrNo = Math.min(...selectedSrNos);
+      } else if (transferLowerLimit && !isNaN(parseInt(transferLowerLimit, 10)) && parseInt(transferLowerLimit, 10) > 0) {
+        startSrNo = parseInt(transferLowerLimit, 10);
+      }
+
+      if (totalCount > 0 && startSrNo > totalCount) {
+        toast.warning(`Starting serial number (${startSrNo}) exceeds total candidates available (${totalCount}).`);
+        return;
+      }
+
+      const calculatedEnd = startSrNo + count - 1;
+      const endSrNo = totalCount > 0 ? Math.min(calculatedEnd, totalCount) : calculatedEnd;
+
+      setTransferLowerLimit(String(startSrNo));
+      setTransferHigherLimit(String(endSrNo));
+      handleApplyTransferRange(startSrNo, endSrNo);
     }
   };
 
@@ -1452,7 +1481,8 @@ const DatabaseCandidate = () => {
     // Fetch all candidates with current filters but no pagination limit
     setSelectAllLoading(true);
     try {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const BASE_URL =
+        import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
       const token = localStorage.getItem("token");
 
       const params = { limit: total || 99999, page: 1 };
@@ -1518,18 +1548,41 @@ const DatabaseCandidate = () => {
     }
   };
 
-  const handleSelectCandidate = (id) => {
+  const handleSelectCandidate = (id, srNo) => {
     if (!id) return;
-    setSelectedCandidates((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    if (srNo) {
+      candidateSrNoMap.current.set(id, srNo);
+    }
+    setSelectedCandidates((prev) => {
+      const exists = prev.includes(id);
+      const next = exists ? prev.filter((item) => item !== id) : [...prev, id];
+
+      const srNos = next
+        .map((k) => candidateSrNoMap.current.get(k))
+        .filter((n) => typeof n === "number" && !isNaN(n) && n > 0);
+
+      if (srNos.length > 0) {
+        const minSr = Math.min(...srNos);
+        const maxSr = Math.max(...srNos);
+        setTransferLowerLimit(String(minSr));
+        setTransferHigherLimit(String(maxSr));
+        setTransferRangeInfo(`Sr. No. ${minSr} to ${maxSr} (${next.length} candidates)`);
+      } else {
+        setTransferLowerLimit("");
+        setTransferHigherLimit("");
+        setTransferRangeInfo("");
+        setTransferCountPreset("");
+      }
+      return next;
+    });
   };
 
   useEffect(() => {
     if (!isTransferModalOpen) return;
 
     const token = localStorage.getItem("token");
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+      const BASE_URL =
+        import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
     const authHeaders = { Authorization: `Bearer ${token}` };
 
     if (transferTarget === "hr_management") {
@@ -1779,7 +1832,8 @@ const DatabaseCandidate = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+      const BASE_URL =
+        import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
 
       const payload = {
         candidateIds: validCandidateIds,
@@ -1886,6 +1940,17 @@ const DatabaseCandidate = () => {
   const paginatedCandidates = useMemo(() => {
     return candidates || [];
   }, [candidates]);
+
+  useEffect(() => {
+    if (Array.isArray(paginatedCandidates)) {
+      paginatedCandidates.forEach((item, index) => {
+        const key = getCandidateUniqueKey(item) || `${item._id || "cand"}_${startIndex + index}`;
+        if (key) {
+          candidateSrNoMap.current.set(key, startIndex + index + 1);
+        }
+      });
+    }
+  }, [paginatedCandidates, startIndex]);
 
   const currentPageKeys = useMemo(() => {
     return paginatedCandidates
@@ -2234,15 +2299,15 @@ const DatabaseCandidate = () => {
                     value={transferCountPreset}
                     onChange={(e) => handleTransferPresetChange(e.target.value)}
                     className="rounded border border-purple-200 bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 cursor-pointer hover:bg-purple-100 transition"
-                    title="Quick Presets"
+                    title="Select Candidates Transfer"
                   >
-                    <option value="">Quick Presets</option>
-                    <option value="10">Top 10 (1 - 10)</option>
-                    <option value="20">Top 20 (1 - 20)</option>
-                    <option value="30">Top 30 (1 - 30)</option>
-                    <option value="40">Top 40 (1 - 40)</option>
-                    <option value="50">Top 50 (1 - 50)</option>
-                    <option value="100">Top 100 (1 - 100)</option>
+                    <option value="">Select Candidates Transfer</option>
+                    <option value="10">10 Candidates Transfer</option>
+                    <option value="20">20 Candidates Transfer</option>
+                    <option value="30">30 Candidates Transfer</option>
+                    <option value="40">40 Candidates Transfer</option>
+                    <option value="50">50 Candidates Transfer</option>
+                    <option value="100">100 Candidates Transfer</option>
                   </select>
 
                   {(transferLowerLimit || transferHigherLimit || selectedCandidates.length > 0) && (
@@ -2346,7 +2411,7 @@ const DatabaseCandidate = () => {
                           <input
                             type="checkbox"
                             checked={isChecked}
-                            onChange={() => handleSelectCandidate(itemKey)}
+                            onChange={() => handleSelectCandidate(itemKey, startIndex + index + 1)}
                             className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle"
                           />
                         </td>

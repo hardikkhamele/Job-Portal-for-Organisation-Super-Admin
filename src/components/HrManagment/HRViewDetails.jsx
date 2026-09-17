@@ -53,7 +53,8 @@ function HRViewDetails() {
       setLoadingCandidates(true);
       try {
         const token = localStorage.getItem("token");
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+        const BASE_URL =
+          import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
         const authHeaders = { Authorization: `Bearer ${token}` };
 
         let candidateList = [];

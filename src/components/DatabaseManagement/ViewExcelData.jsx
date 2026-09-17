@@ -103,7 +103,8 @@ const ViewExcelData = () => {
     if (!searchValue) return null;
 
     const token = localStorage.getItem("token");
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+    const baseUrl =
+      import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
     const response = await axios.get(`${baseUrl}/api/admin/candidate-database/getCandidates`, {
       params: { search: searchValue, page: 1, limit: 25 },
       headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -129,7 +130,8 @@ const ViewExcelData = () => {
         return;
       }
       const token = localStorage.getItem("token");
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+      const baseUrl =
+      import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
       const response = await axios.put(
         `${baseUrl}/api/admin/accept-reject/${encodeURIComponent(viewId)}/candidate/${encodeURIComponent(candidateId)}/accept`,
         {},
@@ -155,7 +157,8 @@ const ViewExcelData = () => {
           return;
         }
         const token = localStorage.getItem("token");
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+        const baseUrl =
+      import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
         const response = await axios.delete(
           `${baseUrl}/api/admin/accept-reject/${encodeURIComponent(viewId)}/candidate/${encodeURIComponent(candidateId)}`,
           { headers: token ? { Authorization: `Bearer ${token}` } : {} }

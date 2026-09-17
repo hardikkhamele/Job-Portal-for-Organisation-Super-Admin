@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
 
 const formatToDDMMYYYY = (dateVal) => {
   if (!dateVal) return "";
