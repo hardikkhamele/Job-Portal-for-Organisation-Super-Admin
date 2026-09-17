@@ -315,8 +315,17 @@ function VacancyDetails() {
 
   return (
     <div className="w-full min-h-screen bg-[#F4F6FA] p-4 sm:p-6 pb-20 flex flex-col justify-between overflow-x-hidden">
-      <div className="max-w-7xl mx-auto w-full flex flex-col gap-5">
+      <div className="max-w-7xl mx-auto w-full flex flex-col gap-4">
         
+        {/* --- BREADCRUMB --- */}
+        <Breadcrumb
+          items={[
+            { label: "Staffing Management", link: "/staffing-management" },
+            { label: "Current Vacancy", link: "/current-vacancy" },
+            { label: "Submitted Applications" }
+          ]}
+        />
+
         {/* --- HEADER --- */}
         <div className="bg-white rounded-xl shadow-sm p-4 px-6 cursor-pointer">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer">
