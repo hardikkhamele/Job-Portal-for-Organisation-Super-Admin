@@ -621,18 +621,18 @@ function CurrentVacancy() {
                 <col className="w-[6%]" />
               </colgroup>
               <thead>
-                <tr className="bg-purple-600 text-white divide-x divide-purple-400/60">
-                  <th className="py-3 px-2 font-bold text-left text-[11px] uppercase tracking-wider rounded-tl-xl">Sr.</th>
-                  <th className="py-3 px-3 font-bold text-left text-[11px] uppercase tracking-wider">Category</th>
-                  <th className="py-3 px-3 font-bold text-left text-[11px] uppercase tracking-wider">Profile / Designation</th>
-                  <th className="py-3 px-3 font-bold text-left text-[11px] uppercase tracking-wider">State</th>
-                  <th className="py-3 px-3 font-bold text-left text-[11px] uppercase tracking-wider">City</th>
-                  <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider">Vacancy</th>
-                  <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider">Priority</th>
-                  <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider">Applied</th>
-                  <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider">Work Mode</th>
-                  <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider">Deadline</th>
-                  <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider rounded-tr-xl">Actions</th>
+                <tr className="bg-purple-600 text-white divide-x divide-white/30">
+                  <th className="py-3 px-2 font-semibold text-left text-[11px] uppercase tracking-wider rounded-tl-xl border-r border-white/30">Sr.</th>
+                  <th className="py-3 px-3 font-semibold text-left text-[11px] uppercase tracking-wider border-r border-white/30">Category</th>
+                  <th className="py-3 px-3 font-semibold text-left text-[11px] uppercase tracking-wider border-r border-white/30">Profile / Designation</th>
+                  <th className="py-3 px-3 font-semibold text-left text-[11px] uppercase tracking-wider border-r border-white/30">State</th>
+                  <th className="py-3 px-3 font-semibold text-left text-[11px] uppercase tracking-wider border-r border-white/30">City</th>
+                  <th className="py-3 px-2 font-semibold text-center text-[11px] uppercase tracking-wider border-r border-white/30">Vacancy</th>
+                  <th className="py-3 px-2 font-semibold text-center text-[11px] uppercase tracking-wider border-r border-white/30">Priority</th>
+                  <th className="py-3 px-2 font-semibold text-center text-[11px] uppercase tracking-wider border-r border-white/30">Applied</th>
+                  <th className="py-3 px-2 font-semibold text-center text-[11px] uppercase tracking-wider border-r border-white/30">Work Mode</th>
+                  <th className="py-3 px-2 font-semibold text-center text-[11px] uppercase tracking-wider border-r border-white/30">Deadline</th>
+                  <th className="py-3 px-2 font-semibold text-center text-[11px] uppercase tracking-wider rounded-tr-xl">Actions</th>
                 </tr>
               </thead>
               <tbody>

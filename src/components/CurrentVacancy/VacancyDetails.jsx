@@ -487,18 +487,18 @@ function VacancyDetails() {
           <div className="overflow-x-auto max-w-full">
             <table className="w-full text-sm text-left table-auto min-w-[850px]">
               <thead>
-                <tr className="bg-purple-600 border-b border-purple-700">
-                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Sr.</th>
-                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Candidate, Role & Exp</th>
-                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Contact Details</th>
-                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Location</th>
-                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Current Org</th>
-                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Notice</th>
-                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Expected CTC</th>
-                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Applied Date & Time</th>
-                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">CV / Resume</th>
-                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
-                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Action</th>
+                <tr className="bg-purple-600 border-b border-purple-700 divide-x divide-white/30">
+                  <th className="py-3 px-3 text-left text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Sr.</th>
+                  <th className="py-3 px-3 text-left text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Candidate, Role & Exp</th>
+                  <th className="py-3 px-3 text-left text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Contact Details</th>
+                  <th className="py-3 px-3 text-left text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Location</th>
+                  <th className="py-3 px-3 text-left text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Current Org</th>
+                  <th className="py-3 px-3 text-center text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Notice</th>
+                  <th className="py-3 px-3 text-center text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Expected CTC</th>
+                  <th className="py-3 px-3 text-center text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Applied Date & Time</th>
+                  <th className="py-3 px-3 text-center text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">CV / Resume</th>
+                  <th className="py-3 px-3 text-center text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Status</th>
+                  <th className="py-3 px-3 text-center text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
