@@ -172,12 +172,26 @@ function VacancyDetails() {
     });
   };
 
-  const handlePageChange = (page) => {
+  const clearFilter = (key) => {
     setSearchParams(prev => {
-      prev.set("page", page.toString());
+      prev.delete(key);
+      prev.set("page", "1");
       return prev;
     });
   };
+
+  const clearAllFilters = () => {
+    setSearchParams(prev => {
+      prev.delete("search");
+      prev.delete("status");
+      prev.delete("experience");
+      prev.delete("notice");
+      prev.set("page", "1");
+      return prev;
+    });
+  };
+
+  const hasActiveFilters = searchQuery || statusFilter !== "all" || experienceFilter !== "all" || noticeFilter !== "all";
 
   const filteredCandidates = candidates.filter(c => {
     let match = true;
@@ -218,8 +232,8 @@ function VacancyDetails() {
   const paginatedCandidates = filteredCandidates.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="w-full min-h-screen bg-[#F4F6FA] p-6 pb-20 flex flex-col justify-between">
-      <div className="max-w-7xl mx-auto w-full flex flex-col gap-6">
+    <div className="w-full min-h-screen bg-[#F4F6FA] p-4 sm:p-6 pb-20 flex flex-col justify-between overflow-x-hidden">
+      <div className="max-w-7xl mx-auto w-full flex flex-col gap-5">
         
         {/* --- HEADER --- */}
         <div className="bg-white rounded-xl shadow-sm p-6">
@@ -270,32 +284,32 @@ function VacancyDetails() {
         </div>
 
         {/* --- SEARCH & FILTERS --- */}
-        <div className="flex flex-col gap-4 mt-2">
-          {/* Top Row: Search & Totals */}
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-            <div className="flex flex-wrap lg:flex-nowrap items-center gap-4 w-full">
-               
-              <div className="relative w-full lg:w-96 shrink-0">
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-4 mt-2">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            
+            {/* Search input & Filter Chips */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 flex-1 min-w-[280px]">
+              <div className="relative w-full sm:w-80">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="text"
                   placeholder="Search candidate name, email, contact..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white"
+                  className="w-full pl-11 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white"
                 />
               </div>
-              
-              {/* Filter Chips (Status) */}
-              <div className="flex flex-wrap items-center gap-2 border-l border-gray-200 pl-4">
-                <Filter size={16} className="text-gray-400 mr-1 hidden sm:block" />
+
+              {/* Status Filter Chips */}
+              <div className="flex flex-wrap items-center gap-1.5 sm:border-l sm:border-gray-200 sm:pl-4">
+                <Filter size={15} className="text-gray-400 mr-1 hidden sm:block" />
                 {['all', 'pending', 'accepted', 'rejected'].map(status => (
                   <button
                     key={status}
                     onClick={() => handleStatusFilter(status)}
-                    className={`px-3.5 py-1.5 rounded-full text-[13px] font-bold capitalize transition border cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-bold capitalize transition border cursor-pointer ${
                       statusFilter === status 
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-md' 
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-sm' 
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
@@ -303,40 +317,90 @@ function VacancyDetails() {
                   </button>
                 ))}
               </div>
+            </div>
 
-              {/* Advanced Dropdowns */}
-              <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
-                <select 
-                  value={experienceFilter} 
-                  onChange={(e) => handleDropdownFilter("experience", e.target.value)}
-                  className="bg-white border border-gray-200 text-gray-700 text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent cursor-pointer shadow-sm"
-                >
-                  <option value="all">Any Experience</option>
-                  <option value="0-1">0-1 Years (Fresher)</option>
-                  <option value="1-3">1-3 Years</option>
-                  <option value="3-5">3-5 Years</option>
-                  <option value="5+">5+ Years</option>
-                </select>
+            {/* Advanced Dropdowns & Total Count */}
+            <div className="flex flex-wrap items-center gap-3">
+              <select 
+                value={experienceFilter} 
+                onChange={(e) => handleDropdownFilter("experience", e.target.value)}
+                className="bg-white border border-gray-200 text-gray-700 text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer shadow-sm"
+              >
+                <option value="all">Any Experience</option>
+                <option value="0-1">0-1 Years (Fresher)</option>
+                <option value="1-3">1-3 Years</option>
+                <option value="3-5">3-5 Years</option>
+                <option value="5+">5+ Years</option>
+              </select>
 
-                <select 
-                  value={noticeFilter} 
-                  onChange={(e) => handleDropdownFilter("notice", e.target.value)}
-                  className="bg-white border border-gray-200 text-gray-700 text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent cursor-pointer shadow-sm"
-                >
-                  <option value="all">Any Notice Period</option>
-                  <option value="immediate">Immediate Joiner</option>
-                  <option value="15">15 Days</option>
-                  <option value="30">30 Days</option>
-                  <option value="60+">60+ Days</option>
-                </select>
+              <select 
+                value={noticeFilter} 
+                onChange={(e) => handleDropdownFilter("notice", e.target.value)}
+                className="bg-white border border-gray-200 text-gray-700 text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer shadow-sm"
+              >
+                <option value="all">Any Notice Period</option>
+                <option value="immediate">Immediate Joiner</option>
+                <option value="15">15 Days</option>
+                <option value="30">30 Days</option>
+                <option value="60+">60+ Days</option>
+              </select>
+
+              <div className="bg-gray-50 rounded-lg px-4 py-2 border border-gray-200 shadow-sm text-xs font-semibold text-gray-600">
+                Total found: <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold ml-1 text-xs border border-purple-200">{filteredCandidates.length}</span>
               </div>
+            </div>
 
-            </div>
-            
-            <div className="bg-white rounded-xl px-6 py-2.5 border border-gray-200 shadow-sm text-sm font-semibold text-gray-600 shrink-0 self-start xl:self-auto">
-              Total found: <span className="bg-gray-100 px-2.5 py-0.5 rounded text-gray-800 font-bold ml-1 text-base border border-gray-200">{filteredCandidates.length}</span>
-            </div>
           </div>
+
+          {/* Active Applied Filter Badges */}
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100 mt-1 w-full">
+              <span className="text-xs font-semibold text-gray-500 mr-1">Active Filters:</span>
+              
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-xs font-medium">
+                  Search: "{searchQuery}"
+                  <button onClick={() => clearFilter("search")} className="hover:bg-purple-200 rounded-full p-0.5 cursor-pointer">
+                    <X size={12} />
+                  </button>
+                </span>
+              )}
+
+              {statusFilter !== "all" && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-xs font-medium capitalize">
+                  Status: {statusFilter}
+                  <button onClick={() => clearFilter("status")} className="hover:bg-purple-200 rounded-full p-0.5 cursor-pointer">
+                    <X size={12} />
+                  </button>
+                </span>
+              )}
+
+              {experienceFilter !== "all" && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-xs font-medium">
+                  Experience: {experienceFilter === "0-1" ? "0-1 Yrs" : experienceFilter === "1-3" ? "1-3 Yrs" : experienceFilter === "3-5" ? "3-5 Yrs" : "5+ Yrs"}
+                  <button onClick={() => clearFilter("experience")} className="hover:bg-purple-200 rounded-full p-0.5 cursor-pointer">
+                    <X size={12} />
+                  </button>
+                </span>
+              )}
+
+              {noticeFilter !== "all" && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-xs font-medium">
+                  Notice: {noticeFilter === "immediate" ? "Immediate Joiner" : `${noticeFilter} Days`}
+                  <button onClick={() => clearFilter("notice")} className="hover:bg-purple-200 rounded-full p-0.5 cursor-pointer">
+                    <X size={12} />
+                  </button>
+                </span>
+              )}
+
+              <button
+                onClick={clearAllFilters}
+                className="text-xs font-bold text-red-600 hover:text-red-700 hover:underline ml-2 cursor-pointer"
+              >
+                Clear All
+              </button>
+            </div>
+          )}
         </div>
 
         {/* --- CANDIDATES TABLE --- */}
@@ -344,18 +408,18 @@ function VacancyDetails() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left min-w-[1200px] table-auto">
               <thead>
-                <tr className="bg-[#F8F9FC] border-b border-gray-100">
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Sr. No.</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Candidate Name</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Email</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Contact</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">City / Location</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Experience</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Current Org</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Notice Period</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Expected CTC</th>
-                  <th className="py-4 px-6 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">CV / Resume</th>
-                  <th className="py-4 px-6 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Action</th>
+                <tr className="bg-purple-600 border-b border-purple-700">
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Sr. No.</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Candidate Name</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Email</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Contact</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">City / Location</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Experience</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Current Org</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Notice Period</th>
+                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Expected CTC</th>
+                  <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">CV / Resume</th>
+                  <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
