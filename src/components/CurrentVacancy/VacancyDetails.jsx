@@ -315,7 +315,7 @@ function VacancyDetails() {
 
   return (
     <div className="w-full min-h-screen bg-[#F4F6FA] p-4 sm:p-6 pb-20 flex flex-col justify-between overflow-x-hidden">
-      <div className="max-w-7xl mx-auto w-full flex flex-col gap-2.5">
+      <div className="max-w-7xl mx-auto w-full flex flex-col gap-3">
         
         {/* --- BREADCRUMB --- */}
         <Breadcrumb
@@ -326,48 +326,38 @@ function VacancyDetails() {
           ]}
         />
 
-        {/* --- HEADER --- */}
-        <div className="bg-white rounded-xl shadow-sm p-3.5 px-5 cursor-pointer">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer">
-            <div className="cursor-pointer">
-              <h4 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-3 cursor-pointer">
-                <button
-                  onClick={() => navigate("/current-vacancy")}
-                  className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition cursor-pointer shadow-sm shrink-0"
-                >
-                  <ArrowLeft size={16} />
-                </button>
+        {/* --- CONSOLIDATED HEADER & VACANCY DETAILS CARD --- */}
+        <div className="bg-white rounded-xl p-4 px-6 shadow-sm border border-gray-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 cursor-pointer hover:shadow-md transition">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/current-vacancy")}
+              className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition cursor-pointer shadow-sm shrink-0"
+              title="Back to Current Vacancies"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h4 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-2 cursor-pointer">
                 Submitted Applications
+                <span className="text-gray-500 font-medium text-base cursor-pointer">({currentVacancy.vacancyId})</span>
               </h4>
-              <p className="text-xs text-gray-500 mt-0.5 ml-11 cursor-pointer">
-                Candidate applications for vacancy profile: <span className="text-gray-900 font-semibold cursor-pointer">{currentVacancy.profile}</span>
+              <p className="text-xs text-gray-500 mt-0.5 cursor-pointer">
+                <span className="text-gray-800 font-semibold cursor-pointer">{currentVacancy.profile}</span> • {currentVacancy.category} • {currentVacancy.subCategory || "Frontend Development"}
               </p>
             </div>
           </div>
-        </div>
 
-        {/* --- VACANCY DETAILS CARD --- */}
-        <div className="bg-white rounded-xl p-3.5 px-5 shadow-sm border border-gray-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 cursor-pointer hover:shadow-md transition">
-          <div>
-            <h3 className="text-xl font-bold text-gray-800 cursor-pointer">
-              {currentVacancy.profile} <span className="text-gray-500 font-medium text-[15px] ml-1 cursor-pointer">({currentVacancy.vacancyId})</span>
-            </h3>
-            <p className="text-[13px] text-gray-500 font-medium mt-0.5 cursor-pointer">
-              {currentVacancy.category} • {currentVacancy.subCategory || "Frontend Development"}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 cursor-pointer">
-            <span className="bg-gray-50 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-gray-700 flex items-center gap-2 border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-100 transition">
-              <MapPin size={15} className="text-gray-400" />
+          <div className="flex flex-wrap items-center gap-2.5 cursor-pointer">
+            <span className="bg-gray-50 rounded-lg px-3.5 py-1.5 text-[12px] font-semibold text-gray-700 flex items-center gap-1.5 border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-100 transition">
+              <MapPin size={14} className="text-gray-400" />
               {[currentVacancy.city, currentVacancy.state].filter(Boolean).join(", ")}
             </span>
-            <span className="bg-gray-50 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-gray-700 flex items-center gap-2 border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-100 transition">
-              <Briefcase size={15} className="text-gray-400" />
+            <span className="bg-gray-50 rounded-lg px-3.5 py-1.5 text-[12px] font-semibold text-gray-700 flex items-center gap-1.5 border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-100 transition">
+              <Briefcase size={14} className="text-gray-400" />
               {currentVacancy.workMode}
             </span>
-            <span className="bg-gray-50 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-gray-700 flex items-center gap-2 border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-100 transition">
-              <Calendar size={15} className="text-gray-400" />
+            <span className="bg-gray-50 rounded-lg px-3.5 py-1.5 text-[12px] font-semibold text-gray-700 flex items-center gap-1.5 border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-100 transition">
+              <Calendar size={14} className="text-gray-400" />
               Deadline: {formatDateDDMMYYYY(currentVacancy.deadline)}
             </span>
           </div>
