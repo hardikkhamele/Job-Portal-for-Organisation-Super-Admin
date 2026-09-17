@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff, Upload } from "lucide-react"; 
+import { ArrowLeft, Upload, Eye, EyeOff } from "lucide-react"; 
 import { useDispatch, useSelector } from "react-redux";
 import { getHrForEdit, updateHrDetails, resetUpdateState } from "../../redux/slice/hrManagement/updateHr";
 import toast from "react-hot-toast";
@@ -22,8 +22,8 @@ function EditHR() {
     image: null,
   });
 
-  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (id) {
@@ -32,16 +32,15 @@ function EditHR() {
   }, [dispatch, id]);
 
   useEffect(() => {
-    const hr = hrData || location.state?.hr;
+    const hr = location.state?.hr || hrData;
     if (hr) {
       setFormData({
         hrName: hr.hrName || "",
         designation: hr.designation || "",
         email: hr.email || "",
-        password: hr.password || hr.showPassword || "",
+        password: hr.password || hr.plainPassword || "",
         image: null,
       });
-      setShowPassword(Boolean(hr.password || hr.showPassword));
     }
   }, [location.state, hrData]);
 
@@ -88,8 +87,13 @@ function EditHR() {
       newErrors.email = "Email must not exceed 100 characters";
     }
 
-    if (formData.password && (formData.password.length < 6 || formData.password.length > 20)) {
-      newErrors.password = "Password must be between 6 and 20 characters";
+    // Password validation (optional for Edit HR)
+    if (formData.password) {
+      if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      } else if (formData.password.length > 20) {
+        newErrors.password = "Password must not exceed 20 characters";
+      }
     }
 
     setErrors(newErrors);
@@ -208,26 +212,25 @@ function EditHR() {
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  placeholder="Enter new password"
+                  placeholder="Enter Password"
                   value={formData.password}
                   onChange={handleChange}
                   maxLength={20}
-                  autoComplete="new-password"
-                  className={`w-full bg-gray-100 border rounded-md px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-1 transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${
+                  className={`w-full bg-gray-100 border rounded-md px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-1 transition-all ${
                     errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-purple-400"
                   }`}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword((current) => !current)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-600 transition"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-gray-500 hover:text-purple-600 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-              <p className="text-xs text-gray-400 mt-1">Leave blank to keep the current password</p>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              )}
             </div>
 
             <div className="col-span-2">

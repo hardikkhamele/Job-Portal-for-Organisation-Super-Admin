@@ -28,26 +28,6 @@ function DailyWorkUpdate() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const pagination = useMemo(() => ({ pageIndex, pageSize }), [pageIndex, pageSize]);
-  const safeTotalPages = Math.max(1, Number(totalPages) || 1);
-
-  // Keep the control compact even when the report has many pages. Rendering every
-  // page (for example 1–76) pushes the pagination outside of the card.
-  const pageItems = useMemo(() => {
-    const currentPage = pageIndex + 1;
-    const pages = new Set([1, safeTotalPages]);
-
-    for (let page = currentPage - 1; page <= currentPage + 1; page += 1) {
-      if (page >= 1 && page <= safeTotalPages) pages.add(page);
-    }
-
-    const orderedPages = [...pages].sort((a, b) => a - b);
-    return orderedPages.reduce((items, page, index) => {
-      const previousPage = orderedPages[index - 1];
-      if (previousPage && page - previousPage > 1) items.push(`ellipsis-${previousPage}`);
-      items.push(page);
-      return items;
-    }, []);
-  }, [pageIndex, safeTotalPages]);
 
   const filteredReports = useMemo(() => {
     if (!searchTerm) return reports;
@@ -119,7 +99,7 @@ function DailyWorkUpdate() {
   const table = useReactTable({
     data: filteredReports || [],
     columns,
-    pageCount: safeTotalPages,
+    pageCount: totalPages,
     state: { pagination },
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
@@ -201,13 +181,13 @@ function DailyWorkUpdate() {
           </div>
 
           {/* Pagination Controls */}
-          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-purple-600 font-medium">
               Showing {filteredReports?.length > 0 ? pageIndex * pageSize + 1 : 0} to{" "}
               {Math.min((pageIndex + 1) * pageSize, totalRecords)} of {totalRecords}
             </p>
 
-            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <div className="flex gap-2 items-center">
               <button
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage() || loading}
@@ -216,26 +196,18 @@ function DailyWorkUpdate() {
                 <ChevronLeft size={20} />
               </button>
 
-              {/* First, last and pages around the current page are enough to navigate. */}
-              {pageItems.map((item) =>
-                typeof item === "string" ? (
-                  <span key={item} className="w-5 text-center text-purple-600" aria-hidden="true">
-                    …
-                  </span>
-                ) : (
-                  <button
-                    key={item}
-                    onClick={() => table.setPageIndex(item - 1)}
-                    aria-label={`Go to page ${item}`}
-                    aria-current={pageIndex === item - 1 ? "page" : undefined}
-                    className={`w-8 h-8 rounded-full text-xs font-semibold transition ${
-                      pageIndex === item - 1 ? "bg-purple-600 text-white shadow-md" : "border text-purple-600 hover:bg-purple-50"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                )
-              )}
+              {/* Dynamic Page Numbers */}
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => table.setPageIndex(i)}
+                  className={`w-8 h-8 rounded-full text-xs font-semibold transition ${
+                    pageIndex === i ? "bg-purple-600 text-white shadow-md" : "border text-purple-600 hover:bg-purple-50"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
 
               <button
                 onClick={() => table.nextPage()}
