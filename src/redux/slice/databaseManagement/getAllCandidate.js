@@ -594,6 +594,7 @@ const getAllCandidateSlice = createSlice({
 
           combinedCandidates.push({
             ...c,
+            uniqueKey: c.uniqueKey || c._id || c.id,
             name: c.name || normName || "N/A",
             email: c.email || normEmail || "N/A",
             phone: c.phone || normPhone || "N/A",

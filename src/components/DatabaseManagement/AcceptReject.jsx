@@ -272,7 +272,7 @@
 // export default AcceptReject;
 
 import React, { useState, useEffect, Fragment } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Select from "react-select";
 import * as XLSX from "xlsx";
 import axios from "axios";
@@ -313,6 +313,10 @@ import {
 } from "../../redux/slice/databaseManagement/deleteCandidateDatabase";
 const AcceptReject = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPageFromUrl = searchParams.get("page");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
@@ -353,14 +357,25 @@ const AcceptReject = () => {
     dispatch(fetchAllCategories());
   }, [dispatch]);
 
+  // Fetch accept/reject data when URL page param changes or on initial mount
   useEffect(() => {
-    dispatch(fetchAcceptRejectData(1));
-  }, [dispatch]);
+    const pageFromUrl = parseInt(currentPageFromUrl, 10);
+    const pageToLoad =
+      pageFromUrl || location.state?.fromPage || pagination.current || 1;
+
+    if (!pageFromUrl && pageToLoad > 1) {
+      setSearchParams({ page: pageToLoad }, { replace: true });
+    }
+
+    dispatch(fetchAcceptRejectData(pageToLoad));
+  }, [dispatch, currentPageFromUrl]);
 
   // Success hone par list refresh karein (Approve, Reject & Delete ke liye)
   useEffect(() => {
     if (approveSuccess || rejectSuccess || deleteSuccess) {
-      dispatch(fetchAcceptRejectData(pagination.current || 1));
+      const targetPage =
+        parseInt(currentPageFromUrl, 10) || pagination.current || 1;
+      dispatch(fetchAcceptRejectData(targetPage));
       if (approveSuccess) dispatch(resetAcceptState());
       if (rejectSuccess) dispatch(resetRejectState());
       if (deleteSuccess) {
@@ -369,13 +384,15 @@ const AcceptReject = () => {
         setSelectedRow(null);
       }
     }
-  }, [approveSuccess, rejectSuccess, deleteSuccess, dispatch, pagination.current]);
+  }, [approveSuccess, rejectSuccess, deleteSuccess, dispatch, pagination.current, currentPageFromUrl]);
 
   // Upload success handling
   useEffect(() => {
     if (uploadSuccess) {
       setIsModalOpen(false);
-      dispatch(fetchAcceptRejectData(pagination.current || 1));
+      const targetPage =
+        parseInt(currentPageFromUrl, 10) || pagination.current || 1;
+      dispatch(fetchAcceptRejectData(targetPage));
       dispatch(resetUploadState());
       // Reset form fields
       setSelectedCategory("");
@@ -383,10 +400,11 @@ const AcceptReject = () => {
       setSelectedDesignation("");
       setSelectedFile(null);
     }
-  }, [uploadSuccess, dispatch, pagination.current]);
+  }, [uploadSuccess, dispatch, pagination.current, currentPageFromUrl]);
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.pages) {
+    if (newPage >= 1 && newPage <= (pagination.pages || 1)) {
+      setSearchParams({ page: newPage });
       dispatch(fetchAcceptRejectData(newPage));
     }
   };
@@ -693,11 +711,17 @@ const AcceptReject = () => {
                             <Eye
                               size={20}
                               className="text-purple-500 cursor-pointer hover:scale-110 transition-transform"
-                              onClick={() => {
+                              onClick={() =>
                                 navigate(`/accept-reject/view/${item._id}`, {
-                                  state: { item },
-                                });
-                              }}
+                                  state: {
+                                    item,
+                                    fromPage:
+                                      pagination.current ||
+                                      parseInt(currentPageFromUrl, 10) ||
+                                      1,
+                                  },
+                                })
+                              }
                               title="View Excel Database Details"
                             />
                             <Trash2

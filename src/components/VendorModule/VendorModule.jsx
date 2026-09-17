@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Check, ChevronDown, Search, Send, Users, X } from "lucide-react";
+import { Building2, Check, ChevronDown, Download, Search, Send, Users, X } from "lucide-react";
+import * as XLSX from "xlsx";
 
 // UI-only mock data. Replace with API data when this screen is wired into the app.
 const companies = [
@@ -41,6 +42,31 @@ export default function VendorModule() {
     setTransferOpen(false);
   };
 
+  const handleExport = () => {
+    const listToExport = selectedIds.length
+      ? companyList.filter((company) => selectedIds.includes(company.id))
+      : visibleCompanies;
+
+    if (!listToExport.length) return;
+
+    const data = listToExport.map((company, index) => ({
+      "Sr. No.": index + 1,
+      "Company Name": company.name,
+      "Contact Person": company.contact,
+      "Email": company.email,
+      "Industry": company.industry,
+      "City": company.city,
+      "Size (Employees)": company.employees,
+      "Joined Date": company.date,
+      "Assigned To": company.assignedTo,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Vendors");
+    XLSX.writeFile(workbook, "Vendors_List.xlsx");
+  };
+
   return (
     <section className="min-h-screen bg-[#f6f7fb] p-4 sm:p-6">
       <div className="mx-auto max-w-7xl space-y-5">
@@ -65,8 +91,30 @@ export default function VendorModule() {
 
         <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
           <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div><h2 className="font-bold text-slate-900">All Vendors</h2><p className="mt-0.5 text-xs text-slate-500">Select one or more companies to transfer them.</p></div>
-            <label className="relative block w-full sm:w-72"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search company or contact..." className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100" /></label>
+            <div>
+              <h2 className="font-bold text-slate-900">All Vendors</h2>
+              <p className="mt-0.5 text-xs text-slate-500">Select one or more companies to transfer them.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="relative block w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+                <input 
+                  value={search} 
+                  onChange={(event) => setSearch(event.target.value)} 
+                  placeholder="Search company or contact..." 
+                  className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100" 
+                />
+              </label>
+              <button 
+                type="button"
+                onClick={handleExport}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98] cursor-pointer"
+                title="Export vendors to Excel"
+              >
+                <Download size={16} />
+                <span>Export</span>
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-[930px] w-full text-sm">

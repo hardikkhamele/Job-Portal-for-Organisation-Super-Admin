@@ -367,7 +367,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdDashboard, MdPostAdd, MdSubscriptions, MdHelpOutline } from "react-icons/md";
 import { RiMoneyDollarCircleLine, RiShieldLine } from "react-icons/ri";
-import { Banknote, Briefcase, Building2, ChevronDown, ChevronUp, ClipboardList, Database, FolderKanban, ShieldCheck, Users, UserSearch,NotebookPen } from "lucide-react";
+import { Banknote, Briefcase, Building2, ChevronDown, ChevronUp, ClipboardList, Database, FolderKanban, ShieldCheck, Users, UserSearch, NotebookPen } from "lucide-react";
 import logo from "../../assets/Logo.svg";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slice/auth/loginSlice";
@@ -414,49 +414,60 @@ const Sidebar = () => {
   return (
     <>
       <div className="h-screen w-[300px] text-white flex flex-col overflow-y-auto no-scrollbar bg-gradient-to-b from-[#efe8f5] via-[#b07ad9] to-[#8e44c3] border-r border-purple-400">
-        
+
         {/* Logo Section */}
         <div className="sticky top-0 z-10 flex bg-white flex-col items-center mb-4 border-b border-purple-400">
           <img src={logo} alt="Logo" className="w-[270px] h-[80px] mix-blend-multiply" />
         </div>
 
         <nav className="flex flex-col flex-grow gap-1 px-3 pb-10">
-          
+
           {/* 1. Dashboard */}
           <NavItem icon={<MdDashboard />} text="Dashboard" active={isActive("/dashboard")} onClick={() => handleNavigation("/dashboard")} />
-          
+
           {/* 2. HR Management */}
           <NavItem icon={<Users />} text="HR Management" active={window.location.pathname.startsWith("/hr-management")} onClick={() => handleNavigation("/hr-management")} />
 
-          
           {/* 3. Employer Management */}
           <NavItem icon={<Briefcase />} text="Employer Management" active={window.location.pathname.startsWith("/employee")} onClick={() => handleNavigation("/employee")} />
-          
+
           {/* 3.1 Staffing Management */}
           <NavItem icon={<Building2 />} text="Staffing Management" active={window.location.pathname.startsWith("/staffing-management")} onClick={() => handleNavigation("/staffing-management")} />
           
           {/* 3.2 Current Vacancy */}
           <NavItem icon={<ClipboardList />} text="Current Vacancy" active={window.location.pathname.startsWith("/current-vacancy")} onClick={() => handleNavigation("/current-vacancy")} />
-          
           {/* 3.5. Sales Team Onboarding */}
-          <NavItem icon={<Users />} text="Sales Team Onboarding" active={window.location.pathname.startsWith("/sales-team-onboarding")} onClick={() => handleNavigation("/sales-team-onboarding")} />
-          <NavItem icon={<Building2 />} text="Vendor Module" active={isActive("/sales-team-onboarding/vendors")} onClick={() => handleNavigation("/sales-team-onboarding/vendors")} />
-          
-          {/* 4. Job Seeker Management */}
-          <NavItem icon={<UserSearch />} text="Job Seeker Management" active={window.location.pathname.startsWith("/job-seeker")} onClick={() => handleNavigation("/job-seeker")} />
+          <NavItem
+            icon={<Users />}
+            text="Sales Team Onboarding"
+            active={
+              location.pathname.startsWith("/sales-team-onboarding") &&
+              !location.pathname.startsWith("/sales-team-onboarding/vendors")
+            }
+            onClick={() => handleNavigation("/sales-team-onboarding")}
+          />
+          <NavItem
+            icon={<Building2 />}
+            text="Vendor Management"
+            active={location.pathname.startsWith("/sales-team-onboarding/vendors")}
+            onClick={() => handleNavigation("/sales-team-onboarding/vendors")}
+          />
+
+
+          <NavItem icon={<UserSearch />} text="Category" active={window.location.pathname.startsWith("/job-seeker")} onClick={() => handleNavigation("/job-seeker")} />
 
           {/* 5. Database Management Dropdown */}
           <div>
-            <DropdownHeader 
-              icon={<Database />} 
-              text="Database Management" 
-              isOpen={isDatabaseOpen} 
+            <DropdownHeader
+              icon={<Database />}
+              text="Database Management"
+              isOpen={isDatabaseOpen}
               active={isGroupActive(["/candidates", "/accept-reject"])}
               onClick={() => {
                 const state = !isDatabaseOpen;
                 closeAllDropdowns();
                 setIsDatabaseOpen(state);
-              }} 
+              }}
             />
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isDatabaseOpen ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
               <div className="ml-9 flex flex-col gap-1">
@@ -471,16 +482,16 @@ const Sidebar = () => {
 
           {/* 7. Subscription Dropdown */}
           <div>
-            <DropdownHeader 
-              icon={<MdSubscriptions />} 
-              text="Subscription Management" 
-              isOpen={isSubOpen} 
+            <DropdownHeader
+              icon={<MdSubscriptions />}
+              text="Subscription Management"
+              isOpen={isSubOpen}
               active={isGroupActive(["/job-seeker-plans", "/employer-plans", "/custom-plans"])}
               onClick={() => {
                 const state = !isSubOpen;
                 closeAllDropdowns();
                 setIsSubOpen(state);
-              }} 
+              }}
             />
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isSubOpen ? "max-h-60 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
               <div className="ml-9 flex flex-col gap-1">
@@ -493,11 +504,11 @@ const Sidebar = () => {
 
           {/* 8. Credit Management */}
           <NavItem icon={<RiMoneyDollarCircleLine />} text="Credit Management" active={isActive("/credit-management")} onClick={() => handleNavigation("/credit-management")} />
-          
+
           {/* 9. Revenue Management */}
           <NavItem icon={<Banknote />} text="Revenue Management" active={isActive("/revenue-management")} onClick={() => handleNavigation("/revenue-management")} />
 
-            <NavItem
+          <NavItem
             icon={<NotebookPen />}
             text="Blog Management"
             active={window.location.pathname.startsWith("/blog-management")}
@@ -506,14 +517,14 @@ const Sidebar = () => {
 
           {/* 10. Terms Dropdown */}
           <div>
-            <DropdownHeader 
-              icon={<RiShieldLine />} text="Terms & Services" isOpen={isTermsOpen} 
+            <DropdownHeader
+              icon={<RiShieldLine />} text="Terms & Services" isOpen={isTermsOpen}
               active={isGroupActive(["/jobseeker", "/employer"])}
-              onClick={() => { 
+              onClick={() => {
                 const state = !isTermsOpen;
                 closeAllDropdowns();
                 setIsTermsOpen(state);
-              }} 
+              }}
             />
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isTermsOpen ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
               <div className="ml-9 flex flex-col gap-1">
@@ -525,14 +536,14 @@ const Sidebar = () => {
 
           {/* 11. Help & Support Dropdown */}
           <div>
-            <DropdownHeader 
-              icon={<MdHelpOutline />} text="Help & Support" isOpen={isHelpOpen} 
+            <DropdownHeader
+              icon={<MdHelpOutline />} text="Help & Support" isOpen={isHelpOpen}
               active={isGroupActive(["/faqs", "/chat-support", "/social-links"])}
-              onClick={() => { 
+              onClick={() => {
                 const state = !isHelpOpen;
                 closeAllDropdowns();
                 setIsHelpOpen(state);
-              }} 
+              }}
             />
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isHelpOpen ? "max-h-60 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
               <div className="ml-9 flex flex-col gap-1">

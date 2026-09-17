@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Eye, ChevronLeft, ChevronRight, Send, X, Trash2, History, CheckCircle2, UserCheck, Calendar, Clock, Search, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
@@ -602,6 +602,24 @@ const getCandidateDesignation = (item, designationList = []) => {
   return "";
 };
 
+const getCandidateUniqueKey = (item) => {
+  if (!item) return "";
+  const phone = getCandidatePhone(item);
+  const email = getCandidateEmail(item);
+  const name = getCandidateName(item);
+
+  const cleanPhone = phone && phone !== "N/A" ? String(phone).replace(/\D/g, "") : "";
+  const cleanEmail = email && email !== "N/A" ? String(email).trim().toLowerCase() : "";
+  const cleanName = name && name !== "N/A" ? String(name).trim().toLowerCase().replace(/\s+/g, "_") : "";
+
+  const rawId = item._id || item.id || "";
+
+  if (cleanPhone) return `${rawId}_p_${cleanPhone}`;
+  if (cleanEmail) return `${rawId}_e_${cleanEmail}`;
+  if (cleanName) return `${rawId}_n_${cleanName}`;
+  return `${rawId}_${item.uniqueKey || ""}`;
+};
+
 const DatabaseCandidate = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -614,6 +632,17 @@ const DatabaseCandidate = () => {
   const { categories, designations } = useSelector((state) => state.dropdown);
   const { hrList } = useSelector((state) => state.allHr);
   const { employers } = useSelector((state) => state.allEmployer);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isFirstRender = useRef(true);
+
+  const getInitialPage = () => {
+    const urlPage = parseInt(searchParams.get("page"), 10);
+    if (!isNaN(urlPage) && urlPage > 0) return urlPage;
+    const sessionPage = parseInt(sessionStorage.getItem("database_candidate_page"), 10);
+    if (!isNaN(sessionPage) && sessionPage > 0) return sessionPage;
+    return 1;
+  };
 
   // Local States
   const [search, setSearch] = useState("");
@@ -629,8 +658,12 @@ const DatabaseCandidate = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [transferCountPreset, setTransferCountPreset] = useState("");
+  const [transferLowerLimit, setTransferLowerLimit] = useState("");
+  const [transferHigherLimit, setTransferHigherLimit] = useState("");
+  const [transferRangeError, setTransferRangeError] = useState("");
+  const [transferRangeInfo, setTransferRangeInfo] = useState("");
   const [fetchedTransferCandidates, setFetchedTransferCandidates] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(getInitialPage);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [selectAllLoading, setSelectAllLoading] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -881,8 +914,36 @@ const DatabaseCandidate = () => {
     dispatch(fetchDesignations());
   }, [dispatch]);
 
-  // Reset page to 1 when filters change
+  // Sync page changes with URL and sessionStorage
   useEffect(() => {
+    sessionStorage.setItem("database_candidate_page", String(currentPage));
+    const urlPage = parseInt(searchParams.get("page"), 10);
+    if (urlPage !== currentPage) {
+      setSearchParams(
+        (prev) => {
+          const updated = new URLSearchParams(prev);
+          updated.set("page", String(currentPage));
+          return updated;
+        },
+        { replace: true }
+      );
+    }
+  }, [currentPage, searchParams, setSearchParams]);
+
+  // Sync state if URL search param changes externally (e.g. browser back/forward)
+  useEffect(() => {
+    const pageFromUrl = parseInt(searchParams.get("page"), 10);
+    if (!isNaN(pageFromUrl) && pageFromUrl > 0 && pageFromUrl !== currentPage) {
+      setCurrentPage(pageFromUrl);
+    }
+  }, [searchParams]);
+
+  // Reset page to 1 when filters change (skipping initial mount so refresh retains the current page)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     setCurrentPage(1);
   }, [
     debouncedSearch,
@@ -1012,88 +1073,250 @@ const DatabaseCandidate = () => {
     }
   };
 
-  const handleTransferPresetChange = async (value) => {
-    setTransferCountPreset(value);
-    if (!value) {
-      setFetchedTransferCandidates([]);
+  const unpackCandidatePayload = (payload) => {
+    if (!payload) return [];
+    let directList = [];
+    if (Array.isArray(payload)) {
+      directList = payload;
+    } else if (Array.isArray(payload?.candidates)) {
+      directList = payload.candidates;
+    } else if (Array.isArray(payload?.data)) {
+      directList = payload.data;
+    } else if (Array.isArray(payload?.data?.candidates)) {
+      directList = payload.data.candidates;
+    }
+
+    const result = [];
+    const seenKeys = new Set();
+
+    directList.forEach((item, idx) => {
+      if (!item) return;
+
+      const rows =
+        (Array.isArray(item.excelData) && item.excelData.length > 0 && item.excelData) ||
+        (Array.isArray(item.candidates) && item.candidates.length > 0 && item.candidates) ||
+        (Array.isArray(item.excel_data) && item.excel_data.length > 0 && item.excel_data) ||
+        (Array.isArray(item.parsedData) && item.parsedData.length > 0 && item.parsedData) ||
+        (Array.isArray(item.rows) && item.rows.length > 0 && item.rows) ||
+        (Array.isArray(item.data) && item.data.length > 0 && item.data);
+
+      if (rows) {
+        const dbId = item._id || item.id || `batch_${idx}`;
+        rows.forEach((row, rIdx) => {
+          if (!row) return;
+          const key = row.uniqueKey || row._id || `${dbId}_${rIdx}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            result.push({
+              ...row,
+              _id: row._id || dbId,
+              uniqueKey: key,
+              dbItemId: dbId,
+            });
+          }
+        });
+      } else {
+        const key = item.uniqueKey || (item._id && !seenKeys.has(String(item._id)) ? String(item._id) : `${item._id || item.id || "cand"}_${idx}`);
+        if (!seenKeys.has(String(key))) {
+          seenKeys.add(String(key));
+          result.push({
+            ...item,
+            _id: item._id || item.id || key,
+            uniqueKey: String(key),
+            dbItemId: item.dbItemId || item._id || item.id,
+          });
+        }
+      }
+    });
+
+    return result;
+  };
+
+  const handleApplyTransferRange = async (lowerVal = transferLowerLimit, higherVal = transferHigherLimit) => {
+    const rawLower = String(lowerVal ?? "").trim();
+    const rawHigher = String(higherVal ?? "").trim();
+
+    if (!rawLower || !rawHigher) {
+      const msg = "Please enter both lower and higher values.";
+      setTransferRangeError(msg);
+      toast.dismiss();
+      toast.error(msg, { toastId: "range_val_toast" });
       return;
     }
 
-    const count = parseInt(value, 10);
-    if (isNaN(count) || count <= 0) return;
+    const lower = parseInt(rawLower, 10);
+    const higher = parseInt(rawHigher, 10);
 
-    let availableCandidates = candidates || [];
-    if (availableCandidates.length < count) {
-      setSelectAllLoading(true);
-      try {
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const token = localStorage.getItem("token");
-        const params = { limit: count, page: 1 };
-        if (search?.trim()) params.search = search.trim();
-        if (selectedCategory) params.category = selectedCategory;
-        if (selectedDesignation) params.designation = selectedDesignation;
-        if (selectedCity || selectedState || selectedCountry) {
-          params.location = selectedCity || selectedState || selectedCountry;
-        }
-        if (selectedCity) params.city = selectedCity;
-        if (selectedState) params.state = selectedState;
-        if (selectedCountry) params.country = selectedCountry;
-        if (selectedWorkMode) params.workMode = selectedWorkMode;
-        if (selectedExperience) params.experience = selectedExperience;
-        if (startDate) {
-          const formatDate = (d) => {
-            const [y, m, day] = d.split("-");
-            return `${day}/${m}/${y}`;
-          };
-          params.startDate = formatDate(startDate);
-          params.fromDate = formatDate(startDate);
-        }
-        if (endDate) {
-          const formatDate = (d) => {
-            const [y, m, day] = d.split("-");
-            return `${day}/${m}/${y}`;
-          };
-          params.endDate = formatDate(endDate);
-          params.toDate = formatDate(endDate);
-        }
-
-        const response = await axios.get(
-          `${BASE_URL}/api/admin/candidate-database/getCandidates`,
-          { params, headers: { Authorization: `Bearer ${token}` } }
-        );
-        const payload = response.data;
-        let fetchedList = [];
-        if (Array.isArray(payload)) {
-          fetchedList = payload;
-        } else if (Array.isArray(payload?.candidates)) {
-          fetchedList = payload.candidates;
-        } else if (Array.isArray(payload?.data)) {
-          fetchedList = payload.data;
-        } else if (Array.isArray(payload?.data?.candidates)) {
-          fetchedList = payload.data.candidates;
-        }
-
-        if (fetchedList.length > 0) {
-          availableCandidates = fetchedList;
-          setFetchedTransferCandidates(fetchedList);
-        }
-      } catch (err) {
-        console.error("Error fetching candidates for preset transfer:", err);
-      } finally {
-        setSelectAllLoading(false);
-      }
+    if (isNaN(lower) || isNaN(higher)) {
+      const msg = "Please enter valid numeric values for the transfer range.";
+      setTransferRangeError(msg);
+      toast.dismiss();
+      toast.error(msg, { toastId: "range_val_toast" });
+      return;
     }
 
-    const idsToSelect = availableCandidates
-      .slice(0, count)
-      .filter((item) => item.uniqueKey || item._id)
-      .map((item) => item.uniqueKey || item._id);
+    if (lower <= 0 || higher <= 0) {
+      const msg = "Lower and higher values must be greater than 0.";
+      setTransferRangeError(msg);
+      toast.dismiss();
+      toast.error(msg, { toastId: "range_val_toast" });
+      return;
+    }
 
-    if (idsToSelect.length > 0) {
-      setSelectedCandidates(idsToSelect);
-      toast.info(`${idsToSelect.length} candidate(s) selected for transfer.`);
-    } else {
-      toast.warning("No candidates available to transfer.");
+    if (lower > higher) {
+      const msg = `Validation Error: Lower value (${lower}) cannot be greater than Higher value (${higher})! Please select in lower-to-higher order.`;
+      setTransferRangeError(msg);
+      toast.dismiss();
+      toast.error(msg, { toastId: "range_val_toast" });
+      return;
+    }
+
+    setTransferRangeError("");
+
+    const totalCount = total || candidates?.length || 0;
+    if (totalCount > 0 && lower > totalCount) {
+      const msg = `Lower value (${lower}) exceeds total candidates available (${totalCount}).`;
+      setTransferRangeError(msg);
+      toast.dismiss();
+      toast.warning(msg, { toastId: "range_val_toast" });
+      return;
+    }
+
+    setSelectAllLoading(true);
+    try {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const token = localStorage.getItem("token");
+      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const pageSize = itemsPerPage || 10;
+      const startPage = Math.floor((lower - 1) / pageSize) + 1;
+      const endPage = Math.floor((higher - 1) / pageSize) + 1;
+
+      const buildParams = (pageNo) => {
+        const p = {
+          page: pageNo,
+          limit: pageSize,
+        };
+        if (search?.trim()) p.search = search.trim();
+        if (selectedCategory) {
+          p.category = selectedCategory;
+          p.categoryName = selectedCategory;
+        }
+        if (selectedDesignation) {
+          p.designation = selectedDesignation;
+          p.designationName = selectedDesignation;
+        }
+        if (selectedCity || selectedState || selectedCountry) {
+          p.location = selectedCity || selectedState || selectedCountry;
+        }
+        if (selectedCity) p.city = selectedCity;
+        if (selectedState) p.state = selectedState;
+        if (selectedCountry) p.country = selectedCountry;
+        if (selectedWorkMode) p.workMode = selectedWorkMode;
+        if (selectedExperience !== undefined && selectedExperience !== null && selectedExperience !== "") {
+          p.experience = selectedExperience;
+          p.totalExperience = selectedExperience;
+        }
+        if (startDate) {
+          const [y, m, d] = startDate.split("-");
+          p.startDate = `${d}/${m}/${y}`;
+          p.fromDate = `${d}/${m}/${y}`;
+        }
+        if (endDate) {
+          const [y, m, d] = endDate.split("-");
+          p.endDate = `${d}/${m}/${y}`;
+          p.toDate = `${d}/${m}/${y}`;
+        }
+        return p;
+      };
+
+      const pageNumbers = [];
+      for (let p = startPage; p <= endPage; p++) {
+        pageNumbers.push(p);
+      }
+
+      const pageResults = await Promise.all(
+        pageNumbers.map(async (pageNo) => {
+          if (pageNo === currentPage && Array.isArray(candidates) && candidates.length > 0) {
+            return { pageNo, list: candidates };
+          }
+          try {
+            const res = await axios.get(
+              `${BASE_URL}/api/admin/candidate-database/getCandidates`,
+              { params: buildParams(pageNo), headers: authHeaders }
+            );
+            const payload = res.data;
+            const unpacked = unpackCandidatePayload(payload);
+            const list =
+              unpacked.length > 0
+                ? unpacked
+                : payload?.data ||
+                  payload?.candidates ||
+                  payload?.data?.candidates ||
+                  (Array.isArray(payload) ? payload : []);
+            return { pageNo, list: Array.isArray(list) ? list : [] };
+          } catch (err) {
+            console.error(`Failed to fetch page ${pageNo} for range:`, err);
+            return { pageNo, list: [] };
+          }
+        })
+      );
+
+      const allFetched = [];
+      const idsToSelect = [];
+
+      pageResults.forEach(({ pageNo, list }) => {
+        list.forEach((item, idx) => {
+          const globalSrNo = (pageNo - 1) * pageSize + idx + 1;
+          if (globalSrNo >= lower && globalSrNo <= higher) {
+            const itemKey = getCandidateUniqueKey(item);
+            if (itemKey) {
+              idsToSelect.push(itemKey);
+              allFetched.push(item);
+            }
+          }
+        });
+      });
+
+      setFetchedTransferCandidates(allFetched);
+
+      if (idsToSelect.length > 0) {
+        setSelectedCandidates(idsToSelect);
+        const actualCount = idsToSelect.length;
+        const rangeText = `Sr. No. ${lower} to ${lower + actualCount - 1} (${actualCount} candidates)`;
+        setTransferRangeInfo(rangeText);
+        toast.dismiss();
+        toast.success(
+          `Selected ${actualCount} candidate(s) (from #${lower} to #${lower + actualCount - 1}) for transfer.`,
+          { toastId: "range_transfer_toast" }
+        );
+      } else {
+        toast.dismiss();
+        toast.warning("No candidates found in the specified range.", { toastId: "range_transfer_toast" });
+      }
+    } catch (err) {
+      console.error("Error fetching candidates for range transfer:", err);
+      toast.dismiss();
+      toast.error("Failed to load candidates for the selected range.", { toastId: "range_transfer_toast" });
+    } finally {
+      setSelectAllLoading(false);
+    }
+  };
+
+  const handleTransferPresetChange = (value) => {
+    setTransferCountPreset(value);
+    if (!value) {
+      setTransferLowerLimit("");
+      setTransferHigherLimit("");
+      setTransferRangeError("");
+      setTransferRangeInfo("");
+      return;
+    }
+    const count = parseInt(value, 10);
+    if (!isNaN(count) && count > 0) {
+      setTransferLowerLimit("1");
+      setTransferHigherLimit(String(count));
+      handleApplyTransferRange(1, count);
     }
   };
 
@@ -1110,6 +1333,10 @@ const DatabaseCandidate = () => {
     setStartDate("");
     setEndDate("");
     setTransferCountPreset("");
+    setTransferLowerLimit("");
+    setTransferHigherLimit("");
+    setTransferRangeError("");
+    setTransferRangeInfo("");
     setFetchedTransferCandidates([]);
     setCurrentPage(1);
     setSelectedCandidates([]);
@@ -1192,7 +1419,7 @@ const DatabaseCandidate = () => {
 
   // IDs of candidates currently visible after all filters applied (ignore undefined _id)
   const filteredIds = useMemo(
-    () => filteredCandidates.filter((item) => item.uniqueKey || item._id).map((item) => item.uniqueKey || item._id),
+    () => filteredCandidates.map((item) => getCandidateUniqueKey(item)).filter(Boolean),
     [filteredCandidates]
   );
 
@@ -1256,14 +1483,17 @@ const DatabaseCandidate = () => {
       );
 
       const payload = response.data;
+      const unpackedAll = unpackCandidatePayload(payload);
       const allList =
-        payload?.data ||
-        payload?.candidates ||
-        (Array.isArray(payload) ? payload : []);
+        unpackedAll.length > 0
+          ? unpackedAll
+          : payload?.data ||
+            payload?.candidates ||
+            (Array.isArray(payload) ? payload : []);
 
       const allIds = allList
-        .filter((item) => item.uniqueKey || item._id)
-        .map((item) => item.uniqueKey || item._id);
+        .map((item) => getCandidateUniqueKey(item))
+        .filter(Boolean);
 
       if (allIds.length > 0) {
         setSelectedCandidates((prev) =>
@@ -1502,7 +1732,7 @@ const DatabaseCandidate = () => {
     // Resolve candidates to valid MongoDB ObjectIds
     const rawCandidateIds = selectedCandidates.map((selKey) => {
       const foundCandidate = allKnownCandidates.find(
-        (c) => (c.uniqueKey || c._id) === selKey || c._id === selKey
+        (c) => getCandidateUniqueKey(c) === selKey || (c.uniqueKey || c._id) === selKey || c._id === selKey
       );
       if (foundCandidate?._id && isValidObjectId(String(foundCandidate._id))) {
         return String(foundCandidate._id);
@@ -1521,6 +1751,17 @@ const DatabaseCandidate = () => {
     if (validCandidateIds.length === 0) {
       toast.error("Selected candidate(s) do not have a valid database ID for transfer");
       return;
+    }
+
+    if (transferLowerLimit && transferHigherLimit) {
+      const low = parseInt(transferLowerLimit, 10);
+      const high = parseInt(transferHigherLimit, 10);
+      if (!isNaN(low) && !isNaN(high) && low > high) {
+        const msg = `Validation Error: Lower value (${low}) cannot be greater than Higher value (${high})! Please select in lower-to-higher order.`;
+        setTransferRangeError(msg);
+        toast.error(msg);
+        return;
+      }
     }
 
     let targetPersonName = "";
@@ -1571,7 +1812,8 @@ const DatabaseCandidate = () => {
             : "Employee Management";
         const messageText = `${selectedCandidates.length} candidate(s) transferred to ${targetPersonName} (${destModuleName}) successfully!`;
 
-        toast.success(messageText);
+        toast.dismiss();
+        toast.success(messageText, { toastId: "transfer_complete_toast" });
         addNotification(
           "Candidate Transferred Successfully",
           messageText,
@@ -1587,7 +1829,7 @@ const DatabaseCandidate = () => {
 
         const transferredCandidatesDetails = selectedCandidates.map((selKey, idx) => {
           const found = allKnownCandidates.find(
-            (c) => (c.uniqueKey || c._id) === selKey || c._id === selKey
+            (c) => getCandidateUniqueKey(c) === selKey || (c.uniqueKey || c._id) === selKey || c._id === selKey
           );
           return {
             id: found?._id || selKey,
@@ -1603,7 +1845,7 @@ const DatabaseCandidate = () => {
 
         addTransferRecord({
           count: selectedCandidates.length,
-          range: `Sr. No. 1 to ${selectedCandidates.length} (Batch of ${selectedCandidates.length})`,
+          range: transferRangeInfo || `Sr. No. 1 to ${selectedCandidates.length} (Batch of ${selectedCandidates.length})`,
           transferredTo: targetPersonName,
           destModule: destModuleName,
           transferredBy: adminName,
@@ -1613,6 +1855,10 @@ const DatabaseCandidate = () => {
 
         setSelectedCandidates([]);
         setTransferCountPreset("");
+        setTransferLowerLimit("");
+        setTransferHigherLimit("");
+        setTransferRangeError("");
+        setTransferRangeInfo("");
         setFetchedTransferCandidates([]);
         setTransferTarget("");
         setSelectedPersonId("");
@@ -1640,6 +1886,42 @@ const DatabaseCandidate = () => {
   const paginatedCandidates = useMemo(() => {
     return candidates || [];
   }, [candidates]);
+
+  const currentPageKeys = useMemo(() => {
+    return paginatedCandidates
+      .map((item, idx) => getCandidateUniqueKey(item) || `${item._id || "cand"}_${startIndex + idx}`)
+      .filter(Boolean);
+  }, [paginatedCandidates, startIndex]);
+
+  const isCurrentPageAllSelected =
+    currentPageKeys.length > 0 &&
+    currentPageKeys.every((key) => selectedCandidates.includes(key));
+
+  const isCurrentPageIndeterminate =
+    !isCurrentPageAllSelected &&
+    currentPageKeys.some((key) => selectedCandidates.includes(key));
+
+  const handleSelectCurrentPage = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (!currentPageKeys.length) return;
+    toast.dismiss();
+    if (isCurrentPageAllSelected) {
+      setSelectedCandidates((prev) => prev.filter((key) => !currentPageKeys.includes(key)));
+      toast.info(`Deselected all ${currentPageKeys.length} candidates on Page ${currentPage}`, {
+        toastId: "page_select_toast",
+      });
+    } else {
+      setSelectedCandidates((prev) => Array.from(new Set([...prev, ...currentPageKeys])));
+      setFetchedTransferCandidates((prev) => {
+        const existing = new Set(prev.map((c) => getCandidateUniqueKey(c)));
+        const newItems = paginatedCandidates.filter((c) => !existing.has(getCandidateUniqueKey(c)));
+        return [...prev, ...newItems];
+      });
+      toast.success(`Selected all ${currentPageKeys.length} candidates on Page ${currentPage}`, {
+        toastId: "page_select_toast",
+      });
+    }
+  };
 
   return (
     <div className="w-full bg-[#F4F6FA] p-3 min-h-screen">
@@ -1899,24 +2181,99 @@ const DatabaseCandidate = () => {
                 />
               </div>
 
-              {/* Candidate Data Transfer Preset Dropdown */}
-              <div className="flex items-center gap-2 border-l border-gray-300 pl-3 ml-1">
+              {/* Candidate Data Transfer Range (Lower to Higher) & Presets */}
+              <div className="flex flex-wrap items-center gap-2 border-l border-gray-300 pl-3 ml-1">
                 <span className="font-semibold text-gray-600 uppercase text-xs tracking-wider">
-                  Data Transfer:
+                  Transfer Range:
                 </span>
-                <select
-                  value={transferCountPreset}
-                  onChange={(e) => handleTransferPresetChange(e.target.value)}
-                  className="rounded border border-purple-300 bg-purple-50 px-2.5 py-1.5 text-xs font-semibold text-purple-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 cursor-pointer hover:bg-purple-100 transition"
-                >
-                  <option value="">Select Data Transfer</option>
-                  <option value="10">10 candidate transfer</option>
-                  <option value="20">20 candidate transfer</option>
-                  <option value="30">30 candidate transfer</option>
-                  <option value="40">40 candidate transfer</option>
-                  <option value="50">50 candidate transfer</option>
-                  <option value="100">100 candidate transfer</option>
-                </select>
+                
+                <div className="flex items-center gap-1.5">
+                  <span className="text-gray-500 text-xs font-medium">Lower:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Min"
+                    value={transferLowerLimit}
+                    onChange={(e) => {
+                      setTransferLowerLimit(e.target.value);
+                      setTransferRangeError("");
+                    }}
+                    className={`w-16 rounded border px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-purple-200 transition ${
+                      transferRangeError ? "border-red-400 bg-red-50 text-red-700" : "border-gray-300 bg-white"
+                    }`}
+                    title="Lower limit (From index/Sr.No)"
+                  />
+
+                  <span className="text-gray-500 text-xs font-medium">Higher:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Max"
+                    value={transferHigherLimit}
+                    onChange={(e) => {
+                      setTransferHigherLimit(e.target.value);
+                      setTransferRangeError("");
+                    }}
+                    className={`w-16 rounded border px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-purple-200 transition ${
+                      transferRangeError ? "border-red-400 bg-red-50 text-red-700" : "border-gray-300 bg-white"
+                    }`}
+                    title="Higher limit (To index/Sr.No)"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyTransferRange()}
+                    disabled={selectAllLoading}
+                    className="rounded bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 text-xs font-semibold shadow-sm transition cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                    title="Apply Range Filter"
+                  >
+                    {selectAllLoading ? "Selecting..." : "Apply Range"}
+                  </button>
+
+                  <select
+                    value={transferCountPreset}
+                    onChange={(e) => handleTransferPresetChange(e.target.value)}
+                    className="rounded border border-purple-200 bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 cursor-pointer hover:bg-purple-100 transition"
+                    title="Quick Presets"
+                  >
+                    <option value="">Quick Presets</option>
+                    <option value="10">Top 10 (1 - 10)</option>
+                    <option value="20">Top 20 (1 - 20)</option>
+                    <option value="30">Top 30 (1 - 30)</option>
+                    <option value="40">Top 40 (1 - 40)</option>
+                    <option value="50">Top 50 (1 - 50)</option>
+                    <option value="100">Top 100 (1 - 100)</option>
+                  </select>
+
+                  {(transferLowerLimit || transferHigherLimit || selectedCandidates.length > 0) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTransferLowerLimit("");
+                        setTransferHigherLimit("");
+                        setTransferCountPreset("");
+                        setTransferRangeError("");
+                        setTransferRangeInfo("");
+                        setSelectedCandidates([]);
+                      }}
+                      className="text-gray-400 hover:text-red-500 p-1 transition"
+                      title="Clear Range Selection"
+                    >
+                      <X size={15} />
+                    </button>
+                  )}
+                </div>
+
+                {transferRangeError && (
+                  <span className="text-xs font-semibold text-red-600">
+                    ⚠️ {transferRangeError}
+                  </span>
+                )}
+                {transferRangeInfo && !transferRangeError && (
+                  <span className="text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
+                    ✓ {transferRangeInfo}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -1927,27 +2284,38 @@ const DatabaseCandidate = () => {
               <thead>
                 <tr className="bg-gray-100 text-gray-700 text-sm">
                   <th className="p-3 text-center w-10">
-                    {selectAllLoading ? (
-                      <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto" title="Selecting all candidates..." />
-                    ) : (
-                      <input
-                        type="checkbox"
-                        checked={isAllSelected}
-                        ref={(el) => { if (el) el.indeterminate = isIndeterminate; }}
-                        onChange={handleSelectAll}
-                        disabled={filteredIds.length === 0}
-                        className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle disabled:cursor-not-allowed"
-                        title={
-                          isAllSelected
-                            ? `Deselect all ${selectedCandidates.length} candidates`
-                            : total > filteredIds.length
-                            ? `Select all ${total} filtered candidates (across all pages)`
-                            : `Select all ${filteredIds.length} candidates`
-                        }
-                      />
-                    )}
+                    <input
+                      type="checkbox"
+                      checked={isCurrentPageAllSelected}
+                      ref={(el) => { if (el) el.indeterminate = isCurrentPageIndeterminate; }}
+                      onChange={handleSelectCurrentPage}
+                      disabled={currentPageKeys.length === 0}
+                      className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle disabled:cursor-not-allowed"
+                      title={
+                        isCurrentPageAllSelected
+                          ? `Deselect all ${currentPageKeys.length} entries on Page ${currentPage}`
+                          : `Select all ${currentPageKeys.length} entries on Page ${currentPage}`
+                      }
+                    />
                   </th>
-                  <th className="p-3 text-center">Sr.No</th>
+                  <th
+                    className={`p-3 text-center cursor-pointer select-none transition hover:bg-purple-100 hover:text-purple-800 ${
+                      isCurrentPageAllSelected ? "text-purple-700 font-bold bg-purple-50" : ""
+                    }`}
+                    onClick={handleSelectCurrentPage}
+                    title={
+                      isCurrentPageAllSelected
+                        ? `Click to deselect all ${currentPageKeys.length} entries on Page ${currentPage}`
+                        : `Click to select all ${currentPageKeys.length} entries on Page ${currentPage}`
+                    }
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span>Sr.No</span>
+                      {isCurrentPageAllSelected && (
+                        <span className="text-xs text-purple-600 font-bold">✓</span>
+                      )}
+                    </div>
+                  </th>
                   <th className="p-3 text-center">Name</th>
                   <th className="p-3 text-center">Category</th>
                   <th className="p-3 text-center">Designation</th>
@@ -1966,19 +2334,22 @@ const DatabaseCandidate = () => {
                     </td>
                   </tr>
                 ) : (
-                  paginatedCandidates.map((item, index) => (
-                    <tr
-                      key={item.uniqueKey || item._id}
-                      className="border-t border-gray-300 text-center text-sm"
-                    >
-                      <td className="p-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedCandidates.includes(item._id)}
-                          onChange={() => handleSelectCandidate(item._id)}
-                          className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle"
-                        />
-                      </td>
+                  paginatedCandidates.map((item, index) => {
+                    const itemKey = getCandidateUniqueKey(item) || `${item._id || "cand"}_${startIndex + index}`;
+                    const isChecked = selectedCandidates.includes(itemKey);
+                    return (
+                      <tr
+                        key={itemKey}
+                        className={`border-t border-gray-300 text-center text-sm ${isChecked ? "bg-purple-50/50" : ""}`}
+                      >
+                        <td className="p-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleSelectCandidate(itemKey)}
+                            className="w-4 h-4 text-purple-600 accent-purple-600 rounded cursor-pointer align-middle"
+                          />
+                        </td>
                       <td className="p-3">{startIndex + index + 1}</td>
                       <td className="p-3">{getCandidateName(item)}</td>
                       <td className="p-3">{getCandidateCategory(item, categories) || "N/A"}</td>
@@ -2013,8 +2384,9 @@ const DatabaseCandidate = () => {
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
+                  );
+                })
+              )}
                 {!loading && paginatedCandidates.length === 0 && (
                   <tr>
                     <td colSpan="9" className="text-center p-5">
@@ -2089,13 +2461,69 @@ const DatabaseCandidate = () => {
             </div>
 
             <div className="py-4 space-y-4">
-              <p className="text-sm text-gray-600">
-                You are transferring{" "}
-                <strong className="text-purple-700 font-bold">
-                  {selectedCandidates.length}
-                </strong>{" "}
-                selected candidate(s).
-              </p>
+              <div className="rounded-lg bg-purple-50 p-3 border border-purple-100">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">
+                    Transfer Range (Lower to Higher)
+                  </span>
+                  <span className="text-xs font-bold text-purple-700 bg-white px-2 py-0.5 rounded-full border border-purple-200">
+                    {selectedCandidates.length} Selected
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <label className="block text-[11px] text-gray-600 font-medium mb-0.5">Lower Value (From):</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 1"
+                      value={transferLowerLimit}
+                      onChange={(e) => {
+                        setTransferLowerLimit(e.target.value);
+                        setTransferRangeError("");
+                      }}
+                      className="w-full border border-gray-300 rounded px-2.5 py-1 text-xs bg-white outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-gray-600 font-medium mb-0.5">Higher Value (To):</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 50"
+                      value={transferHigherLimit}
+                      onChange={(e) => {
+                        setTransferHigherLimit(e.target.value);
+                        setTransferRangeError("");
+                      }}
+                      className="w-full border border-gray-300 rounded px-2.5 py-1 text-xs bg-white outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-2.5 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyTransferRange()}
+                    disabled={selectAllLoading}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-semibold shadow-sm transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {selectAllLoading ? "Selecting..." : "Update Range Selection"}
+                  </button>
+                  {transferRangeInfo && !transferRangeError && (
+                    <span className="text-[11px] text-purple-800 font-medium truncate max-w-[200px]" title={transferRangeInfo}>
+                      ✓ {transferRangeInfo}
+                    </span>
+                  )}
+                </div>
+
+                {transferRangeError && (
+                  <p className="mt-2 text-xs font-semibold text-red-600">
+                    ⚠️ {transferRangeError}
+                  </p>
+                )}
+              </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
