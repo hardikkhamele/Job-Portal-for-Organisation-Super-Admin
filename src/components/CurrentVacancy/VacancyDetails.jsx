@@ -24,9 +24,9 @@ const formatDateDDMMYYYY = (dateInput) => {
 };
 
 const formatDateTimeDDMMYYYY12h = (dateInput) => {
-  if (!dateInput) return "N/A";
+  if (!dateInput) return { date: "N/A", time: "" };
   const d = new Date(dateInput);
-  if (isNaN(d.getTime())) return String(dateInput);
+  if (isNaN(d.getTime())) return { date: String(dateInput), time: "" };
   
   const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -39,7 +39,10 @@ const formatDateTimeDDMMYYYY12h = (dateInput) => {
   hours = hours ? hours : 12;
   const strHours = String(hours).padStart(2, "0");
 
-  return `${day}-${month}-${year} ${strHours}:${minutes} ${ampm}`;
+  return {
+    date: `${day}-${month}-${year}`,
+    time: `${strHours}:${minutes} ${ampm}`
+  };
 };
 
 function VacancyDetails() {
@@ -564,7 +567,15 @@ function VacancyDetails() {
 
                     {/* Applied Date & Time */}
                     <td className="py-3.5 px-4 align-middle text-center font-semibold text-gray-700 text-[12px] whitespace-nowrap">
-                      {formatDateTimeDDMMYYYY12h(candidate.createdAt || candidate.appliedDate || candidate.appliedAt || candidate.createdDate || candidate.date)}
+                      {(() => {
+                        const { date, time } = formatDateTimeDDMMYYYY12h(candidate.createdAt || candidate.appliedDate || candidate.appliedAt || candidate.createdDate || candidate.date);
+                        return (
+                          <div className="flex flex-col items-center justify-center leading-tight">
+                            <span className="text-gray-900 font-bold text-[12px]">{date}</span>
+                            {time && <span className="text-purple-600 text-[11px] font-semibold mt-0.5">{time}</span>}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="py-4 px-6 align-middle text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       {candidate.resumeLink ? (
