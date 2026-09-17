@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { FaFileExcel } from "react-icons/fa";
+import * as XLSX from "xlsx";
 import {
   ClipboardList,
   Search,
@@ -91,6 +93,69 @@ function CurrentVacancy() {
     setSelectedVacancyIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
+  };
+
+  const handleExportExcelVacancies = () => {
+    if (selectedVacancyIds.length === 0) {
+      alert("Please select at least one entry to export.");
+      return;
+    }
+
+    const vacanciesToExport = filteredVacancies.filter(v => 
+      selectedVacancyIds.includes(v._id)
+    );
+
+    if (vacanciesToExport.length === 0) {
+      alert("No selected vacancy entries available to export.");
+      return;
+    }
+
+    const excelData = vacanciesToExport.map((v, idx) => {
+      const formattedDeadline = (() => {
+        if (!v.deadline) return "N/A";
+        if (typeof v.deadline === "string") {
+          const cleanStr = v.deadline.split("T")[0];
+          if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+            const [year, month, day] = cleanStr.split("-");
+            return `${day}-${month}-${year}`;
+          }
+        }
+        const d = new Date(v.deadline);
+        if (isNaN(d.getTime())) return String(v.deadline);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
+      })();
+
+      return {
+        "Sr. No": idx + 1,
+        "Vacancy ID": v.vacancyId || "N/A",
+        "Category": v.category || "N/A",
+        "Sub Category": Array.isArray(v.subCategory) ? v.subCategory.join(", ") : (v.subCategory || "N/A"),
+        "Profile / Designation": v.designation || v.profile || "N/A",
+        "State": v.state || "N/A",
+        "City": v.city || "N/A",
+        "Vacancies": v.noOfVacancy ?? 0,
+        "Priority": (v.priority || "Medium").toUpperCase(),
+        "Applied Count": v.applicationCount ?? 0,
+        "Work Mode": v.workMode || "N/A",
+        "Deadline": formattedDeadline
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Current_Vacancies");
+
+    const colWidths = Object.keys(excelData[0] || {}).map(key => ({
+      wch: Math.max(key.length + 4, 14)
+    }));
+    worksheet["!cols"] = colWidths;
+
+    const fileSuffix = selectedVacancyIds.length > 0 ? `Selected_${selectedVacancyIds.length}` : `All_${vacanciesToExport.length}`;
+    const fileName = `Current_Vacancies_${fileSuffix}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
 
   // Read URL search params in lowercase
@@ -532,6 +597,23 @@ function CurrentVacancy() {
                     title="To Date"
                   />
                 </div>
+
+                {/* Export Excel Button */}
+                <button
+                  onClick={handleExportExcelVacancies}
+                  disabled={selectedVacancyIds.length === 0}
+                  className={`font-semibold text-xs rounded-lg px-3.5 py-2 flex items-center gap-2 transition shrink-0 ${
+                    selectedVacancyIds.length > 0
+                      ? "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white cursor-pointer shadow-sm"
+                      : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed opacity-80"
+                  }`}
+                  title={selectedVacancyIds.length > 0 ? "Export selected entries to Excel sheet" : "Select at least one entry to export"}
+                >
+                  <FaFileExcel size={15} className={selectedVacancyIds.length > 0 ? "text-white shrink-0" : "text-gray-400 shrink-0"} />
+                  <span>
+                    Export Excel ({selectedVacancyIds.length})
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -623,6 +705,27 @@ function CurrentVacancy() {
               </div>
             )}
           </div>
+
+          {/* Selection Banner */}
+          {selectedVacancyIds.length > 0 && (
+            <div className="mx-3 sm:mx-6 mb-3 bg-purple-50 border border-purple-200 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-purple-900 shadow-sm animate-in fade-in duration-150">
+              <div className="flex items-center gap-2">
+                <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[11px] font-bold">
+                  {selectedVacancyIds.length}
+                </span>
+                <span>
+                  {selectedVacancyIds.length === 1 ? "1 vacancy entry selected" : `${selectedVacancyIds.length} vacancy entries selected`}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setSelectedVacancyIds([])}
+                className="text-purple-700 hover:text-purple-900 hover:underline text-xs font-bold cursor-pointer"
+              >
+                Deselect All
+              </button>
+            </div>
+          )}
 
           {/* Table */}
           <div className="overflow-x-auto px-3 sm:px-6 pb-0 max-w-full">

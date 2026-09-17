@@ -200,25 +200,16 @@ function ViewVacancyCandidate() {
         {/* TOP HEADER ROW */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 cursor-pointer hover:shadow-md transition">
           <div className="flex items-center gap-4 cursor-pointer">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition shrink-0 cursor-pointer"
-              title="Go Back"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div className="flex items-center gap-4 cursor-pointer">
-              <div className="w-14 h-14 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-2xl font-bold shrink-0 shadow-sm border border-purple-200/50 cursor-pointer">
-                {candidate.fullName ? candidate.fullName.charAt(0).toUpperCase() : "C"}
-              </div>
-              <div className="cursor-pointer">
-                <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight leading-tight cursor-pointer">
-                  {candidate.fullName || "N/A"}
-                </h3>
-                <p className="text-[14px] text-gray-500 font-medium mt-1 cursor-pointer">
-                  Applied for <span className="text-gray-800 font-bold cursor-pointer">{candidate.vacancy?.designation || "N/A"}</span>
-                </p>
-              </div>
+            <div className="w-14 h-14 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-2xl font-bold shrink-0 shadow-sm border border-purple-200/50 cursor-pointer">
+              {candidate.fullName ? candidate.fullName.charAt(0).toUpperCase() : "C"}
+            </div>
+            <div className="cursor-pointer">
+              <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight leading-tight cursor-pointer">
+                {candidate.fullName || "N/A"}
+              </h3>
+              <p className="text-[14px] text-gray-500 font-medium mt-1 cursor-pointer">
+                Applied for <span className="text-gray-800 font-bold cursor-pointer">{candidate.vacancy?.designation || "N/A"}</span>
+              </p>
             </div>
           </div>
 
@@ -256,48 +247,98 @@ function ViewVacancyCandidate() {
         )}
 
         {/* UNIFIED DETAILS CARD */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-8 pb-10 cursor-pointer">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-8 pb-10 flex flex-col gap-10 cursor-pointer">
            
-           {/* Section 1: Contact & Personal Details */}
-           <h4 className="text-[16px] font-bold text-gray-900 mb-5 border-b border-gray-100 pb-3 flex items-center gap-2 cursor-pointer">
-              Contact & Basic Information
-           </h4>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10 cursor-pointer">
-              <InfoItem label="Email Address" value={candidate.email} />
-              <InfoItem label="Phone Number" value={candidate.phone} />
-              <InfoItem label="Location" value={`${candidate.city || ''}${candidate.city && candidate.state ? ', ' : ''}${candidate.state || ''}`} />
-              <InfoItem label="Application ID" value={candidate.applicationId} />
+           {/* Section 1: Contact & Basic Details */}
+           <div>
+             <h4 className="text-[16px] font-bold text-gray-900 mb-5 border-b border-gray-100 pb-3 flex items-center justify-between cursor-pointer">
+               <span>Contact & Personal Information</span>
+               <span className="text-xs font-semibold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-100">
+                 System ID: {candidate._id || "N/A"}
+               </span>
+             </h4>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 cursor-pointer">
+               <InfoItem label="Full Name" value={candidate.fullName} />
+               <InfoItem label="Email Address" value={candidate.email} />
+               <InfoItem label="Phone Number" value={candidate.phone} />
+               <InfoItem label="Candidate Location" value={`${candidate.city || ''}${candidate.city && candidate.state ? ', ' : ''}${candidate.state || ''}`} />
+               <InfoItem label="Application ID" value={candidate.applicationId} />
+               <InfoItem label="Referred By" value={candidate.referredBy || "Self / Direct"} />
+               <InfoItem 
+                 label="Applied Date & Time" 
+                 value={candidate.createdAt ? new Date(candidate.createdAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : "N/A"} 
+               />
+               <InfoItem label="Current Status" value={(candidate.status || "submitted").toUpperCase()} />
+             </div>
            </div>
 
-           {/* Section 2: Professional Details */}
-           <h4 className="text-[16px] font-bold text-gray-900 mb-5 border-b border-gray-100 pb-3 flex items-center gap-2 cursor-pointer">
-              Professional Information
-           </h4>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10 cursor-pointer">
-              <InfoItem label="Total Experience" value={candidate.totalExperience ? `${candidate.totalExperience} Years` : null} />
-              <InfoItem label="Current Organization" value={candidate.currentOrganization} />
-              <InfoItem label="Current CTC" value={candidate.currentCTC} />
-              <InfoItem label="Expected CTC" value={candidate.expectedCTC} />
-              <InfoItem label="Notice Period" value={candidate.noticePeriod} />
+           {/* Section 2: Professional Information */}
+           <div>
+             <h4 className="text-[16px] font-bold text-gray-900 mb-5 border-b border-gray-100 pb-3 flex items-center gap-2 cursor-pointer">
+               Professional Information
+             </h4>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 cursor-pointer">
+               <InfoItem label="Total Experience" value={candidate.totalExperience ? `${candidate.totalExperience} Years` : "N/A"} />
+               <InfoItem label="Current Organization" value={candidate.currentOrganization} />
+               <InfoItem label="Current CTC" value={candidate.currentCTC ? `₹${candidate.currentCTC}` : "N/A"} />
+               <InfoItem label="Expected CTC" value={candidate.expectedCTC ? `₹${candidate.expectedCTC}` : "N/A"} />
+               <InfoItem label="Notice Period" value={candidate.noticePeriod} />
+             </div>
            </div>
 
-           {/* Section 3: Application Specs */}
-           <h4 className="text-[16px] font-bold text-gray-900 mb-5 border-b border-gray-100 pb-3 flex items-center gap-2 cursor-pointer">
-              Vacancy & Referral Details
-           </h4>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 cursor-pointer">
-              <InfoItem label="Vacancy Code" value={candidate.vacancyCode || candidate.vacancy?.vacancyId} />
-              <InfoItem label="Category" value={`${candidate.vacancy?.category || 'N/A'} - ${candidate.vacancy?.subCategory || 'N/A'}`} />
-              <InfoItem label="Work Mode" value={candidate.vacancy?.workMode} />
-              <InfoItem label="Referred By" value={candidate.referredBy || "Self Applied"} />
-              {candidate.submittedBy && (
+           {/* Section 3: Vacancy Specifications (Full API Object) */}
+           {candidate.vacancy && (
+             <div>
+               <h4 className="text-[16px] font-bold text-gray-900 mb-5 border-b border-gray-100 pb-3 flex items-center justify-between cursor-pointer">
+                 <span>Applied Vacancy Details ({candidate.vacancy.vacancyId || candidate.vacancyCode || "N/A"})</span>
+                 <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                   Priority: {candidate.vacancy.priority || "Normal"}
+                 </span>
+               </h4>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-6 cursor-pointer">
+                 <InfoItem label="Designation / Role" value={candidate.vacancy.designation} />
+                 <InfoItem label="Category" value={candidate.vacancy.category} />
+                 <InfoItem label="Sub Category" value={candidate.vacancy.subCategory} />
+                 <InfoItem label="Hiring Type" value={candidate.vacancy.hiring} />
+                 <InfoItem label="Required Experience" value={candidate.vacancy.experience} />
+                 <InfoItem label="Budget" value={candidate.vacancy.budget} />
+                 <InfoItem label="Work Mode" value={candidate.vacancy.workMode} />
+                 <InfoItem label="No. of Vacancies" value={candidate.vacancy.numberOfVacancies ? String(candidate.vacancy.numberOfVacancies) : "N/A"} />
                  <InfoItem 
-                    label="Submitted By (HR)" 
-                    value={candidate.submittedBy.hrName} 
-                    subValue={candidate.submittedBy.designation} 
+                   label="Deadline" 
+                   value={candidate.vacancy.deadline ? new Date(candidate.vacancy.deadline).toLocaleDateString('en-GB') : "N/A"} 
                  />
-              )}
-           </div>
+                 <InfoItem label="Job Location" value={`${candidate.vacancy.city || ''}${candidate.vacancy.city && candidate.vacancy.state ? ', ' : ''}${candidate.vacancy.state || ''}`} />
+                 <InfoItem label="Total Applications" value={candidate.vacancy.applicationSubmittedCount ? String(candidate.vacancy.applicationSubmittedCount) : "0"} />
+                 <InfoItem label="Vacancy Status" value={(candidate.vacancy.status || "active").toUpperCase()} />
+               </div>
+
+               {/* Job Description */}
+               {candidate.vacancy.jobDescription && (
+                 <div className="mt-4 bg-gray-50 rounded-xl p-4 border border-gray-200 cursor-pointer">
+                   <span className="text-[12px] font-bold text-gray-500 uppercase tracking-wider block mb-2 cursor-pointer">Job Description</span>
+                   <p className="text-[14px] text-gray-700 font-medium whitespace-pre-line leading-relaxed cursor-pointer">
+                     {candidate.vacancy.jobDescription}
+                   </p>
+                 </div>
+               )}
+             </div>
+           )}
+
+           {/* Section 4: Submitted By (HR Details) */}
+           {candidate.submittedBy && (
+             <div>
+               <h4 className="text-[16px] font-bold text-gray-900 mb-5 border-b border-gray-100 pb-3 flex items-center gap-2 cursor-pointer">
+                 Submitted By (HR Manager)
+               </h4>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 cursor-pointer">
+                 <InfoItem label="HR Name" value={candidate.submittedBy.hrName} />
+                 <InfoItem label="Designation" value={candidate.submittedBy.designation} />
+                 <InfoItem label="Contact Number" value={candidate.submittedBy.mobileNumber} />
+                 <InfoItem label="Email Address" value={candidate.submittedBy.email} />
+               </div>
+             </div>
+           )}
 
         </div>
 
