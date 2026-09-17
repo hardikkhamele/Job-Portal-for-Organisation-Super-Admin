@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Briefcase, Calendar, Search, Mail, FileText, Check, Trash2, ExternalLink, Eye, X, Filter, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Briefcase, Calendar, Search, Mail, Phone, FileText, Check, Trash2, ExternalLink, Eye, X, Filter, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { useLocation, useNavigate, useParams, Navigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import logo from "../../assets/Logo.svg";
@@ -484,22 +484,20 @@ function VacancyDetails() {
         {/* --- CANDIDATES TABLE --- */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-1">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left min-w-[1200px] table-auto">
+            <table className="w-full text-sm text-left w-full table-auto">
               <thead>
                 <tr className="bg-purple-600 border-b border-purple-700">
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Sr. No.</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Candidate Name</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Email</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Contact</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">City / Location</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Experience</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Current Org</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Notice Period</th>
-                  <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Expected CTC</th>
-                  <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Applied Date & Time</th>
-                  <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">CV / Resume</th>
-                  <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
-                  <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Action</th>
+                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Sr.</th>
+                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Candidate, Role & Exp</th>
+                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Contact Details</th>
+                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Location</th>
+                  <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Current Org</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Notice</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Expected CTC</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Applied Date & Time</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">CV / Resume</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -509,48 +507,63 @@ function VacancyDetails() {
                     onClick={() => navigate(`/current-vacancy/candidate/${candidate._id || candidate.applicationId}`)}
                     className="hover:bg-purple-50/30 transition-colors cursor-pointer"
                   >
-                    <td className="py-4 px-6 text-gray-500 font-semibold align-middle whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-gray-500 font-semibold align-middle whitespace-nowrap">
                       {startIndex + idx + 1}
                     </td>
-                    <td className="py-4 px-6 align-middle">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-bold flex items-center justify-center text-xs shrink-0">
+
+                    {/* Candidate, Role & Experience in single cell */}
+                    <td className="py-3.5 px-4 align-middle">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs shrink-0">
                           {candidate.fullName ? candidate.fullName.charAt(0).toUpperCase() : "?"}
                         </div>
-                        <span className="font-bold text-gray-800 uppercase text-[13px] tracking-wide truncate max-w-[160px] block" title={candidate.fullName || "GUEST"}>
-                          {candidate.fullName || "GUEST"}
-                        </span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-bold text-gray-900 uppercase text-[13px] tracking-wide truncate max-w-[150px]" title={candidate.fullName || "GUEST"}>
+                            {candidate.fullName || "GUEST"}
+                          </span>
+                          <span className="text-[11px] text-gray-500 font-medium truncate">
+                            {candidate.currentRole || candidate.designation || currentVacancy.profile || "Candidate"} • <span className="text-purple-600 font-semibold">{candidate.totalExperience ? `${candidate.totalExperience} Yrs` : "N/A"}</span>
+                          </span>
+                        </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6 align-middle">
-                      {candidate.email && candidate.email !== "N/A" ? (
-                        <div className="flex items-center gap-2 text-gray-600 font-medium text-[13px] truncate max-w-[180px]" title={candidate.email}>
-                          <Mail size={14} className="text-gray-400 shrink-0" />
-                          <span className="truncate">{candidate.email}</span>
+
+                    {/* Email & Contact in single cell */}
+                    <td className="py-3.5 px-4 align-middle">
+                      <div className="flex flex-col gap-0.5 text-[12px]">
+                        <div className="flex items-center gap-1.5 text-gray-700 font-medium truncate max-w-[170px]" title={candidate.email}>
+                          <Mail size={13} className="text-purple-400 shrink-0" />
+                          <span className="truncate">{candidate.email || "N/A"}</span>
                         </div>
-                      ) : (
-                        <span className="text-gray-400 font-medium text-[13px]">N/A</span>
-                      )}
+                        <div className="flex items-center gap-1.5 text-gray-500 font-medium">
+                          <Phone size={13} className="text-purple-400 shrink-0" />
+                          <span>{candidate.phone || candidate.contact || "N/A"}</span>
+                        </div>
+                      </div>
                     </td>
-                    <td className="py-4 px-6 align-middle text-gray-700 font-medium text-[13px] tracking-wide whitespace-nowrap">
-                      {candidate.phone || candidate.contact || "N/A"}
-                    </td>
-                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] truncate max-w-[120px]" title={candidate.city || "N/A"}>
+
+                    {/* Location */}
+                    <td className="py-3.5 px-4 align-middle font-medium text-gray-700 text-[13px] truncate max-w-[110px]" title={candidate.city || "N/A"}>
                       {candidate.city || "N/A"}
                     </td>
-                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] whitespace-nowrap">
-                      {candidate.totalExperience ? `${candidate.totalExperience} Yrs` : "N/A"}
-                    </td>
-                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] truncate max-w-[140px]" title={candidate.currentOrganization}>
+
+                    {/* Current Org */}
+                    <td className="py-3.5 px-4 align-middle font-medium text-gray-700 text-[13px] truncate max-w-[130px]" title={candidate.currentOrganization}>
                       {candidate.currentOrganization || "N/A"}
                     </td>
-                    <td className="py-4 px-6 align-middle font-medium text-gray-700 text-[13px] whitespace-nowrap">
+
+                    {/* Notice Period */}
+                    <td className="py-3.5 px-4 align-middle text-center font-medium text-gray-700 text-[13px] whitespace-nowrap">
                       {candidate.noticePeriod || "N/A"}
                     </td>
-                    <td className="py-4 px-6 align-middle font-bold text-gray-800 text-[13px] whitespace-nowrap">
+
+                    {/* Expected CTC */}
+                    <td className="py-3.5 px-4 align-middle text-center font-bold text-gray-800 text-[13px] whitespace-nowrap">
                       {candidate.expectedCTC || "N/A"}
                     </td>
-                    <td className="py-4 px-6 align-middle text-center font-semibold text-gray-700 text-[12px] whitespace-nowrap">
+
+                    {/* Applied Date & Time */}
+                    <td className="py-3.5 px-4 align-middle text-center font-semibold text-gray-700 text-[12px] whitespace-nowrap">
                       {formatDateTimeDDMMYYYY12h(candidate.createdAt || candidate.appliedDate || candidate.appliedAt || candidate.createdDate || candidate.date)}
                     </td>
                     <td className="py-4 px-6 align-middle text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
