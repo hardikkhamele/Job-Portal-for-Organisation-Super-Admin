@@ -220,31 +220,30 @@ function CurrentVacancy() {
           ]}
         />
 
-        {/* --- HEADER WITH TWO BUTTONS --- */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* --- HEADER WITH BUTTON --- */}
+        <div className="bg-white rounded-xl shadow-sm p-4 px-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <h4 className="text-2xl font-bold text-gray-900 tracking-tight">
+              <h4 className="text-xl font-bold text-gray-900 tracking-tight">
                 Job Vacancies
               </h4>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-0.5">
                 Browse current open positions and submit candidate details with CV links.
               </p>
             </div>
             
             <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
-              {/* Button 1: Add Vacancy (Navigates to Full Page for Single Vacancy) */}
+              {/* Button 1: Add Vacancy */}
               <button
                 type="button"
                 onClick={() => navigate("/current-vacancy/add-vacancy")}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer h-11 shadow-sm"
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer h-10 shadow-sm"
               >
                 <Plus size={18} />
                 <span>Add Vacancy</span>
               </button>
             </div>
           </div>
-          <hr className="border-gray-200 mt-4" />
         </div>
 
         {/* --- 6 INTERACTIVE STAT CARDS --- */}
