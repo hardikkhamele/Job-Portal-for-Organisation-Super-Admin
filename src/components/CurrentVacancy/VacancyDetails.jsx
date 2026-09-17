@@ -64,6 +64,25 @@ function VacancyDetails() {
   const [rejectingCandidateId, setRejectingCandidateId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState([]);
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const pageIds = paginatedCandidates.map(c => c._id || c.applicationId);
+      setSelectedCandidateIds(prev => Array.from(new Set([...prev, ...pageIds])));
+    } else {
+      const pageIds = new Set(paginatedCandidates.map(c => c._id || c.applicationId));
+      setSelectedCandidateIds(prev => prev.filter(id => !pageIds.has(id)));
+    }
+  };
+
+  const handleToggleSelect = (id, e) => {
+    e.stopPropagation();
+    setSelectedCandidateIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: "",
@@ -313,6 +332,9 @@ function VacancyDetails() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedCandidates = filteredCandidates.slice(startIndex, startIndex + itemsPerPage);
 
+  const isAllPageSelected = paginatedCandidates.length > 0 && paginatedCandidates.every(c => selectedCandidateIds.includes(c._id || c.applicationId));
+  const isSomePageSelected = paginatedCandidates.some(c => selectedCandidateIds.includes(c._id || c.applicationId)) && !isAllPageSelected;
+
   return (
     <div className="w-full min-h-screen bg-[#F4F6FA] px-4 pt-2 sm:px-6 pb-20 flex flex-col justify-between overflow-x-hidden">
       <div className="max-w-7xl mx-auto w-full flex flex-col gap-3">
@@ -482,12 +504,42 @@ function VacancyDetails() {
             </div>
           )}
         </div>
+        {/* --- SELECTION TOOLBAR BAR --- */}
+        {selectedCandidateIds.length > 0 && (
+          <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-purple-900 shadow-sm animate-in fade-in duration-150">
+            <div className="flex items-center gap-2">
+              <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[11px] font-bold">
+                {selectedCandidateIds.length}
+              </span>
+              <span>
+                {selectedCandidateIds.length === 1 ? "1 candidate entry selected" : `${selectedCandidateIds.length} candidate entries selected`}
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedCandidateIds([])}
+              className="text-purple-700 hover:text-purple-900 hover:underline text-xs font-bold cursor-pointer"
+            >
+              Deselect All
+            </button>
+          </div>
+        )}
+
         {/* --- CANDIDATES TABLE --- */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-1">
           <div className="overflow-x-auto max-w-full">
             <table className="w-full text-sm text-left table-auto min-w-[850px]">
               <thead>
                 <tr className="bg-purple-600 border-b border-purple-700 divide-x divide-white/30">
+                  <th className="py-3 px-3 text-center text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30 w-10">
+                    <input
+                      type="checkbox"
+                      checked={isAllPageSelected}
+                      ref={(el) => { if (el) el.indeterminate = isSomePageSelected; }}
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer accent-purple-700"
+                      title="Select All on this page"
+                    />
+                  </th>
                   <th className="py-3 px-3 text-left text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Sr.</th>
                   <th className="py-3 px-3 text-left text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Candidate, Role & Exp</th>
                   <th className="py-3 px-3 text-left text-[11px] font-bold text-white uppercase tracking-wider whitespace-nowrap border-r border-white/30">Contact Details</th>
@@ -502,15 +554,29 @@ function VacancyDetails() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {paginatedCandidates.map((candidate, idx) => (
-                  <tr 
-                    key={candidate._id || candidate.id || idx} 
-                    onClick={() => navigate(`/current-vacancy/candidate/${candidate._id || candidate.applicationId}`)}
-                    className="hover:bg-purple-50/30 transition-colors cursor-pointer"
-                  >
-                    <td className="py-3.5 px-4 text-gray-500 font-semibold align-middle whitespace-nowrap">
-                      {startIndex + idx + 1}
-                    </td>
+                {paginatedCandidates.map((candidate, idx) => {
+                  const candidateId = candidate._id || candidate.applicationId || candidate.id;
+                  const isSelected = selectedCandidateIds.includes(candidateId);
+
+                  return (
+                    <tr 
+                      key={candidateId || idx} 
+                      onClick={() => navigate(`/current-vacancy/candidate/${candidate._id || candidate.applicationId}`)}
+                      className={`transition-colors cursor-pointer ${
+                        isSelected ? "bg-purple-50/80 font-medium" : "hover:bg-purple-50/30"
+                      }`}
+                    >
+                      <td className="py-3.5 px-3 text-center align-middle" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => handleToggleSelect(candidateId, e)}
+                          className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer accent-purple-600"
+                        />
+                      </td>
+                      <td className="py-3.5 px-4 text-gray-500 font-semibold align-middle whitespace-nowrap">
+                        {startIndex + idx + 1}
+                      </td>
 
                     {/* Candidate, Role & Experience in single cell */}
                     <td className="py-3.5 px-4 align-middle">
@@ -685,7 +751,8 @@ function VacancyDetails() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
                 {filteredCandidates.length === 0 && (
                   <tr>
                     <td colSpan="12" className="py-12 text-center text-gray-500 font-semibold">

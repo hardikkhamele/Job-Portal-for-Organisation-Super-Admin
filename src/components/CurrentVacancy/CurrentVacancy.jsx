@@ -73,6 +73,26 @@ function CurrentVacancy() {
     loadStats();
   }, []);
 
+  // Selection state
+  const [selectedVacancyIds, setSelectedVacancyIds] = useState([]);
+
+  const handleSelectAllVacancies = (e, pageVacancies) => {
+    if (e.target.checked) {
+      const pageIds = pageVacancies.map(v => v._id);
+      setSelectedVacancyIds(prev => Array.from(new Set([...prev, ...pageIds])));
+    } else {
+      const pageIds = new Set(pageVacancies.map(v => v._id));
+      setSelectedVacancyIds(prev => prev.filter(id => !pageIds.has(id)));
+    }
+  };
+
+  const handleToggleSelectVacancy = (id, e) => {
+    e.stopPropagation();
+    setSelectedVacancyIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
   // Read URL search params in lowercase
   const statusFilter = (searchParams.get("status") || "all").toLowerCase();
   const categoryFilter = (searchParams.get("category") || "all").toLowerCase();
@@ -608,9 +628,10 @@ function CurrentVacancy() {
           <div className="overflow-x-auto px-3 sm:px-6 pb-0 max-w-full">
             <table className="w-full text-sm border-collapse rounded-t-xl overflow-hidden table-fixed min-w-[900px]">
               <colgroup>
+                <col className="w-[3%]" />
                 <col className="w-[4%]" />
                 <col className="w-[12%]" />
-                <col className="w-[20%]" />
+                <col className="w-[19%]" />
                 <col className="w-[11%]" />
                 <col className="w-[7%]" />
                 <col className="w-[7%]" />
@@ -622,7 +643,21 @@ function CurrentVacancy() {
               </colgroup>
               <thead>
                 <tr className="bg-purple-600 text-white divide-x divide-white/30">
-                  <th className="py-3 px-2 font-semibold text-left text-[11px] uppercase tracking-wider rounded-tl-xl border-r border-white/30">Sr.</th>
+                  <th className="py-3 px-2 text-center text-[11px] uppercase tracking-wider rounded-tl-xl border-r border-white/30">
+                    <input
+                      type="checkbox"
+                      checked={paginatedVacancies.length > 0 && paginatedVacancies.every(v => selectedVacancyIds.includes(v._id))}
+                      ref={(el) => {
+                        if (el) {
+                          el.indeterminate = paginatedVacancies.some(v => selectedVacancyIds.includes(v._id)) && !paginatedVacancies.every(v => selectedVacancyIds.includes(v._id));
+                        }
+                      }}
+                      onChange={(e) => handleSelectAllVacancies(e, paginatedVacancies)}
+                      className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer accent-purple-700"
+                      title="Select All on this page"
+                    />
+                  </th>
+                  <th className="py-3 px-2 font-semibold text-left text-[11px] uppercase tracking-wider border-r border-white/30">Sr.</th>
                   <th className="py-3 px-3 font-semibold text-left text-[11px] uppercase tracking-wider border-r border-white/30">Category</th>
                   <th className="py-3 px-3 font-semibold text-left text-[11px] uppercase tracking-wider border-r border-white/30">Profile / Designation</th>
                   <th className="py-3 px-3 font-semibold text-left text-[11px] uppercase tracking-wider border-r border-white/30">State</th>
@@ -669,12 +704,13 @@ function CurrentVacancy() {
                   ))
                 ) : paginatedVacancies.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="py-12 text-center text-gray-400 text-sm">
+                    <td colSpan={12} className="py-12 text-center text-gray-400 text-sm">
                       No vacancies found matching your active filters.
                     </td>
                   </tr>
                 ) : (
                   paginatedVacancies.map((v, idx) => {
+                    const isSelected = selectedVacancyIds.includes(v._id);
                     const formattedDeadline = (() => {
                       if (!v.deadline) return "";
                       if (typeof v.deadline === "string") {
@@ -694,8 +730,20 @@ function CurrentVacancy() {
                     return (
                     <tr
                       key={v._id || idx}
-                      className="border-b border-gray-100 hover:bg-purple-50/30 transition-colors duration-150 cursor-pointer"
+                      className={`border-b border-gray-100 transition-colors duration-150 cursor-pointer ${
+                        isSelected ? "bg-purple-50/80 font-medium" : "hover:bg-purple-50/30"
+                      }`}
                     >
+                      {/* Selection Checkbox */}
+                      <td className="py-3.5 px-2 text-center align-middle" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => handleToggleSelectVacancy(v._id, e)}
+                          className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer accent-purple-600"
+                        />
+                      </td>
+
                       {/* Sr */}
                       <td className="py-3.5 px-2 text-gray-600 font-semibold text-xs">
                         {(currentPage - 1) * itemsPerPage + idx + 1}
