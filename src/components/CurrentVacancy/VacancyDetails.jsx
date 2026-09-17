@@ -314,7 +314,7 @@ function VacancyDetails() {
   const paginatedCandidates = filteredCandidates.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="w-full min-h-screen bg-[#F4F6FA] p-4 sm:p-6 pb-20 flex flex-col justify-between overflow-x-hidden">
+    <div className="w-full min-h-screen bg-[#F4F6FA] px-4 pt-2 sm:px-6 pb-20 flex flex-col justify-between overflow-x-hidden">
       <div className="max-w-7xl mx-auto w-full flex flex-col gap-3">
         
         {/* --- BREADCRUMB --- */}

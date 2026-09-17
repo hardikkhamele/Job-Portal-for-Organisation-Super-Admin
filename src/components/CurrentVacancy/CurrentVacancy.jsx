@@ -209,7 +209,7 @@ function CurrentVacancy() {
   };
 
   return (
-    <div className="w-full bg-[#F4F6FA] p-4 pb-20 min-h-screen flex flex-col justify-between">
+    <div className="w-full bg-[#F4F6FA] px-4 pt-2 sm:px-6 pb-20 min-h-screen flex flex-col justify-between">
       <div className="max-w-7xl mx-auto w-full flex flex-col gap-4">
 
         {/* --- BREADCRUMB (Below Top Navbar with Left Circular Back Icon) --- */}

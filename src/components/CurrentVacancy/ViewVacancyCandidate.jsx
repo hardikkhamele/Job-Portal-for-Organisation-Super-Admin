@@ -187,7 +187,7 @@ function ViewVacancyCandidate() {
   }
 
   return (
-    <div className="w-full bg-[#F4F6FA] min-h-screen p-4 flex flex-col justify-between">
+    <div className="w-full bg-[#F4F6FA] min-h-screen px-4 pt-2 sm:px-6 flex flex-col justify-between">
       <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-5">
         <Breadcrumb
           items={[
