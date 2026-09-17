@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { Plus, Briefcase, MapPin, DollarSign, Calendar, FileText, Code2, Clock } from "lucide-react";
 import Breadcrumb from "../common/Breadcrumb";
 import Footer from "../Footer";
@@ -34,7 +35,8 @@ function AddSingleVacancy() {
   const vacancies = getVacancies(); // To get existing company names
 
   const [formData, setFormData] = useState({
-    companyName: "",
+    hiring: "Internal",
+    priority: "Medium",
     state: "",
     city: "",
     category: "IT",
@@ -55,12 +57,12 @@ function AddSingleVacancy() {
   const [citiesList, setCitiesList] = useState([]);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isStateOpen, setIsStateOpen] = useState(false);
+  const [isCityOpen, setIsCityOpen] = useState(false);
 
-  // Extract unique existing company names for selection dropdown
-  const existingCompanyNames = useMemo(() => {
-    const names = vacancies.map((v) => v.companyName).filter(Boolean);
-    return Array.from(new Set(names));
-  }, [vacancies]);
+  // Filter for unique strings is not needed for hiring type, standard static list used instead
+  const hiringOptions = ["Internal", "External"];
 
   // Fetch States from Open Source API (CountriesNow API)
   useEffect(() => {
@@ -119,44 +121,8 @@ function AddSingleVacancy() {
   }, [formData.state]);
 
   const validate = () => {
-    const newErrors = {};
-
-    if (!formData.companyName.trim()) {
-      newErrors.companyName = "Company Name is required";
-    }
-    if (!formData.profile.trim()) {
-      newErrors.profile = "Profile / Designation is required";
-    }
-    if (!formData.state) {
-      newErrors.state = "Job Location State is required";
-    }
-    if (!formData.city.trim()) {
-      newErrors.city = "Job Location City is required";
-    }
-    if (!formData.technology.trim()) {
-      newErrors.technology = "Technology / Skill is required";
-    }
-    if (!formData.experience) {
-      newErrors.experience = "Experience is required";
-    }
-    if (!formData.workMode) {
-      newErrors.workMode = "Work mode is required";
-    }
-    if (!formData.jobType) {
-      newErrors.jobType = "Job type is required";
-    }
-    if (!formData.salaryRange.trim()) {
-      newErrors.salaryRange = "Salary Range is required";
-    }
-    if (!formData.deadline) {
-      newErrors.deadline = "Deadline date is required";
-    }
-    if (!formData.requirements.trim()) {
-      newErrors.requirements = "Job Description & Requirements are required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors({});
+    return true;
   };
 
   const handleCityChange = (cityName) => {
@@ -190,16 +156,55 @@ function AddSingleVacancy() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
       return;
     }
-    addVacancy({
-      ...formData,
-      budget: formData.salaryRange
-    });
-    navigate("/current-vacancy?page=1");
+    
+    setIsSubmitting(true);
+    try {
+      let token = localStorage.getItem("token");
+      if (!token) {
+        const match = document.cookie.match(/(?:^|;)\s*(?:token|access_token)\s*=\s*([^;]+)/);
+        if (match) token = match[1];
+      }
+      
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://new-job-portal-be.onrender.com";
+      const payload = {
+        hiring: formData.hiring,
+        priority: formData.priority,
+        designation: formData.profile,
+        category: formData.category,
+        subCategory: formData.technology, 
+        numberOfVacancies: Number(formData.noOfVacancy),
+        experience: formData.experience,
+        budget: formData.salaryRange,
+        workMode: formData.workMode,
+        deadline: formData.deadline,
+        state: formData.state,
+        city: formData.city,
+        jobDescription: formData.requirements
+      };
+      
+      const headers = { "Content-Type": "application/json" };
+      if (token && token !== "null") {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const response = await axios.post(`${BASE_URL}/api/admin/vacancies`, payload, {
+        headers
+      });
+      if (!response.data.success && response.data.success !== undefined) {
+        throw new Error(response.data.message || "Failed to create vacancy");
+      }
+      navigate("/current-vacancy?page=1");
+    } catch (error) {
+      console.error(error);
+      alert("Error adding vacancy: " + (error.response?.data?.message || error.message));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -237,35 +242,74 @@ function AddSingleVacancy() {
 
           <form onSubmit={handleSubmit} className="p-6 space-y-5" noValidate>
             
-            {/* Company Selection / Input */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold uppercase text-gray-700 block">Company Name <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <input
-                  type="text"
-                  list="company-options"
-                  placeholder="Select or enter company name"
-                  value={formData.companyName}
-                  onChange={(e) => handleChange("companyName", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 ${
-                    errors.companyName ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
-                  }`}
-                />
-                <datalist id="company-options">
-                  {existingCompanyNames.map((c) => (
-                    <option key={c} value={c} />
-                  ))}
-                </datalist>
+            {/* Hiring, Priority & No. of Vacancies */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Hiring Type Selection */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">Hiring</label>
+                <div className="relative">
+                  <select
+                    value={formData.hiring}
+                    onChange={(e) => handleChange("hiring", e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 cursor-pointer ${
+                      errors.hiring ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
+                    }`}
+                  >
+                    <option value="Internal">Internal</option>
+                    <option value="External">External</option>
+                  </select>
+                </div>
+                {errors.hiring && (
+                  <p className="text-red-600 text-xs font-semibold mt-1">{errors.hiring}</p>
+                )}
               </div>
-              {errors.companyName && (
-                <p className="text-red-600 text-xs font-semibold mt-1">{errors.companyName}</p>
-              )}
+
+              {/* Priority */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">Priority</label>
+                <div className="relative">
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => handleChange("priority", e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 cursor-pointer font-medium"
+                  >
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* No. of Vacancies */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">No. of Vacancies</label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 1"
+                  value={formData.noOfVacancy}
+                  onChange={(e) => handleChange("noOfVacancy", e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 font-medium"
+                />
+              </div>
             </div>
 
-            {/* Profile / Designation & Category */}
+            {/* Category & Profile / Designation */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Profile / Designation <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => handleChange("category", e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 cursor-pointer font-medium"
+                >
+                  <option value="IT">IT</option>
+                  <option value="Non IT">Non IT</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-gray-700 block">Profile / Designation</label>
                 <input
                   type="text"
                   placeholder="e.g. Senior Frontend Developer"
@@ -279,79 +323,85 @@ function AddSingleVacancy() {
                   <p className="text-red-600 text-xs font-semibold mt-1">{errors.profile}</p>
                 )}
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => handleChange("category", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 cursor-pointer font-medium"
-                >
-                  <option value="IT">IT</option>
-                  <option value="Non IT">Non IT</option>
-                </select>
-              </div>
             </div>
 
-            {/* Job Location: City (First) & State (Auto Selected) */}
+            {/* Job Location: State & City */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* City */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location City <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  list="city-options"
-                  placeholder="Enter city (e.g. Mumbai, Pune, Bengaluru)"
-                  value={formData.city}
-                  onChange={(e) => handleChange("city", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 ${
-                    errors.city ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
-                  }`}
-                />
-                {citiesList.length > 0 && (
-                  <datalist id="city-options">
-                    {citiesList.map((ct) => (
-                      <option key={ct} value={ct} />
+              {/* State (Auto Detected or Manual Dropdown) */}
+              <div className="space-y-1 relative" tabIndex={0} onBlur={(e) => { if(!e.currentTarget.contains(e.relatedTarget)) setIsStateOpen(false); }}>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location State</label>
+                <div
+                  onClick={() => setIsStateOpen(!isStateOpen)}
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm font-medium bg-slate-50/50 cursor-pointer flex justify-between items-center transition-all ${
+                    errors.state ? "border-red-500" : "border-gray-200"
+                  } ${isStateOpen ? "ring-2 ring-purple-400 border-purple-400" : ""}`}
+                >
+                  <span className={formData.state ? "text-gray-900 font-bold" : "text-gray-500"}>
+                    {formData.state || (loadingStates ? "Loading States..." : "Select State")}
+                  </span>
+                  <svg className={`w-4 h-4 text-gray-500 transition-transform ${isStateOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                
+                {isStateOpen && (
+                  <div className="absolute z-[99] w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] max-h-[260px] overflow-y-auto top-[100%] left-0 py-1">
+                    {(statesList.length > 0 ? statesList : [
+                      "Andhra Pradesh", "Delhi", "Gujarat", "Haryana", "Karnataka",
+                      "Maharashtra", "Tamil Nadu", "Telangana", "Uttar Pradesh", "West Bengal"
+                    ]).map((st) => (
+                      <div
+                        key={st}
+                        className="px-4 py-2.5 text-[13px] font-semibold cursor-pointer hover:bg-purple-50 hover:text-purple-700 text-gray-700 transition"
+                        onClick={() => {
+                          handleChange("state", st);
+                          setIsStateOpen(false);
+                        }}
+                      >
+                        {st}
+                      </div>
                     ))}
-                  </datalist>
+                  </div>
+                )}
+                {errors.state && (
+                  <p className="text-red-600 text-xs font-semibold mt-1">{errors.state}</p>
+                )}
+              </div>
+
+              <div className="space-y-1 relative" tabIndex={0} onBlur={(e) => { if(!e.currentTarget.contains(e.relatedTarget)) setIsCityOpen(false); }}>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location City</label>
+                <div
+                  onClick={() => setIsCityOpen(!isCityOpen)}
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm font-medium bg-slate-50/50 cursor-pointer flex justify-between items-center transition-all ${
+                    errors.city ? "border-red-500" : "border-gray-200"
+                  } ${isCityOpen ? "ring-2 ring-purple-400 border-purple-400" : ""}`}
+                >
+                  <span className={formData.city ? "text-gray-900 font-bold" : "text-gray-500"}>
+                    {formData.city || "Enter city (e.g. Mumbai, Pune, Bengaluru)"}
+                  </span>
+                  <svg className={`w-4 h-4 text-gray-500 transition-transform ${isCityOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                
+                {isCityOpen && (
+                  <div className="absolute z-[99] w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] max-h-[260px] overflow-y-auto top-[100%] left-0 py-1">
+                    {citiesList.length === 0 ? (
+                      <div className="px-4 py-3 text-[13px] font-semibold text-gray-400 italic">Please select a state first</div>
+                    ) : (
+                      citiesList.map((ct) => (
+                        <div
+                          key={ct}
+                          className="px-4 py-2.5 text-[13px] font-semibold cursor-pointer hover:bg-purple-50 hover:text-purple-700 text-gray-700 transition"
+                          onClick={() => {
+                            handleChange("city", ct);
+                            setIsCityOpen(false);
+                          }}
+                        >
+                          {ct}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 )}
                 {errors.city && (
                   <p className="text-red-600 text-xs font-semibold mt-1">{errors.city}</p>
-                )}
-              </div>
-
-              {/* State (Auto Detected or Manual Dropdown) */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Job Location State <span className="text-red-500">*</span></label>
-                <select
-                  value={formData.state}
-                  onChange={(e) => handleChange("state", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 font-medium bg-slate-50/50 cursor-pointer ${
-                    errors.state ? "border-red-500 focus:ring-red-400" : "border-gray-200 focus:ring-purple-400"
-                  }`}
-                >
-                  <option value="">{loadingStates ? "Loading States..." : "Select State"}</option>
-                  {statesList.map((st) => (
-                    <option key={st} value={st}>{st}</option>
-                  ))}
-                  {/* Fallback if API list is empty */}
-                  {statesList.length === 0 && (
-                    <>
-                      <option value="Andhra Pradesh">Andhra Pradesh</option>
-                      <option value="Delhi">Delhi</option>
-                      <option value="Gujarat">Gujarat</option>
-                      <option value="Haryana">Haryana</option>
-                      <option value="Karnataka">Karnataka</option>
-                      <option value="Maharashtra">Maharashtra</option>
-                      <option value="Tamil Nadu">Tamil Nadu</option>
-                      <option value="Telangana">Telangana</option>
-                      <option value="Uttar Pradesh">Uttar Pradesh</option>
-                      <option value="West Bengal">West Bengal</option>
-                    </>
-                  )}
-                </select>
-                {errors.state && (
-                  <p className="text-red-600 text-xs font-semibold mt-1">{errors.state}</p>
                 )}
               </div>
             </div>
@@ -360,7 +410,7 @@ function AddSingleVacancy() {
             {/* Technology / Skill & Experience */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Technology / Skill <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Technology / Skill</label>
                 <input
                   type="text"
                   placeholder="e.g. React, Node.js, Python, Figma"
@@ -376,7 +426,7 @@ function AddSingleVacancy() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Experience <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Experience</label>
                 <select
                   value={formData.experience}
                   onChange={(e) => handleChange("experience", e.target.value)}
@@ -401,7 +451,7 @@ function AddSingleVacancy() {
             {/* Work Mode & Job Type */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Work Mode <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Work Mode</label>
                 <select
                   value={formData.workMode}
                   onChange={(e) => handleChange("workMode", e.target.value)}
@@ -419,7 +469,7 @@ function AddSingleVacancy() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Job Type <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Job Type</label>
                 <select
                   value={formData.jobType}
                   onChange={(e) => handleChange("jobType", e.target.value)}
@@ -440,7 +490,7 @@ function AddSingleVacancy() {
             {/* Salary Range & Deadline Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Salary Range :- <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Salary Range :-</label>
                 <input
                   type="text"
                   placeholder="e.g. ₹5,000 - ₹10,000 / month or 6-8 LPA"
@@ -456,7 +506,7 @@ function AddSingleVacancy() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-gray-700 block">Deadline (Date) <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold uppercase text-gray-700 block">Deadline (Date)</label>
                 <input
                   type="date"
                   value={formData.deadline}
@@ -471,22 +521,11 @@ function AddSingleVacancy() {
               </div>
             </div>
 
-            {/* No. of Vacancies */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold uppercase text-gray-700 block">No. of Vacancies</label>
-              <input
-                type="number"
-                min="1"
-                placeholder="e.g. 1"
-                value={formData.noOfVacancy}
-                onChange={(e) => handleChange("noOfVacancy", e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-slate-50/50 font-medium"
-              />
-            </div>
+
 
             {/* Job Description & Requirements */}
             <div className="space-y-1">
-              <label className="text-xs font-bold uppercase text-gray-700 block">Job Description & Requirements <span className="text-red-500">*</span></label>
+              <label className="text-xs font-bold uppercase text-gray-700 block">Job Description & Requirements</label>
               <textarea
                 rows={4}
                 placeholder="Enter detailed job requirements..."
@@ -506,16 +545,27 @@ function AddSingleVacancy() {
               <button
                 type="button"
                 onClick={() => navigate("/current-vacancy")}
-                className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition cursor-pointer"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition shadow-sm flex gap-2 items-center cursor-pointer"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition shadow-sm flex gap-2 items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Plus size={18} />
-                Save Vacancy
+                {isSubmitting ? (
+                  <>
+                    <Clock size={18} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Plus size={18} />
+                    Save Vacancy
+                  </>
+                )}
               </button>
             </div>
 
