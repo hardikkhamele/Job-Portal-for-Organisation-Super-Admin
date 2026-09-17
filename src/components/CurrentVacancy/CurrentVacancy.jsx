@@ -29,6 +29,7 @@ import {
 import Footer from "../Footer";
 import Breadcrumb from "../common/Breadcrumb";
 import { getVacancies, saveVacancies, addVacancy } from "./vacancyStore";
+import { getVacancyStatsApi } from "./vacancyApi";
 
 const stateOptions = [
   "Andhra Pradesh", "Delhi", "Gujarat", "Karnataka", "Maharashtra",
@@ -53,8 +54,24 @@ function CurrentVacancy() {
   const [vacancies, setVacancies] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [dashStats, setDashStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
+
+  // Fetch Dashboard Statistics API
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const statsData = await getVacancyStatsApi();
+        if (statsData) {
+          setDashStats(statsData);
+        }
+      } catch (err) {
+        console.error("Failed to load vacancy stats:", err);
+      }
+    };
+    loadStats();
+  }, []);
 
   // Read URL search params in lowercase
   const statusFilter = (searchParams.get("status") || "all").toLowerCase();
@@ -167,14 +184,15 @@ function CurrentVacancy() {
     fetchVacancies();
   }, [currentPage, searchQuery, categoryFilter, workModeFilter, statusFilter, priorityFilter, deadlineFrom, deadlineTo]);
 
-  // Stats Counts (from current visible page limit due to lack of a stats endpoint)
-  const openCount = useMemo(() => vacancies.filter((v) => (v.status || "active").toLowerCase() === "active").length, [vacancies]);
-  const closedCount = useMemo(() => vacancies.filter((v) => (v.status || "").toLowerCase() !== "active").length, [vacancies]);
-  const itCount = useMemo(() => vacancies.filter((v) => (v.category || "").toLowerCase() === "it").length, [vacancies]);
-  const nonItCount = useMemo(() => vacancies.filter((v) => (v.category || "").toLowerCase().includes("non")).length, [vacancies]);
-  const highPriorityCount = useMemo(() => vacancies.filter((v) => (v.priority || "").toLowerCase() === "high").length, [vacancies]);
-  const mediumPriorityCount = useMemo(() => vacancies.filter((v) => (v.priority || "").toLowerCase() === "medium").length, [vacancies]);
-  const lowPriorityCount = useMemo(() => vacancies.filter((v) => (v.priority || "").toLowerCase() === "low").length, [vacancies]);
+  // Stats Counts - Preferred from API (Get Vacancy Dashboard Statistics API), fallback to computed list
+  const openCount = dashStats?.openVacancy ?? dashStats?.open ?? vacancies.filter((v) => (v.status || "active").toLowerCase() === "active").length;
+  const closedCount = dashStats?.closedVacancy ?? dashStats?.closed ?? vacancies.filter((v) => (v.status || "").toLowerCase() !== "active").length;
+  const itCount = dashStats?.itVacancy ?? dashStats?.it ?? vacancies.filter((v) => (v.category || "").toLowerCase() === "it").length;
+  const nonItCount = dashStats?.nonItVacancy ?? dashStats?.nonIt ?? vacancies.filter((v) => (v.category || "").toLowerCase().includes("non")).length;
+  const highPriorityCount = dashStats?.priority?.high ?? vacancies.filter((v) => (v.priority || "").toLowerCase() === "high").length;
+  const mediumPriorityCount = dashStats?.priority?.medium ?? vacancies.filter((v) => (v.priority || "").toLowerCase() === "medium").length;
+  const lowPriorityCount = dashStats?.priority?.low ?? vacancies.filter((v) => (v.priority || "").toLowerCase() === "low").length;
+  const displayTotalCount = dashStats?.totalVacancy ?? dashStats?.total ?? totalCount;
 
   // API handles filtering and pagination
   const filteredVacancies = vacancies;
@@ -398,7 +416,7 @@ function CurrentVacancy() {
           >
             <div className="flex flex-col">
               <span className="text-xs font-semibold text-gray-500">Total Vacancy</span>
-              <span className="text-2xl font-bold text-purple-700 mt-1">{totalCount}</span>
+              <span className="text-2xl font-bold text-purple-700 mt-1">{displayTotalCount}</span>
               <div className="flex items-center gap-1 mt-1.5 text-[11px] text-purple-600 font-medium">
                 <BarChart3 size={13} />
                 <span>View All</span>
