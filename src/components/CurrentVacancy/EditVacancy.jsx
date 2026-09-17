@@ -249,7 +249,7 @@ function EditVacancy() {
 
   return (
     <div className="w-full bg-[#F4F6FA] min-h-screen p-4 flex flex-col justify-between">
-      <div className="w-full flex flex-col gap-4">
+      <div className="w-full flex flex-col gap-4 mb-10">
         
         {/* --- BREADCRUMB --- */}
         <Breadcrumb items={[
