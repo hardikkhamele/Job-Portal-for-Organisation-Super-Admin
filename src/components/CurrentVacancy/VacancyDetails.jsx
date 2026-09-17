@@ -318,24 +318,23 @@ function VacancyDetails() {
       <div className="max-w-7xl mx-auto w-full flex flex-col gap-5">
         
         {/* --- HEADER --- */}
-        <div className="bg-white rounded-xl shadow-sm p-6 cursor-pointer">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer">
+        <div className="bg-white rounded-xl shadow-sm p-4 px-6 cursor-pointer">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer">
             <div className="cursor-pointer">
-              <h4 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3 cursor-pointer">
+              <h4 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-3 cursor-pointer">
                 <button
                   onClick={() => navigate("/current-vacancy")}
-                  className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition cursor-pointer shadow-sm shrink-0"
+                  className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition cursor-pointer shadow-sm shrink-0"
                 >
-                  <ArrowLeft size={18} />
+                  <ArrowLeft size={16} />
                 </button>
                 Submitted Applications
               </h4>
-              <p className="text-xs text-gray-500 mt-1 ml-12 cursor-pointer">
+              <p className="text-xs text-gray-500 mt-0.5 ml-11 cursor-pointer">
                 Candidate applications for vacancy profile: <span className="text-gray-900 font-semibold cursor-pointer">{currentVacancy.profile}</span>
               </p>
             </div>
           </div>
-          <hr className="border-gray-200 mt-4" />
         </div>
 
         {/* --- VACANCY DETAILS CARD --- */}
