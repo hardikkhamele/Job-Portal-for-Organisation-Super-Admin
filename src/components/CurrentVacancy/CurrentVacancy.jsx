@@ -591,25 +591,25 @@ function CurrentVacancy() {
           <div className="overflow-x-auto px-6 pb-0">
             <table className="w-full text-sm border-collapse rounded-t-xl overflow-hidden table-fixed">
               <colgroup>
-                <col className="w-[40px]" />
+                <col className="w-[4%]" />
+                <col className="w-[12%]" />
+                <col className="w-[18%]" />
+                <col className="w-[11%]" />
                 <col className="w-[10%]" />
-                <col className="w-[15%]" />
-                <col className="w-[10%]" />
-                <col className="w-[9%]" />
-                <col className="w-[6%]" />
-                <col className="w-[8%]" />
-                <col className="w-[6%]" />
-                <col className="w-[8%]" />
-                <col className="w-[9%]" />
                 <col className="w-[7%]" />
+                <col className="w-[8%]" />
+                <col className="w-[7%]" />
+                <col className="w-[9%]" />
+                <col className="w-[8%]" />
+                <col className="w-[6%]" />
               </colgroup>
               <thead>
-                <tr className="bg-purple-600 text-white">
+                <tr className="bg-purple-600 text-white divide-x divide-purple-400/60">
                   <th className="py-3 px-2 font-bold text-left text-[11px] uppercase tracking-wider rounded-tl-xl">Sr.</th>
-                  <th className="py-3 px-2 font-bold text-left text-[11px] uppercase tracking-wider">Category</th>
-                  <th className="py-3 px-2 font-bold text-left text-[11px] uppercase tracking-wider">Profile / Designation</th>
-                  <th className="py-3 px-2 font-bold text-left text-[11px] uppercase tracking-wider">State</th>
-                  <th className="py-3 px-2 font-bold text-left text-[11px] uppercase tracking-wider">City</th>
+                  <th className="py-3 px-3 font-bold text-left text-[11px] uppercase tracking-wider">Category</th>
+                  <th className="py-3 px-3 font-bold text-left text-[11px] uppercase tracking-wider">Profile / Designation</th>
+                  <th className="py-3 px-3 font-bold text-left text-[11px] uppercase tracking-wider">State</th>
+                  <th className="py-3 px-3 font-bold text-left text-[11px] uppercase tracking-wider">City</th>
                   <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider">Vacancy</th>
                   <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider">Priority</th>
                   <th className="py-3 px-2 font-bold text-center text-[11px] uppercase tracking-wider">Applied</th>
