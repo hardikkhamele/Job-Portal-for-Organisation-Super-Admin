@@ -417,7 +417,7 @@ function CurrentVacancy() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
 
           {/* Filters + Search */}
-          <div className="p-6 pb-4">
+          <div className="px-6 pt-5 pb-3">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Search input with URL sync */}
               <div className="relative w-full md:w-80">
@@ -687,26 +687,28 @@ function CurrentVacancy() {
                       {/* Category */}
                       <td className="py-3.5 px-2">
                         <div className="flex flex-col min-w-0">
-                          <span className={`font-bold text-xs truncate ${v.category === "IT" ? "text-purple-700" : "text-orange-700"}`}>
+                          <span className={`font-bold text-xs truncate block ${v.category === "IT" ? "text-purple-700" : "text-orange-700"}`} title={v.category}>
                             {v.category}
                           </span>
-                          <span className="text-[10px] text-gray-400 mt-0.5 truncate">{v.subCategory}</span>
+                          <span className="text-[10px] text-gray-400 mt-0.5 truncate block" title={Array.isArray(v.subCategory) ? v.subCategory.join(", ") : (v.subCategory || "")}>
+                            {Array.isArray(v.subCategory) ? v.subCategory.join(", ") : (v.subCategory || "")}
+                          </span>
                         </div>
                       </td>
 
                       {/* Profile / Designation */}
                       <td className="py-3.5 px-2">
                         <div className="flex flex-col min-w-0">
-                          <span className="font-semibold text-xs text-purple-700 truncate">{v.designation || v.profile}</span>
-                          <span className="text-[10px] text-gray-400 mt-0.5 truncate">ID: {v.vacancyId}</span>
+                          <span className="font-semibold text-xs text-purple-700 truncate block" title={v.designation || v.profile}>{v.designation || v.profile}</span>
+                          <span className="text-[10px] text-gray-400 mt-0.5 truncate block">ID: {v.vacancyId}</span>
                         </div>
                       </td>
 
                       {/* State */}
-                      <td className="py-3.5 px-2 font-medium text-gray-800 text-xs truncate">{v.state}</td>
+                      <td className="py-3.5 px-2 font-medium text-gray-800 text-xs truncate" title={v.state}>{v.state}</td>
 
                       {/* City */}
-                      <td className="py-3.5 px-2 font-medium text-gray-800 text-xs truncate">{v.city}</td>
+                      <td className="py-3.5 px-2 font-medium text-gray-800 text-xs truncate" title={v.city}>{v.city}</td>
 
                       {/* No. of Vacancy */}
                       <td className="py-3.5 px-2 text-center">
