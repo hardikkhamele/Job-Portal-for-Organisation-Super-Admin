@@ -23,6 +23,25 @@ const formatDateDDMMYYYY = (dateInput) => {
   return `${day}-${month}-${year}`;
 };
 
+const formatDateTimeDDMMYYYY12h = (dateInput) => {
+  if (!dateInput) return "N/A";
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return String(dateInput);
+  
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const strHours = String(hours).padStart(2, "0");
+
+  return `${day}-${month}-${year} ${strHours}:${minutes} ${ampm}`;
+};
+
 function VacancyDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -477,6 +496,7 @@ function VacancyDetails() {
                   <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Current Org</th>
                   <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Notice Period</th>
                   <th className="py-4 px-6 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Expected CTC</th>
+                  <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Applied Date & Time</th>
                   <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">CV / Resume</th>
                   <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
                   <th className="py-4 px-6 text-center text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Action</th>
@@ -529,6 +549,9 @@ function VacancyDetails() {
                     </td>
                     <td className="py-4 px-6 align-middle font-bold text-gray-800 text-[13px] whitespace-nowrap">
                       {candidate.expectedCTC || "N/A"}
+                    </td>
+                    <td className="py-4 px-6 align-middle text-center font-semibold text-gray-700 text-[12px] whitespace-nowrap">
+                      {formatDateTimeDDMMYYYY12h(candidate.createdAt || candidate.appliedDate || candidate.appliedAt || candidate.createdDate || candidate.date)}
                     </td>
                     <td className="py-4 px-6 align-middle text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       {candidate.resumeLink ? (
