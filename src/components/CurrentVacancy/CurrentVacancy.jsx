@@ -587,8 +587,8 @@ function CurrentVacancy() {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto px-6 pb-0">
-            <table className="w-full text-sm border-collapse rounded-t-xl overflow-hidden table-fixed">
+          <div className="overflow-x-auto px-3 sm:px-6 pb-0 max-w-full">
+            <table className="w-full text-sm border-collapse rounded-t-xl overflow-hidden table-fixed min-w-[900px]">
               <colgroup>
                 <col className="w-[4%]" />
                 <col className="w-[12%]" />

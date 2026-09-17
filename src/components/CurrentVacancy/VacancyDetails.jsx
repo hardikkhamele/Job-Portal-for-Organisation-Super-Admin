@@ -484,8 +484,8 @@ function VacancyDetails() {
         </div>
         {/* --- CANDIDATES TABLE --- */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-1">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left w-full table-auto">
+          <div className="overflow-x-auto max-w-full">
+            <table className="w-full text-sm text-left table-auto min-w-[850px]">
               <thead>
                 <tr className="bg-purple-600 border-b border-purple-700">
                   <th className="py-3.5 px-4 text-left text-[11px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap">Sr.</th>
