@@ -477,7 +477,7 @@ function CurrentVacancy() {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <span className="text-gray-500 font-medium whitespace-nowrap text-xs">Deadline:</span>
+                  <span className="text-gray-500 font-medium whitespace-nowrap text-xs">From:</span>
                   <input
                     type="date"
                     value={deadlineFrom}
