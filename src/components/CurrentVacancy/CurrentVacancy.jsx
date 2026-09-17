@@ -593,14 +593,14 @@ function CurrentVacancy() {
               <colgroup>
                 <col className="w-[4%]" />
                 <col className="w-[12%]" />
-                <col className="w-[18%]" />
+                <col className="w-[20%]" />
                 <col className="w-[11%]" />
-                <col className="w-[10%]" />
+                <col className="w-[7%]" />
                 <col className="w-[7%]" />
                 <col className="w-[8%]" />
                 <col className="w-[7%]" />
                 <col className="w-[9%]" />
-                <col className="w-[8%]" />
+                <col className="w-[9%]" />
                 <col className="w-[6%]" />
               </colgroup>
               <thead>
