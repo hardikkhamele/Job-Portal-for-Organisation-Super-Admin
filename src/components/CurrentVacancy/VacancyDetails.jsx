@@ -6,6 +6,23 @@ import logo from "../../assets/Logo.svg";
 import Footer from "../Footer";
 import Breadcrumb from "../common/Breadcrumb";
 
+const formatDateDDMMYYYY = (dateInput) => {
+  if (!dateInput) return "N/A";
+  if (typeof dateInput === "string") {
+    const cleanStr = dateInput.split("T")[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+      const [year, month, day] = cleanStr.split("-");
+      return `${day}-${month}-${year}`;
+    }
+  }
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return String(dateInput);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
 function VacancyDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -321,7 +338,7 @@ function VacancyDetails() {
             </span>
             <span className="bg-gray-50 rounded-lg px-4 py-2 text-[13px] font-semibold text-gray-700 flex items-center gap-2 border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-100 transition">
               <Calendar size={15} className="text-gray-400" />
-              Deadline: {currentVacancy.deadline ? new Date(currentVacancy.deadline).toISOString().split('T')[0] : "N/A"}
+              Deadline: {formatDateDDMMYYYY(currentVacancy.deadline)}
             </span>
           </div>
         </div>

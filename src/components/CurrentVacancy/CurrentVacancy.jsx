@@ -661,8 +661,22 @@ function CurrentVacancy() {
                   </tr>
                 ) : (
                   paginatedVacancies.map((v, idx) => {
-                    const deadlineDate = v.deadline ? new Date(v.deadline) : null;
-                    const formattedDeadline = deadlineDate ? `${String(deadlineDate.getDate()).padStart(2,'0')}/${String(deadlineDate.getMonth()+1).padStart(2,'0')}/${String(deadlineDate.getFullYear()).slice(-2)}` : '';
+                    const formattedDeadline = (() => {
+                      if (!v.deadline) return "";
+                      if (typeof v.deadline === "string") {
+                        const cleanStr = v.deadline.split("T")[0];
+                        if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+                          const [year, month, day] = cleanStr.split("-");
+                          return `${day}-${month}-${year}`;
+                        }
+                      }
+                      const d = new Date(v.deadline);
+                      if (isNaN(d.getTime())) return String(v.deadline);
+                      const day = String(d.getDate()).padStart(2, "0");
+                      const month = String(d.getMonth() + 1).padStart(2, "0");
+                      const year = d.getFullYear();
+                      return `${day}-${month}-${year}`;
+                    })();
                     return (
                     <tr
                       key={v._id || idx}
