@@ -10,7 +10,14 @@ import {
   BarChart3,
   Plus,
   ClipboardList,
-  X
+  X,
+  RefreshCw,
+  UserX,
+  ThumbsDown,
+  PauseCircle,
+  Calendar,
+  CalendarDays,
+  CalendarCheck
 } from "lucide-react";
 import Breadcrumb from "../common/Breadcrumb";
 import Footer from "../Footer";
@@ -30,6 +37,7 @@ function HRManagement() {
   const workModeFilter = searchParams.get("workMode") || "all";
   const statusFilter = searchParams.get("status") || "all";
   const statBoxFilter = searchParams.get("statBox") || "all";
+  const dateAnalyticsFilter = searchParams.get("dateAnalytics") || "today";
   const sortField = searchParams.get("sortField") || "name";
   const sortDirection = searchParams.get("sortDirection") || "asc";
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
@@ -54,22 +62,39 @@ function HRManagement() {
 
   const removeFilter = (key) => updateParams({ [key]: "all" });
 
+  // Artificial Temporal Modifier for Mock Data switching
+  const dateModifier = dateAnalyticsFilter === "yesterday" ? 0.8 : dateAnalyticsFilter === "day_before_yesterday" ? 0.7 : dateAnalyticsFilter === "current_week" ? 5 : dateAnalyticsFilter === "previous_week" ? 4.5 : 1;
+
   // Computed Stats — from full dataset
   const totalHR = hrPerformanceData.length;
   const activeHR = hrPerformanceData.filter((h) => h.isActiveToday).length;
-  const totalOnboarded = hrPerformanceData.reduce(
+  
+  const totalOnboarded = Math.floor(hrPerformanceData.reduce(
     (sum, h) => sum + h.candidatesOnboarded,
     0
-  );
-  const totalVacancyFilled = hrPerformanceData.reduce(
+  ) * dateModifier);
+  
+  const totalVacancyFilled = Math.floor(hrPerformanceData.reduce(
     (sum, h) => sum + h.vacanciesFilled,
     0
-  );
+  ) * dateModifier);
+  
   // Fake calculation for pending vacancies across all HRs
-  const totalPendingVacancy = hrPerformanceData.reduce(
+  const totalPendingVacancy = Math.floor(hrPerformanceData.reduce(
     (sum, h) => sum + ((h.id % 5) + 3),
     0
-  );
+  ) * dateModifier);
+
+  // Fake calculations for candidate statuses across all HRs
+  const totalProcessing = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 4) + 5, 0) * dateModifier);
+  const totalSelected = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 3) + 3, 0) * dateModifier);
+  const totalRejected = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 5) + 2, 0) * dateModifier);
+  const totalNotInterested = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 2) + 4, 0) * dateModifier);
+  const totalOnBoardingStat = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 4) + 1, 0) * dateModifier);
+  const totalOnHold = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 3) + 2, 0) * dateModifier);
+  const totalTodayJoining = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 2) + 1, 0) * dateModifier);
+  const totalTomorrowJoining = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 3) + 1, 0) * dateModifier);
+  const totalInAWeek = Math.floor(hrPerformanceData.reduce((sum, h) => sum + (h.id % 5) + 3, 0) * dateModifier);
 
   // Filtered + Sorted Data
   const filteredData = useMemo(() => {
@@ -139,7 +164,7 @@ function HRManagement() {
   const handleSortChange = (field, dir) => updateParams({ sortField: field, sortDirection: dir });
 
   // Chip logic
-  const hasActiveFilters = searchQuery || workModeFilter !== "all" || statusFilter !== "all" || statBoxFilter !== "all";
+  const hasActiveFilters = searchQuery || workModeFilter !== "all" || statusFilter !== "all" || statBoxFilter !== "all" || dateAnalyticsFilter !== "today";
 
   return (
     <div className="w-full bg-[#F4F6FA] p-3 pb-20 min-h-screen flex flex-col justify-between">
@@ -177,16 +202,60 @@ function HRManagement() {
 
           <hr className="border-gray-200 mt-4 mb-5" />
 
-          {/* --- 5 STAT CARDS --- */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          {/* --- DATE ANALYTICS --- */}
+          <div className="flex flex-wrap items-center gap-1.5 mb-5 bg-gray-50/70 p-1.5 rounded-xl border border-gray-100 self-start w-fit">
+            <button
+              onClick={() => updateParams({ dateAnalytics: "today" })}
+              className={`px-4 py-2 rounded-lg text-[13px] font-bold transition flex-1 sm:flex-none ${
+                dateAnalyticsFilter === "today" ? "bg-white text-purple-700 shadow-sm border border-gray-200" : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => updateParams({ dateAnalytics: "yesterday" })}
+              className={`px-4 py-2 rounded-lg text-[13px] font-bold transition flex-1 sm:flex-none ${
+                dateAnalyticsFilter === "yesterday" ? "bg-white text-purple-700 shadow-sm border border-gray-200" : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+              }`}
+            >
+              Yesterday
+            </button>
+            <button
+              onClick={() => updateParams({ dateAnalytics: "day_before_yesterday" })}
+              className={`px-4 py-2 rounded-lg text-[13px] font-bold transition flex-1 sm:flex-none whitespace-nowrap ${
+                dateAnalyticsFilter === "day_before_yesterday" ? "bg-white text-purple-700 shadow-sm border border-gray-200" : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+              }`}
+            >
+              Day Before Yesterday
+            </button>
+            <button
+              onClick={() => updateParams({ dateAnalytics: "current_week" })}
+              className={`px-4 py-2 rounded-lg text-[13px] font-bold transition flex-1 sm:flex-none ${
+                dateAnalyticsFilter === "current_week" ? "bg-white text-purple-700 shadow-sm border border-gray-200" : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+              }`}
+            >
+              Current Week
+            </button>
+            <button
+              onClick={() => updateParams({ dateAnalytics: "previous_week" })}
+              className={`px-4 py-2 rounded-lg text-[13px] font-bold transition flex-1 sm:flex-none ${
+                dateAnalyticsFilter === "previous_week" ? "bg-white text-purple-700 shadow-sm border border-gray-200" : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+              }`}
+            >
+              Previous Week
+            </button>
+          </div>
+
+          {/* --- 10 STAT CARDS --- */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
             <StatCard
               icon={<Users size={22} />}
               label="Total HR"
               value={totalHR}
               subText="All recruiters"
               colorClass="purple"
-              isActive={statBoxFilter === "all"}
-              onClick={() => updateParams({ statBox: "all" })}
+              isActive={statBoxFilter === "total_hr"}
+              onClick={() => updateParams({ statBox: "total_hr" })}
             />
             <StatCard
               icon={<UserCheck size={22} />}
@@ -194,37 +263,84 @@ function HRManagement() {
               value={activeHR}
               subText="Currently working"
               colorClass="emerald"
-              isActive={statBoxFilter === "active"}
-              onClick={() => updateParams({ statBox: "active" })}
+              isActive={statBoxFilter === "active_hr"}
+              onClick={() => updateParams({ statBox: "active_hr" })}
+            />
+            <StatCard
+              icon={<RefreshCw size={22} />}
+              label="Processing"
+              value={totalProcessing}
+              subText="Currently processing"
+              colorClass="blue"
+              isActive={statBoxFilter === "processing"}
+              onClick={() => updateParams({ statBox: "processing" })}
             />
             <StatCard
               icon={<UserPlus size={22} />}
-              label="Total Onboarded"
-              value={totalOnboarded}
-              subText="Candidates onboarded"
-              colorClass="blue"
-              isActive={statBoxFilter === "onboarded"}
-              onClick={() => updateParams({ statBox: "onboarded" })}
+              label="Onboarding"
+              value={totalOnBoardingStat}
+              subText="Currently onboarding"
+              colorClass="emerald"
+              isActive={statBoxFilter === "on_boarding"}
+              onClick={() => updateParams({ statBox: "on_boarding" })}
             />
             <StatCard
-              icon={<Briefcase size={22} />}
-              label="Filled Vacancy"
-              value={totalVacancyFilled}
-              subText="Positions filled"
-              colorClass="amber"
-              isActive={statBoxFilter === "filled"}
-              onClick={() => updateParams({ statBox: "filled" })}
-            />
-            <StatCard
-              icon={<ClipboardList size={22} />}
-              label="Pending Vacancy"
-              value={totalPendingVacancy}
-              subText="Awaiting fulfillment"
+              icon={<UserX size={22} />}
+              label="Rejected"
+              value={totalRejected}
+              subText="Candidates rejected"
               colorClass="pink"
-              isActive={statBoxFilter === "pending"}
-              onClick={() => updateParams({ statBox: "pending" })}
+              isActive={statBoxFilter === "rejected"}
+              onClick={() => updateParams({ statBox: "rejected" })}
+            />
+            <StatCard
+              icon={<ThumbsDown size={22} />}
+              label="Not Interested"
+              value={totalNotInterested}
+              subText="Candidates not interested"
+              colorClass="amber"
+              isActive={statBoxFilter === "not_interested"}
+              onClick={() => updateParams({ statBox: "not_interested" })}
+            />
+            <StatCard
+              icon={<PauseCircle size={22} />}
+              label="On Hold"
+              value={totalOnHold}
+              subText="Candidates on hold"
+              colorClass="blue"
+              isActive={statBoxFilter === "on_hold"}
+              onClick={() => updateParams({ statBox: "on_hold" })}
+            />
+            <StatCard
+              icon={<Calendar size={22} />}
+              label="Today Joining"
+              value={totalTodayJoining}
+              subText="Joining today"
+              colorClass="purple"
+              isActive={statBoxFilter === "today_joining"}
+              onClick={() => updateParams({ statBox: "today_joining" })}
+            />
+            <StatCard
+              icon={<CalendarCheck size={22} />}
+              label="Tomorrow Joining"
+              value={totalTomorrowJoining}
+              subText="Joining tomorrow"
+              colorClass="amber"
+              isActive={statBoxFilter === "tomorrow_joining"}
+              onClick={() => updateParams({ statBox: "tomorrow_joining" })}
+            />
+            <StatCard
+              icon={<CalendarDays size={22} />}
+              label="In a Week"
+              value={totalInAWeek}
+              subText="Joining in a week"
+              colorClass="pink"
+              isActive={statBoxFilter === "in_a_week"}
+              onClick={() => updateParams({ statBox: "in_a_week" })}
             />
           </div>
+
+
         </div>
 
         {/* --- TABLE SECTION --- */}
@@ -283,6 +399,14 @@ function HRManagement() {
                   <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full text-[13px] font-semibold border border-purple-100 shadow-sm">
                     Stat: <span className="capitalize text-purple-800">{statBoxFilter}</span>
                     <button onClick={() => removeFilter("statBox")} className="hover:bg-purple-200 rounded-full p-0.5 transition cursor-pointer">
+                      <X size={13} />
+                    </button>
+                  </div>
+                )}
+                {dateAnalyticsFilter !== "today" && (
+                  <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full text-[13px] font-semibold border border-purple-100 shadow-sm">
+                    Date: <span className="capitalize text-purple-800">{dateAnalyticsFilter.replace("_", " ")}</span>
+                    <button onClick={() => removeFilter("dateAnalytics")} className="hover:bg-purple-200 rounded-full p-0.5 transition cursor-pointer">
                       <X size={13} />
                     </button>
                   </div>
