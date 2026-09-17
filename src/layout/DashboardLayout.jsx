@@ -15,6 +15,7 @@ import VerficationCandidate from "../components/CandidateManagement/VerficationC
 import Employee from "../components/EmployeeManagement/Employee"; // Dashboard UI
 import NotificationPage from "../components/NotificationPage";
 import HRManagement from "../components/HrManagment/HrManagment";
+import HRManagementOld from "../components/HrManagment/HrManagmentOld";
 import CreateHR from "../components/HrManagment/CreateHr";
 import EditHr from "../components/HrManagment/EditHr";
 import HRViewDetails from "../components/HrManagment/HRViewDetails";
@@ -142,7 +143,8 @@ function DashboardLayout() {
               element={<VerficationCandidate />}
             />
             <Route path="notification-page" element={<NotificationPage />} />
-            <Route path="/hr-management" element={<HRManagement />} />
+            <Route path="/hr-management" element={<HRManagementOld />} />
+            <Route path="/hr-management-new" element={<HRManagement />} />
             <Route path="/hr-management/create-hr" element={<CreateHR />} />
             <Route path="/hr-management/edit-hr/:id" element={<EditHr />} />
             <Route

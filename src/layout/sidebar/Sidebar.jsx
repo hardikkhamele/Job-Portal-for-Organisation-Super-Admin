@@ -426,7 +426,10 @@ const Sidebar = () => {
           <NavItem icon={<MdDashboard />} text="Dashboard" active={isActive("/dashboard")} onClick={() => handleNavigation("/dashboard")} />
           
           {/* 2. HR Management */}
-          <NavItem icon={<Users />} text="HR Management" active={window.location.pathname.startsWith("/hr-management")} onClick={() => handleNavigation("/hr-management")} />
+          <NavItem icon={<Users />} text="HR Management" active={window.location.pathname.startsWith("/hr-management") && !window.location.pathname.startsWith("/hr-management-new")} onClick={() => handleNavigation("/hr-management")} />
+
+          {/* 2.1 HR Management (NEW) */}
+          <NavItem icon={<Users />} text="HR Management (NEW)" active={window.location.pathname.startsWith("/hr-management-new")} onClick={() => handleNavigation("/hr-management-new")} />
 
           
           {/* 3. Employer Management */}

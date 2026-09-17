@@ -666,7 +666,7 @@ function CurrentVacancy() {
                     return (
                     <tr
                       key={v._id || idx}
-                      className="border-b border-gray-100 hover:bg-purple-50/30 transition-colors duration-150"
+                      className="border-b border-gray-100 hover:bg-purple-50/30 transition-colors duration-150 cursor-pointer"
                     >
                       {/* Sr */}
                       <td className="py-3.5 px-2 text-gray-600 font-semibold text-xs">
