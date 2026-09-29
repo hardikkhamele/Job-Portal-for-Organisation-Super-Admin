@@ -598,22 +598,7 @@ function CurrentVacancy() {
                   />
                 </div>
 
-                {/* Export Excel Button */}
-                <button
-                  onClick={handleExportExcelVacancies}
-                  disabled={selectedVacancyIds.length === 0}
-                  className={`font-semibold text-xs rounded-lg px-3.5 py-2 flex items-center gap-2 transition shrink-0 ${
-                    selectedVacancyIds.length > 0
-                      ? "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white cursor-pointer shadow-sm"
-                      : "bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed opacity-80"
-                  }`}
-                  title={selectedVacancyIds.length > 0 ? "Export selected entries to Excel sheet" : "Select at least one entry to export"}
-                >
-                  <FaFileExcel size={15} className={selectedVacancyIds.length > 0 ? "text-white shrink-0" : "text-gray-400 shrink-0"} />
-                  <span>
-                    Export Excel ({selectedVacancyIds.length})
-                  </span>
-                </button>
+
               </div>
             </div>
 
